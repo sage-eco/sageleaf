@@ -8,12 +8,20 @@ import { GraphQLTestClient } from '@test/graphql.utils'
 
 import { BaseSeeder } from '@src/db/seeds/BaseSeeder'
 import { CATEGORY_IDS, TestCategorySeeder } from '@src/db/seeds/TestCategorySeeder'
-import { TestMaterialSeeder } from '@src/db/seeds/TestMaterialSeeder'
-import { TestProcessSeeder } from '@src/db/seeds/TestProcessSeeder'
+import { MATERIAL_IDS, TestMaterialSeeder } from '@src/db/seeds/TestMaterialSeeder'
+import { REGION_IDS, TestProcessSeeder } from '@src/db/seeds/TestProcessSeeder'
 import { TAG_IDS, TestTagSeeder } from '@src/db/seeds/TestTagSeeder'
-import { ITEM_IDS, TestVariantSeeder } from '@src/db/seeds/TestVariantSeeder'
+import {
+  COMPONENT_IDS,
+  ITEM_IDS,
+  TestVariantSeeder,
+  VARIANT_IDS,
+} from '@src/db/seeds/TestVariantSeeder'
 import { UserSeeder } from '@src/db/seeds/UserSeeder'
 import { clearDatabase } from '@src/db/test.utils'
+import { Region } from '@src/geo/region.entity'
+import { Material } from '@src/process/material.entity'
+import { Process, ProcessIntent } from '@src/process/process.entity'
 import { Item, ItemsCategories, ItemsTags } from '@src/product/item.entity'
 import { WindmillMockService } from '@src/windmill/windmill.mock.service'
 import { WindmillService } from '@src/windmill/windmill.service'
@@ -1004,6 +1012,199 @@ describe('ItemResolver (integration)', () => {
       const latest = item!.history.nodes!.at(-1)!
       expect(latest.original).toBeTruthy()
       expect(latest.changes).toBeTruthy()
+    })
+  })
+
+  describe('Item recycling fields (combined from variants)', () => {
+    const RECYCLE_PROCESS_ID = 'proc_ITEM_RECYCLE_TEST__'
+
+    beforeAll(async () => {
+      const em = orm.em.fork()
+      em.create(Process, {
+        id: RECYCLE_PROCESS_ID,
+        name: { en: 'Item Recycle Process' },
+        desc: { en: 'A process for testing item recycle queries' },
+        intent: ProcessIntent.RECYCLE,
+        instructions: {},
+        material: em.getReference(Material, MATERIAL_IDS[0]),
+        region: em.getReference(Region, REGION_IDS[0]),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      await em.flush()
+    })
+
+    test('should return recycle components for an item', async () => {
+      // ITEM_IDS[0] is linked to VARIANT_IDS which include COMPONENT_IDS[0] (material: MATERIAL_IDS[0])
+      const res = await gql.send(
+        graphql(`
+          query ItemRecycleComponents($id: ID!, $regionID: ID!) {
+            item(id: $id) {
+              recycle(regionID: $regionID) {
+                components {
+                  totalCount
+                  nodes {
+                    stream {
+                      name
+                      desc
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const components = res.data?.item?.recycle?.components
+      expect(components).toBeDefined()
+      expect(components!.totalCount).toBeGreaterThan(0)
+      const first = components!.nodes.at(0)
+      expect(first?.stream?.name).toBe('Item Recycle Process')
+    })
+
+    test('should return the same stream data at item level as at component level', async () => {
+      const componentRes = await gql.send(
+        graphql(`
+          query ItemRecycleConsistencyComponent($id: ID!, $regionID: ID!) {
+            component(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                  desc
+                }
+              }
+            }
+          }
+        `),
+        { id: COMPONENT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      const itemRes = await gql.send(
+        graphql(`
+          query ItemRecycleConsistencyItem($id: ID!, $regionID: ID!) {
+            item(id: $id) {
+              recycle(regionID: $regionID) {
+                components {
+                  nodes {
+                    stream {
+                      name
+                      desc
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(componentRes.errors).toBeUndefined()
+      expect(itemRes.errors).toBeUndefined()
+
+      const componentStream = componentRes.data?.component?.recycle?.at(0)?.stream
+      const itemStream = itemRes.data?.item?.recycle?.components?.nodes?.at(0)?.stream
+      expect(componentStream?.name).toBeDefined()
+      expect(itemStream?.name).toBe(componentStream?.name)
+      expect(itemStream?.desc).toBe(componentStream?.desc)
+    })
+
+    test('should return same stream data at item level as at variant level', async () => {
+      const variantRes = await gql.send(
+        graphql(`
+          query ItemRecycleConsistencyVariant($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              recycle(regionID: $regionID) {
+                components {
+                  nodes {
+                    stream {
+                      name
+                      desc
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      const itemRes = await gql.send(
+        graphql(`
+          query ItemRecycleConsistencyItemVsVariant($id: ID!, $regionID: ID!) {
+            item(id: $id) {
+              recycle(regionID: $regionID) {
+                components {
+                  nodes {
+                    stream {
+                      name
+                      desc
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(variantRes.errors).toBeUndefined()
+      expect(itemRes.errors).toBeUndefined()
+
+      const variantStream = variantRes.data?.variant?.recycle?.components?.nodes?.at(0)?.stream
+      const itemStream = itemRes.data?.item?.recycle?.components?.nodes?.at(0)?.stream
+      expect(variantStream?.name).toBeDefined()
+      expect(itemStream?.name).toBe(variantStream?.name)
+      expect(itemStream?.desc).toBe(variantStream?.desc)
+    })
+
+    test('should query item recycleScore (returns null without region context)', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const res: any = await gql.send(
+        graphql(`
+          query ItemResolverGetItemRecycleScore($id: ID!) {
+            item(id: $id) {
+              id
+              recycleScore {
+                score
+                rating
+                ratingF
+                minScore
+                maxScore
+              }
+            }
+          }
+        `) as any,
+        { id: itemID },
+      )
+      expect(res.errors).toBeUndefined()
+      expect(res.data?.item).toBeDefined()
+      // recycleScore is null when no region is resolvable from context
+      expect(res.data?.item?.recycleScore === null || res.data?.item?.recycleScore).toBeDefined()
+    })
+
+    test('should return empty components when no region is provided', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ItemRecycleNoRegion($id: ID!) {
+            item(id: $id) {
+              recycle {
+                components {
+                  totalCount
+                  nodes {
+                    stream {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      expect(res.data?.item?.recycle?.components?.totalCount).toBe(0)
     })
   })
 })

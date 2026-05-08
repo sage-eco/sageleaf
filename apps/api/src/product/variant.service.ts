@@ -12,7 +12,7 @@ import { CursorOptions } from '@src/common/transform'
 import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
 import { LocationService } from '@src/geo/location.service'
 import { Region } from '@src/geo/region.entity'
-import { StreamScore, StreamScoreRating } from '@src/process/stream.model'
+import { ComponentRecycle, StreamScore, StreamScoreRating } from '@src/process/stream.model'
 import { StreamService } from '@src/process/stream.service'
 import { Tag } from '@src/process/tag.entity'
 import { TagService } from '@src/process/tag.service'
@@ -26,7 +26,7 @@ import {
   VariantsSources,
   VariantsTags,
 } from '@src/product/variant.entity'
-import { CreateVariantInput, UpdateVariantInput } from '@src/product/variant.model'
+import { CreateVariantInput, UpdateVariantInput, VariantRecycle } from '@src/product/variant.model'
 
 @Injectable()
 @IsEntityService(Variant)
@@ -165,6 +165,28 @@ export class VariantService implements IEntityService<Variant> {
     variantScore.rating = StreamScoreRating.A
     variantScore.ratingF = this.i18n.t(`stream.scoreRating.${variantScore.rating}`)
     return variantScore
+  }
+
+  recycle(variantID: string, regionID?: string): VariantRecycle {
+    const result = new VariantRecycle()
+    result.variantId = variantID
+    result.regionID = regionID
+    return result
+  }
+
+  async recycleComponents(variantID: string, regionID?: string): Promise<ComponentRecycle[]> {
+    const regionSearch = await this.locationService.resolveLocation(regionID)
+    if (!regionSearch || regionSearch.length === 0) return []
+
+    const variant = await this.em.findOne(Variant, { id: variantID }, { populate: ['components'] })
+    if (!variant) return []
+
+    const items: ComponentRecycle[] = []
+    for (const component of variant.components.getItems()) {
+      const entries = await this.streamService.recycleComponent(component.id, regionID)
+      items.push(...entries)
+    }
+    return items
   }
 
   async create(input: CreateVariantInput, userID: string) {

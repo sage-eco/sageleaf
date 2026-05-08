@@ -432,6 +432,20 @@ export type ComponentRecycle = {
   stream?: Maybe<RecyclingStream>;
 };
 
+export type ComponentRecycleEdge = {
+  __typename?: 'ComponentRecycleEdge';
+  cursor: Scalars['String']['output'];
+  node: ComponentRecycle;
+};
+
+export type ComponentRecyclesConnection = {
+  __typename?: 'ComponentRecyclesConnection';
+  edges: Array<ComponentRecycleEdge>;
+  nodes: Array<ComponentRecycle>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
 export type ComponentRegionInput = {
   id: Scalars['ID']['input'];
 };
@@ -988,6 +1002,10 @@ export type Item = Named & {
   id: Scalars['ID']['output'];
   imageURL?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  /** Recycling options for this item */
+  recycle: ItemRecycle;
+  /** Recyclability score for this item */
+  recycleScore?: Maybe<StreamScore>;
   /** Similar items related to this item */
   related: ItemsConnection;
   /** Metadata tags applied to this item */
@@ -1013,6 +1031,18 @@ export type ItemHistoryArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** A product or consumable item that can be categorized and have multiple variants */
+export type ItemRecycleArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A product or consumable item that can be categorized and have multiple variants */
+export type ItemRecycleScoreArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -1072,6 +1102,21 @@ export type ItemHistoryEdge = {
   __typename?: 'ItemHistoryEdge';
   cursor: Scalars['String']['output'];
   node: ItemHistory;
+};
+
+/** Recycling options for an item, grouped by component */
+export type ItemRecycle = {
+  __typename?: 'ItemRecycle';
+  components: ComponentRecyclesConnection;
+};
+
+
+/** Recycling options for an item, grouped by component */
+export type ItemRecycleComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type ItemTagsInput = {
@@ -3001,6 +3046,8 @@ export type Variant = Named & {
   name?: Maybe<Scalars['String']['output']>;
   /** Organizations associated with this variant (e.g. manufacturer, importer) */
   orgs: VariantOrgsConnection;
+  /** Recycling options for this variant */
+  recycle: VariantRecycle;
   /** Aggregated recyclability score for this variant */
   recycleScore?: Maybe<StreamScore>;
   /** Geographic regions associated with this variant */
@@ -3056,6 +3103,12 @@ export type VariantOrgsArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** A specific variant or SKU of a product item, composed of physical components */
+export type VariantRecycleArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -3188,6 +3241,21 @@ export type VariantOrgsConnection = {
 
 export type VariantOrgsInput = {
   id: Scalars['ID']['input'];
+};
+
+/** Recycling options for a variant, grouped by component */
+export type VariantRecycle = {
+  __typename?: 'VariantRecycle';
+  components: ComponentRecyclesConnection;
+};
+
+
+/** Recycling options for a variant, grouped by component */
+export type VariantRecycleComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type VariantRegionsInput = {

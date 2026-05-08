@@ -21,7 +21,7 @@ import { Named } from '@src/graphql/interfaces.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { type ComponentPhysical, type ComponentVisual } from '@src/process/component.entity'
 import { Material } from '@src/process/material.model'
-import { RecyclingStream, StreamContext, StreamScore } from '@src/process/stream.model'
+import { ComponentRecycle, StreamScore } from '@src/process/stream.model'
 import { TagConnection } from '@src/process/tag.model'
 import { ImagesConnection } from '@src/product/image.model'
 import { User as UserEntity } from '@src/users/users.entity'
@@ -37,15 +37,6 @@ export class ComponentMaterial {
     description: 'Fraction of this material in the component (0–1)',
   })
   materialFraction?: number
-}
-
-@ObjectType({ description: 'A recycling option for a component in a specific recycling stream' })
-export class ComponentRecycle {
-  @Field(() => RecyclingStream, { nullable: true })
-  stream?: RecyclingStream & {}
-
-  @Field(() => [StreamContext])
-  context: StreamContext[] = []
 }
 
 @ObjectType({

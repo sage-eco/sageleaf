@@ -7,7 +7,7 @@ import { ChangeStatus, RefModelType } from '@test/gql/types.generated'
 import { GraphQLTestClient } from '@test/graphql.utils'
 
 import { BaseSeeder } from '@src/db/seeds/BaseSeeder'
-import { TestMaterialSeeder } from '@src/db/seeds/TestMaterialSeeder'
+import { MATERIAL_IDS, TestMaterialSeeder } from '@src/db/seeds/TestMaterialSeeder'
 import { ORG_IDS, REGION_IDS, TestProcessSeeder } from '@src/db/seeds/TestProcessSeeder'
 import { TAG_IDS, TestTagSeeder } from '@src/db/seeds/TestTagSeeder'
 import {
@@ -19,6 +19,9 @@ import {
 } from '@src/db/seeds/TestVariantSeeder'
 import { UserSeeder } from '@src/db/seeds/UserSeeder'
 import { clearDatabase } from '@src/db/test.utils'
+import { Region } from '@src/geo/region.entity'
+import { Material } from '@src/process/material.entity'
+import { Process, ProcessIntent } from '@src/process/process.entity'
 import { Variant as VariantEntity } from '@src/product/variant.entity'
 
 describe('VariantResolver (integration)', () => {
@@ -1581,6 +1584,126 @@ describe('VariantResolver (integration)', () => {
       const latest = variant!.history.nodes!.at(-1)!
       expect(latest.original).toBeTruthy()
       expect(latest.changes).toBeTruthy()
+    })
+  })
+
+  describe('Variant recycling fields', () => {
+    const RECYCLE_PROCESS_ID = 'proc_VRNT_RECYCLE_TEST__'
+
+    beforeAll(async () => {
+      const em = orm.em.fork()
+      em.create(Process, {
+        id: RECYCLE_PROCESS_ID,
+        name: { en: 'Variant Recycle Process' },
+        desc: { en: 'A process for testing variant recycle queries' },
+        intent: ProcessIntent.RECYCLE,
+        instructions: {},
+        material: em.getReference(Material, MATERIAL_IDS[0]),
+        region: em.getReference(Region, REGION_IDS[0]),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      await em.flush()
+    })
+
+    test('should return recycle components for a variant', async () => {
+      // VARIANT_IDS[0] includes COMPONENT_IDS[0] (primary material: MATERIAL_IDS[0])
+      // The process matches MATERIAL_IDS[0] + REGION_IDS[0], so one node is expected
+      const res = await gql.send(
+        graphql(`
+          query VariantRecycleComponents($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              recycle(regionID: $regionID) {
+                components {
+                  totalCount
+                  nodes {
+                    stream {
+                      name
+                      desc
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const components = res.data?.variant?.recycle?.components
+      expect(components).toBeDefined()
+      expect(components!.totalCount).toBeGreaterThan(0)
+      const first = components!.nodes.at(0)
+      expect(first?.stream?.name).toBe('Variant Recycle Process')
+    })
+
+    test('should return the same stream data at variant level as at component level', async () => {
+      const componentRes = await gql.send(
+        graphql(`
+          query VariantRecycleConsistencyComponent($id: ID!, $regionID: ID!) {
+            component(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                  desc
+                }
+              }
+            }
+          }
+        `),
+        { id: COMPONENT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      const variantRes = await gql.send(
+        graphql(`
+          query VariantRecycleConsistencyVariant($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              recycle(regionID: $regionID) {
+                components {
+                  nodes {
+                    stream {
+                      name
+                      desc
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(componentRes.errors).toBeUndefined()
+      expect(variantRes.errors).toBeUndefined()
+
+      const componentStream = componentRes.data?.component?.recycle?.at(0)?.stream
+      const variantStream = variantRes.data?.variant?.recycle?.components?.nodes?.at(0)?.stream
+      expect(componentStream?.name).toBeDefined()
+      expect(variantStream?.name).toBe(componentStream?.name)
+      expect(variantStream?.desc).toBe(componentStream?.desc)
+    })
+
+    test('should return empty components when no region is provided', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantRecycleNoRegion($id: ID!) {
+            variant(id: $id) {
+              recycle {
+                components {
+                  totalCount
+                  nodes {
+                    stream {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      expect(res.data?.variant?.recycle?.components?.totalCount).toBe(0)
     })
   })
 })

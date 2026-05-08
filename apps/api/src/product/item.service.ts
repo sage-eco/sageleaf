@@ -9,11 +9,14 @@ import { NotFoundErr } from '@src/common/exceptions'
 import { I18nService } from '@src/common/i18n.service'
 import { CursorOptions } from '@src/common/transform'
 import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
+import { LocationService } from '@src/geo/location.service'
+import { ComponentRecycle, StreamScore, StreamScoreRating } from '@src/process/stream.model'
+import { StreamService } from '@src/process/stream.service'
 import { Tag } from '@src/process/tag.entity'
 import { TagService } from '@src/process/tag.service'
 import { Category } from '@src/product/category.entity'
 import { Item, ItemHistory, ItemsCategories, ItemsTags } from '@src/product/item.entity'
-import { CreateItemInput, UpdateItemInput } from '@src/product/item.model'
+import { CreateItemInput, ItemRecycle, UpdateItemInput } from '@src/product/item.model'
 import { Variant } from '@src/product/variant.entity'
 
 @Injectable()
@@ -24,6 +27,8 @@ export class ItemService implements IEntityService<Item> {
     private readonly editService: EditService,
     private readonly tagService: TagService,
     private readonly i18n: I18nService,
+    private readonly streamService: StreamService,
+    private readonly locationService: LocationService,
   ) {}
 
   queryFields(): Record<string, QueryField> {
@@ -112,6 +117,81 @@ export class ItemService implements IEntityService<Item> {
       items: variants,
       count,
     }
+  }
+
+  private async fetchVariantsForItem(itemID: string, populate: string[]) {
+    return this.em.find(
+      Variant,
+      { items: this.em.getReference(Item, itemID) },
+      { populate: populate as any, limit: 10 },
+    )
+  }
+
+  async recycleScore(itemID: string, regionID?: string) {
+    const regionSearch = await this.locationService.resolveLocation(regionID)
+    if (!regionSearch || regionSearch.length === 0) {
+      return null
+    }
+
+    const variants = await this.fetchVariantsForItem(itemID, ['components'])
+    if (variants.length === 0) {
+      return null
+    }
+
+    const variantScores: number[] = []
+    for (const variant of variants) {
+      const components = variant.components.getItems()
+      if (components.length === 0) continue
+
+      let totalScore = 0
+      let scoredCount = 0
+      for (const component of components) {
+        const score = await this.streamService.recycleComponentScore(component.id, regionID)
+        if (score?.score != null) {
+          totalScore += score.score
+          scoredCount++
+        }
+      }
+      if (scoredCount > 0) {
+        variantScores.push(totalScore / scoredCount)
+      }
+    }
+
+    if (variantScores.length === 0) {
+      return new StreamScore()
+    }
+
+    const itemScore = new StreamScore()
+    itemScore.score = Math.floor(
+      variantScores.reduce((sum, s) => sum + s, 0) / variantScores.length,
+    )
+    itemScore.rating = StreamScoreRating.A
+    itemScore.ratingF = this.i18n.t(`stream.scoreRating.${itemScore.rating}`)
+    return itemScore
+  }
+
+  recycle(itemID: string, regionID?: string): ItemRecycle {
+    const result = new ItemRecycle()
+    result.itemId = itemID
+    result.regionID = regionID
+    return result
+  }
+
+  async recycleComponents(itemID: string, regionID?: string): Promise<ComponentRecycle[]> {
+    const regionSearch = await this.locationService.resolveLocation(regionID)
+    if (!regionSearch || regionSearch.length === 0) return []
+
+    const variants = await this.fetchVariantsForItem(itemID, ['components'])
+    if (variants.length === 0) return []
+
+    const items: ComponentRecycle[] = []
+    for (const variant of variants) {
+      for (const component of variant.components.getItems()) {
+        const entries = await this.streamService.recycleComponent(component.id, regionID)
+        items.push(...entries)
+      }
+    }
+    return items
   }
 
   async create(input: CreateItemInput, userID: string) {

@@ -281,6 +281,18 @@ type ComponentRecycle {
   stream: RecyclingStream
 }
 
+type ComponentRecycleEdge {
+  cursor: String!
+  node: ComponentRecycle!
+}
+
+type ComponentRecyclesConnection {
+  edges: [ComponentRecycleEdge!]!
+  nodes: [ComponentRecycle!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input ComponentRegionInput {
   id: ID!
 }
@@ -867,6 +879,12 @@ type Item implements Named {
   imageURL: String
   name: String
 
+  """Recycling options for this item"""
+  recycle(regionID: ID): ItemRecycle!
+
+  """Recyclability score for this item"""
+  recycleScore(regionID: ID): StreamScore
+
   """Similar items related to this item"""
   related(limit: Int, offset: Int, query: String): ItemsConnection!
 
@@ -905,6 +923,11 @@ type ItemHistoryConnection {
 type ItemHistoryEdge {
   cursor: String!
   node: ItemHistory!
+}
+
+"""Recycling options for an item, grouped by component"""
+type ItemRecycle {
+  components(after: String, before: String, first: Int, last: Int): ComponentRecyclesConnection!
 }
 
 input ItemTagsInput {
@@ -2290,6 +2313,9 @@ type Variant implements Named {
   """
   orgs(after: String, before: String, first: Int, last: Int): VariantOrgsConnection!
 
+  """Recycling options for this variant"""
+  recycle(regionID: ID): VariantRecycle!
+
   """Aggregated recyclability score for this variant"""
   recycleScore(regionID: ID): StreamScore
 
@@ -2391,6 +2417,11 @@ type VariantOrgsConnection {
 
 input VariantOrgsInput {
   id: ID!
+}
+
+"""Recycling options for a variant, grouped by component"""
+type VariantRecycle {
+  components(after: String, before: String, first: Int, last: Int): ComponentRecyclesConnection!
 }
 
 input VariantRegionsInput {

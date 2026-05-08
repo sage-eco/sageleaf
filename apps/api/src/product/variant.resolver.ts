@@ -10,6 +10,7 @@ import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { Region, RegionsConnection } from '@src/geo/region.model'
 import { DeleteOutput, ModelEditSchema } from '@src/graphql/base.model'
+import { ComponentRecyclesConnection } from '@src/process/stream.model'
 import { Tag, TagConnection } from '@src/process/tag.model'
 import { Image, ImagesArgs, ImagesConnection } from '@src/product/image.model'
 import { Item, ItemsConnection } from '@src/product/item.model'
@@ -30,7 +31,9 @@ import {
   VariantOrg,
   VariantOrgsArgs,
   VariantOrgsConnection,
+  VariantRecycle,
   VariantRecycleArgs,
+  VariantRecycleComponentsArgs,
   VariantRegionsArgs,
   VariantsArgs,
   VariantsConnection,
@@ -145,6 +148,11 @@ export class VariantResolver {
     return score
   }
 
+  @ResolveField(() => VariantRecycle)
+  async recycle(@Parent() variant: Variant, @Args() args: VariantRecycleArgs) {
+    return this.variantService.recycle(variant.id, args.regionID)
+  }
+
   @Mutation(() => CreateVariantOutput, {
     name: 'createVariant',
     nullable: true,
@@ -241,6 +249,27 @@ export class VariantResolver {
     return this.transform.objectsToPaginated(
       VariantHistoryConnection,
       { items, count: cursor.count },
+      true,
+    )
+  }
+}
+
+@Resolver(() => VariantRecycle)
+export class VariantRecycleResolver {
+  constructor(
+    private readonly variantService: VariantService,
+    private readonly transform: TransformService,
+  ) {}
+
+  @ResolveField(() => ComponentRecyclesConnection)
+  async components(
+    @Parent() parent: VariantRecycle,
+    @Args() _args: VariantRecycleComponentsArgs,
+  ): Promise<ComponentRecyclesConnection> {
+    const items = await this.variantService.recycleComponents(parent.variantId, parent.regionID)
+    return this.transform.objectsToPaginated(
+      ComponentRecyclesConnection,
+      { items, count: items.length },
       true,
     )
   }
