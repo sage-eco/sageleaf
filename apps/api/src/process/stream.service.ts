@@ -4,10 +4,10 @@ import { Injectable } from '@nestjs/common'
 import { I18nService } from '@src/common/i18n.service'
 import { LocationService } from '@src/geo/location.service'
 import { Component } from '@src/process/component.entity'
-import { ComponentRecycle } from '@src/process/component.model'
 import { Process } from '@src/process/process.entity'
 import {
   CaveatLevel,
+  ComponentRecycle,
   RecyclingStream,
   StreamCaveats,
   StreamScore,

@@ -2,6 +2,7 @@ import { ArgsType, Field, ID, InputType, ObjectType } from '@nestjs/graphql'
 import { IsOptional, MaxLength } from 'class-validator'
 import { JSONObjectResolver } from 'graphql-scalars'
 import { DateTime } from 'luxon'
+import { z } from 'zod/v4'
 
 import { ChangeInputWithLang } from '@src/changes/change-ext.model'
 import { Change } from '@src/changes/change.model'
@@ -16,11 +17,21 @@ import {
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { ComponentRecyclesConnection, StreamScore } from '@src/process/stream.model'
 import { TagConnection } from '@src/process/tag.model'
 import { CategoriesConnection } from '@src/product/category.model'
 import { VariantsConnection } from '@src/product/variant.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User } from '@src/users/users.model'
+
+@ObjectType({ description: 'Recycling options for an item, grouped by component' })
+export class ItemRecycle {
+  @Field(() => ComponentRecyclesConnection)
+  components!: ComponentRecyclesConnection
+
+  itemId!: string
+  regionID?: string
+}
 
 @ObjectType({
   implements: () => [Named],
@@ -49,6 +60,17 @@ export class Item extends IDCreatedUpdated implements Named {
     description: 'Product variants of this item (e.g. specific SKUs or models)',
   })
   variants!: VariantsConnection & {}
+
+  @Field(() => StreamScore, {
+    nullable: true,
+    description: 'Recyclability score for this item',
+  })
+  recycleScore?: StreamScore
+
+  @Field(() => ItemRecycle, {
+    description: 'Recycling options for this item',
+  })
+  recycle!: ItemRecycle
 
   @Field(() => ItemsConnection, { description: 'Similar items related to this item' })
   related!: ItemsConnection & {}
@@ -106,6 +128,20 @@ export class ItemTagsArgs extends PaginationBasicArgs {
 export class ItemVariantsArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
 }
+
+@ArgsType()
+export class ItemRecycleArgs {
+  static schema = z.object({
+    regionID: z.string().optional(),
+  })
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  regionID?: string
+}
+
+@ArgsType()
+export class ItemRecycleComponentsArgs extends PaginationBasicArgs {}
 
 @InputType()
 export class ItemCategoriesInput {

@@ -9,6 +9,7 @@ import { EditService } from '@src/changes/edit.service'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { DeleteOutput, ModelEditSchema } from '@src/graphql/base.model'
+import { ComponentRecyclesConnection } from '@src/process/stream.model'
 import { Tag, TagConnection } from '@src/process/tag.model'
 import { CategoriesConnection, Category } from '@src/product/category.model'
 import { Item as ItemEntity } from '@src/product/item.entity'
@@ -20,6 +21,9 @@ import {
   ItemHistory,
   ItemHistoryArgs,
   ItemHistoryConnection,
+  ItemRecycle,
+  ItemRecycleArgs,
+  ItemRecycleComponentsArgs,
   ItemsArgs,
   ItemsConnection,
   ItemTagsArgs,
@@ -100,7 +104,21 @@ export class ItemResolver {
     return this.transform.entityToPaginated(Variant, VariantsConnection, cursor, parsedArgs)
   }
 
-  @ResolveField(() => ItemsConnection)
+  @ResolveField()
+  async recycleScore(@Parent() item: Item, @Args() args: ItemRecycleArgs) {
+    const score = await this.itemService.recycleScore(item.id, args.regionID)
+    if (!score) {
+      return null
+    }
+    return score
+  }
+
+  @ResolveField(() => ItemRecycle)
+  async recycle(@Parent() item: Item, @Args() args: ItemRecycleArgs) {
+    return this.itemService.recycle(item.id, args.regionID)
+  }
+
+  @ResolveField()
   async related(@Parent() item: Item, @Args() args: RelatedArgs) {
     const parsedArgs = await this.searchService.parseRelatedArgs(args)
     const cursor = await this.searchService.searchRelated(
@@ -166,6 +184,27 @@ export class ItemResolver {
     return this.transform.objectsToPaginated(
       ItemHistoryConnection,
       { items, count: cursor.count },
+      true,
+    )
+  }
+}
+
+@Resolver(() => ItemRecycle)
+export class ItemRecycleResolver {
+  constructor(
+    private readonly itemService: ItemService,
+    private readonly transform: TransformService,
+  ) {}
+
+  @ResolveField(() => ComponentRecyclesConnection)
+  async components(
+    @Parent() parent: ItemRecycle,
+    @Args() _args: ItemRecycleComponentsArgs,
+  ): Promise<ComponentRecyclesConnection> {
+    const items = await this.itemService.recycleComponents(parent.itemId, parent.regionID)
+    return this.transform.objectsToPaginated(
+      ComponentRecyclesConnection,
+      { items, count: items.length },
       true,
     )
   }

@@ -1,5 +1,6 @@
-import { Field, ObjectType, registerEnumType } from '@nestjs/graphql'
+import { ArgsType, Field, ObjectType, registerEnumType } from '@nestjs/graphql'
 
+import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import {
   ProcessInstructionsAccess,
   ProcessInstructionsContainerType,
@@ -183,3 +184,18 @@ export class StreamContext {
   @Field(() => String, { nullable: true })
   markdown?: string
 }
+
+@ObjectType({ description: 'A recycling option for a component in a specific recycling stream' })
+export class ComponentRecycle {
+  @Field(() => RecyclingStream, { nullable: true })
+  stream?: RecyclingStream & {}
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+}
+
+@ObjectType()
+export class ComponentRecyclesConnection extends Paginated(ComponentRecycle) {}
+
+@ArgsType()
+export class ComponentRecyclesArgs extends PaginationBasicArgs {}
