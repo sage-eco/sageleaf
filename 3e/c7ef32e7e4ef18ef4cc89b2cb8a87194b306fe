@@ -1,0 +1,25 @@
+apps/api/test/gql/gql.ts
+  s_8fe67867b1be61::t_63192fedc6a4cb 311-315,317,372-375,700-704,706,761-764,1988-2007,2012,2229-2244
+  s_8fe67867b1be61::t_3b9286a02dd3ee 316,705,1985-1987,2008
+apps/api/schema/schema.gql
+  s_8fe67867b1be61::t_46b6b02494cb95 284-295,882-887,928-932,2316-2318,2422-2424
+apps/api/test/gql/graphql.ts
+  s_8fe67867b1be61::t_63192fedc6a4cb 5440-5493,5877-5907,6491-6497,6552-6555
+  s_8fe67867b1be61::t_665d32cf8d66b4 435-448,1005-1008,1037-1048,1107-1121,3049-3050,3109-3114,3246-3258
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "3ec7ef32e7e4ef18ef4cc89b2cb8a87194b306fe",
+  "prompts": {},
+  "sessions": {
+    "s_8fe67867b1be61": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "a63f76c5-4efc-4c6a-a4d0-85913eb2c4c5",
+        "model": "unknown"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
