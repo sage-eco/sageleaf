@@ -1,0 +1,75 @@
+apps/frontend/app/components/item/VariantsDrawer.vue
+  s_f8c06a1960d553::t_505976f26ddc55 1-8,17-24,33,37,44-47,50-51,55-56,79,81-82,84-105,108-109,117-121
+  s_f4bf248a609529::t_ef06b9a98c5a15 74,76,106
+apps/api/src/product/variant.resolver.ts
+  s_f4bf248a609529::t_7cbb926e91a545 13,151,264,267-271,273-274
+apps/api/src/process/stream.model.ts
+  s_f4bf248a609529::t_7cbb926e91a545 1
+apps/api/src/product/variant.model.ts
+  s_f4bf248a609529::t_7cbb926e91a545 24,33,35-41,46,91-92
+apps/api/schema/schema.gql
+  s_f4bf248a609529::t_14ce70f298daa6 916,918-921,2413,2415-2417
+  s_f4bf248a609529::t_45dc1b849c4dc4 870-871,2307-2308
+apps/api/test/gql/graphql.ts
+  s_f4bf248a609529::t_e519f5acc1f7f4 1093,1096-1099,1103,1111-1113,3244,3247-3249,3253,5440,5472,5488,5503,5893,5917,5925
+  s_f4bf248a609529::t_94046e1e4269c1 5448,5454-5462,5900-5901,5907,6516-6517,6579
+  s_f4bf248a609529::t_a272883e369220 991-992,3047-3048,5446,5478,5486,5494,5508,5899,5923,5930,6515,6519-6521,6523,6578,6581-6582
+apps/api/src/product/item.resolver.spec.ts
+  s_f4bf248a609529::t_89ea048d1245d7 1062-1065,1179,1219-1220,1251,1267
+  s_f4bf248a609529::t_7cbb926e91a545 1038,1042,1045-1048,1052,1066-1081,1091-1141,1162,1165-1167,1191-1193,1203,1206-1208,1254,1257-1258
+apps/frontend/app/pages/explore/items/[id].vue
+  s_f4bf248a609529::t_ef06b9a98c5a15 23-26
+  s_f4bf248a609529::t_7cbb926e91a545 2-22,27-96,101-107,111-117,128-171,173,176,179-197,199-208
+apps/api/src/product/item.service.ts
+  s_f4bf248a609529::t_7cbb926e91a545 13-15,124-139,193,198-207,210-225,228-243,247-268
+  s_f4bf248a609529::t_ae220595d51423 244-246
+apps/api/src/product/item.model.ts
+  s_f4bf248a609529::t_7cbb926e91a545 20-21,28,30-36,38-39,44-45,82-83,158-159
+apps/frontend/app/gql/gql.ts
+  s_f4bf248a609529::t_86bba9151ea520 18,83,168
+  s_f4bf248a609529::t_63370224b69d6a 46-47,111-112,277-284
+apps/api/src/product/variant.resolver.spec.ts
+  s_f4bf248a609529::t_7cbb926e91a545 1611,1614,1617-1620,1624,1638-1653,1663-1667,1688,1691-1693,1714,1717-1718
+  s_f4bf248a609529::t_89ea048d1245d7 1634-1637,1705,1711,1727
+apps/api/test/gql/gql.ts
+  s_f4bf248a609529::t_a272883e369220 311,315-317,319,374,377-378,703,707-709,711,766,769-770,1994,2010,2014,2018,2026,2246,2258,2262
+  s_f4bf248a609529::t_94046e1e4269c1 312-313,375,704-705,767,1998-2002,2247-2250
+apps/frontend/app/gql/graphql.ts
+  s_f4bf248a609529::t_86bba9151ea520 991-992,1093,1096-1099,1103,1111-1119,3047-3048,3244,3247-3249,3253,3314,3528,3531,3802,3840
+  s_f4bf248a609529::t_63370224b69d6a 3523-3527,3529-3530,3532-3539,3841
+apps/api/src/product/variant.service.ts
+  s_f4bf248a609529::t_7cbb926e91a545 15-17,142-149,182,187-191,193-203,205-233
+packages/ui/app/gql/graphql.ts
+  s_f4bf248a609529::t_ef06b9a98c5a15 1093,1096-1099,1103,1111-1119,3047-3048,3244,3247-3249,3253
+apps/api/src/product/item.resolver.ts
+  s_f4bf248a609529::t_ae220595d51423 205-207
+  s_f4bf248a609529::t_7cbb926e91a545 12,27,117,200,203-204,209-220
+apps/frontend/app/components/item/RecycleStreams.vue
+  s_f8c06a1960d553::t_7c0d942fa9d1d4 1-9,19-42,44-46,48,51,53-61,65-71
+apps/api/src/process/stream.service.ts
+  s_f4bf248a609529::t_7cbb926e91a545 7,27-34,40,43-49,51,53-55,63-73,86-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "11af0d23e3517aebd875e795bb0fb1e5f5575ecf",
+  "prompts": {},
+  "sessions": {
+    "s_f4bf248a609529": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "c2898fce-f3e8-4308-beb5-44c07d05aecb",
+        "model": "unknown"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_f8c06a1960d553": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "87b09ea5-a1e6-4c3b-a74d-d453362e135d",
+        "model": "unknown"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
