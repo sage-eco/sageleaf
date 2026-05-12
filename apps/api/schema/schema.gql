@@ -281,18 +281,6 @@ type ComponentRecycle {
   stream: RecyclingStream
 }
 
-type ComponentRecycleEdge {
-  cursor: String!
-  node: ComponentRecycle!
-}
-
-type ComponentRecyclesConnection {
-  edges: [ComponentRecycleEdge!]!
-  nodes: [ComponentRecycle!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
 input ComponentRegionInput {
   id: ID!
 }
@@ -879,8 +867,8 @@ type Item implements Named {
   imageURL: String
   name: String
 
-  """Recycling options for this item"""
-  recycle(regionID: ID): ItemRecycle!
+  """Recycling options for this item, one entry per recycling stream"""
+  recycle(regionID: ID): [ItemRecycle!]!
 
   """Recyclability score for this item"""
   recycleScore(regionID: ID): StreamScore
@@ -925,9 +913,12 @@ type ItemHistoryEdge {
   node: ItemHistory!
 }
 
-"""Recycling options for an item, grouped by component"""
+"""Recycling options for an item in a specific recycling stream"""
 type ItemRecycle {
-  components(after: String, before: String, first: Int, last: Int): ComponentRecyclesConnection!
+  components(after: String, before: String, first: Int, last: Int): ComponentsConnection!
+  context: [StreamContext!]!
+  stream: RecyclingStream
+  variants(after: String, before: String, first: Int, last: Int): VariantsConnection!
 }
 
 input ItemTagsInput {
@@ -2313,8 +2304,8 @@ type Variant implements Named {
   """
   orgs(after: String, before: String, first: Int, last: Int): VariantOrgsConnection!
 
-  """Recycling options for this variant"""
-  recycle(regionID: ID): VariantRecycle!
+  """Recycling options for this variant, one entry per recycling stream"""
+  recycle(regionID: ID): [VariantRecycle!]!
 
   """Aggregated recyclability score for this variant"""
   recycleScore(regionID: ID): StreamScore
@@ -2419,9 +2410,11 @@ input VariantOrgsInput {
   id: ID!
 }
 
-"""Recycling options for a variant, grouped by component"""
+"""Recycling options for a variant in a specific recycling stream"""
 type VariantRecycle {
-  components(after: String, before: String, first: Int, last: Int): ComponentRecyclesConnection!
+  components(after: String, before: String, first: Int, last: Int): ComponentsConnection!
+  context: [StreamContext!]!
+  stream: RecyclingStream
 }
 
 input VariantRegionsInput {

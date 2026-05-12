@@ -432,20 +432,6 @@ export type ComponentRecycle = {
   stream?: Maybe<RecyclingStream>;
 };
 
-export type ComponentRecycleEdge = {
-  __typename?: 'ComponentRecycleEdge';
-  cursor: Scalars['String']['output'];
-  node: ComponentRecycle;
-};
-
-export type ComponentRecyclesConnection = {
-  __typename?: 'ComponentRecyclesConnection';
-  edges: Array<ComponentRecycleEdge>;
-  nodes: Array<ComponentRecycle>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
 export type ComponentRegionInput = {
   id: Scalars['ID']['input'];
 };
@@ -1002,8 +988,8 @@ export type Item = Named & {
   id: Scalars['ID']['output'];
   imageURL?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
-  /** Recycling options for this item */
-  recycle: ItemRecycle;
+  /** Recycling options for this item, one entry per recycling stream */
+  recycle: Array<ItemRecycle>;
   /** Recyclability score for this item */
   recycleScore?: Maybe<StreamScore>;
   /** Similar items related to this item */
@@ -1104,15 +1090,27 @@ export type ItemHistoryEdge = {
   node: ItemHistory;
 };
 
-/** Recycling options for an item, grouped by component */
+/** Recycling options for an item in a specific recycling stream */
 export type ItemRecycle = {
   __typename?: 'ItemRecycle';
-  components: ComponentRecyclesConnection;
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<RecyclingStream>;
+  variants: VariantsConnection;
 };
 
 
-/** Recycling options for an item, grouped by component */
+/** Recycling options for an item in a specific recycling stream */
 export type ItemRecycleComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Recycling options for an item in a specific recycling stream */
+export type ItemRecycleVariantsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -3046,8 +3044,8 @@ export type Variant = Named & {
   name?: Maybe<Scalars['String']['output']>;
   /** Organizations associated with this variant (e.g. manufacturer, importer) */
   orgs: VariantOrgsConnection;
-  /** Recycling options for this variant */
-  recycle: VariantRecycle;
+  /** Recycling options for this variant, one entry per recycling stream */
+  recycle: Array<VariantRecycle>;
   /** Aggregated recyclability score for this variant */
   recycleScore?: Maybe<StreamScore>;
   /** Geographic regions associated with this variant */
@@ -3243,14 +3241,16 @@ export type VariantOrgsInput = {
   id: Scalars['ID']['input'];
 };
 
-/** Recycling options for a variant, grouped by component */
+/** Recycling options for a variant in a specific recycling stream */
 export type VariantRecycle = {
   __typename?: 'VariantRecycle';
-  components: ComponentRecyclesConnection;
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<RecyclingStream>;
 };
 
 
-/** Recycling options for a variant, grouped by component */
+/** Recycling options for a variant in a specific recycling stream */
 export type VariantRecycleComponentsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -3310,6 +3310,8 @@ export type VoteOutput = {
 };
 
 export type VariantRecycleStreamsFragment = { __typename?: 'VariantComponentsConnection', nodes: Array<{ __typename?: 'VariantComponent', component: { __typename?: 'Component', id: string, name?: string | null, desc?: string | null, imageURL?: string | null, primaryMaterial: { __typename?: 'Material', id: string, name?: string | null }, recycleScore?: { __typename?: 'StreamScore', score?: number | null, rating?: StreamScoreRating | null, ratingF?: string | null } | null, recycle?: Array<{ __typename?: 'ComponentRecycle', context: Array<{ __typename?: 'StreamContext', key: string, markdown?: string | null }>, stream?: { __typename?: 'RecyclingStream', name?: string | null, desc?: string | null, score?: { __typename?: 'StreamScore', score?: number | null, rating?: StreamScoreRating | null, ratingF?: string | null } | null, container?: { __typename?: 'Container', type: string, access?: string | null, color?: string | null, image?: string | null, shape?: { __typename?: 'ContainerShape', width?: number | null, height?: number | null, depth?: number | null } | null, imageEntryPoint?: { __typename?: 'ContainerImageEntryPoint', x: number, y: number, side: string } | null } | null } | null }> | null } }> } & { ' $fragmentName'?: 'VariantRecycleStreamsFragment' };
+
+export type ItemRecycleStreamsFragment = { __typename?: 'ItemRecycle', stream?: { __typename?: 'RecyclingStream', name?: string | null, desc?: string | null, score?: { __typename?: 'StreamScore', score?: number | null, rating?: StreamScoreRating | null, ratingF?: string | null } | null, container?: { __typename?: 'Container', type: string, access?: string | null, color?: string | null, image?: string | null, shape?: { __typename?: 'ContainerShape', width?: number | null, height?: number | null, depth?: number | null } | null, imageEntryPoint?: { __typename?: 'ContainerImageEntryPoint', x: number, y: number, side: string } | null } | null } | null, context: Array<{ __typename?: 'StreamContext', key: string, markdown?: string | null }> } & { ' $fragmentName'?: 'ItemRecycleStreamsFragment' };
 
 export type RegionSelectQueryQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -3517,6 +3519,23 @@ export type GetItemQueryVariables = Exact<{
 
 
 export type GetItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name?: string | null, desc?: string | null, imageURL?: string | null } | null };
+
+export type GetItemRecyclingQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetItemRecyclingQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, recycleScore?: { __typename?: 'StreamScore', score?: number | null, rating?: StreamScoreRating | null, ratingF?: string | null } | null, recycle: Array<(
+      { __typename?: 'ItemRecycle' }
+      & { ' $fragmentRefs'?: { 'ItemRecycleStreamsFragment': ItemRecycleStreamsFragment } }
+    )> } | null };
+
+export type GetItemVariantsQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetItemVariantsQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, variants: { __typename?: 'VariantsConnection', nodes: Array<{ __typename?: 'Variant', id: string, name?: string | null, imageURL?: string | null, recycleScore?: { __typename?: 'StreamScore', score?: number | null, rating?: StreamScoreRating | null, ratingF?: string | null } | null, orgs: { __typename?: 'VariantOrgsConnection', nodes: Array<{ __typename?: 'VariantOrg', org: { __typename?: 'Org', name: string } }> } }> } } | null };
 
 export type GetOrgQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -3780,6 +3799,7 @@ export type RefSearchQueryQuery = { __typename?: 'Query', search: { __typename?:
     > } };
 
 export const VariantRecycleStreamsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"VariantRecycleStreams"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"VariantComponentsConnection"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"component"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}},{"kind":"Field","name":{"kind":"Name","value":"imageURL"}},{"kind":"Field","name":{"kind":"Name","value":"primaryMaterial"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"recycleScore"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"score"}},{"kind":"Field","name":{"kind":"Name","value":"rating"}},{"kind":"Field","name":{"kind":"Name","value":"ratingF"}}]}},{"kind":"Field","name":{"kind":"Name","value":"recycle"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"context"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"markdown"}}]}},{"kind":"Field","name":{"kind":"Name","value":"stream"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}},{"kind":"Field","name":{"kind":"Name","value":"score"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"score"}},{"kind":"Field","name":{"kind":"Name","value":"rating"}},{"kind":"Field","name":{"kind":"Name","value":"ratingF"}}]}},{"kind":"Field","name":{"kind":"Name","value":"container"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"shape"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"width"}},{"kind":"Field","name":{"kind":"Name","value":"height"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}}]}},{"kind":"Field","name":{"kind":"Name","value":"color"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"imageEntryPoint"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"x"}},{"kind":"Field","name":{"kind":"Name","value":"y"}},{"kind":"Field","name":{"kind":"Name","value":"side"}}]}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<VariantRecycleStreamsFragment, unknown>;
+export const ItemRecycleStreamsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ItemRecycleStreams"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ItemRecycle"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"stream"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}},{"kind":"Field","name":{"kind":"Name","value":"score"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"score"}},{"kind":"Field","name":{"kind":"Name","value":"rating"}},{"kind":"Field","name":{"kind":"Name","value":"ratingF"}}]}},{"kind":"Field","name":{"kind":"Name","value":"container"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"shape"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"width"}},{"kind":"Field","name":{"kind":"Name","value":"height"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}}]}},{"kind":"Field","name":{"kind":"Name","value":"color"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"imageEntryPoint"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"x"}},{"kind":"Field","name":{"kind":"Name","value":"y"}},{"kind":"Field","name":{"kind":"Name","value":"side"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"context"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"markdown"}}]}}]}}]} as unknown as DocumentNode<ItemRecycleStreamsFragment, unknown>;
 export const ListCategoryFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ListCategoryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Category"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","alias":{"kind":"Name","value":"name_req"},"name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"descShort"}},{"kind":"Field","name":{"kind":"Name","value":"imageURL"}}]}}]} as unknown as DocumentNode<ListCategoryFragmentFragment, unknown>;
 export const ListChangeFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ListChangeFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Change"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]} as unknown as DocumentNode<ListChangeFragmentFragment, unknown>;
 export const ListComponentFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ListComponentFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Component"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}},{"kind":"Field","name":{"kind":"Name","value":"imageURL"}}]}}]} as unknown as DocumentNode<ListComponentFragmentFragment, unknown>;
@@ -3817,6 +3837,8 @@ export const CategoriesIdGetCategoriesDocument = {"kind":"Document","definitions
 export const CategoriesIndexGetCategoriesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"CategoriesIndexGetCategories"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"categoryRoot"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"children"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"descShort"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}},{"kind":"Field","name":{"kind":"Name","value":"imageURL"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CategoriesIndexGetCategoriesQuery, CategoriesIndexGetCategoriesQueryVariables>;
 export const GetCategoriesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCategories"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"categoryRoot"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"children"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"descShort"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}},{"kind":"Field","name":{"kind":"Name","value":"imageURL"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetCategoriesQuery, GetCategoriesQueryVariables>;
 export const GetItemDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetItem"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"item"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}},{"kind":"Field","name":{"kind":"Name","value":"imageURL"}}]}}]}}]} as unknown as DocumentNode<GetItemQuery, GetItemQueryVariables>;
+export const GetItemRecyclingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetItemRecycling"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"item"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"recycleScore"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"score"}},{"kind":"Field","name":{"kind":"Name","value":"rating"}},{"kind":"Field","name":{"kind":"Name","value":"ratingF"}}]}},{"kind":"Field","name":{"kind":"Name","value":"recycle"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ItemRecycleStreams"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ItemRecycleStreams"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ItemRecycle"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"stream"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}},{"kind":"Field","name":{"kind":"Name","value":"score"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"score"}},{"kind":"Field","name":{"kind":"Name","value":"rating"}},{"kind":"Field","name":{"kind":"Name","value":"ratingF"}}]}},{"kind":"Field","name":{"kind":"Name","value":"container"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"shape"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"width"}},{"kind":"Field","name":{"kind":"Name","value":"height"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}}]}},{"kind":"Field","name":{"kind":"Name","value":"color"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"imageEntryPoint"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"x"}},{"kind":"Field","name":{"kind":"Name","value":"y"}},{"kind":"Field","name":{"kind":"Name","value":"side"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"context"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"markdown"}}]}}]}}]} as unknown as DocumentNode<GetItemRecyclingQuery, GetItemRecyclingQueryVariables>;
+export const GetItemVariantsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetItemVariants"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"item"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"imageURL"}},{"kind":"Field","name":{"kind":"Name","value":"recycleScore"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"score"}},{"kind":"Field","name":{"kind":"Name","value":"rating"}},{"kind":"Field","name":{"kind":"Name","value":"ratingF"}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"org"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetItemVariantsQuery, GetItemVariantsQueryVariables>;
 export const GetOrgDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetOrg"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"org"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}}]}}]}}]} as unknown as DocumentNode<GetOrgQuery, GetOrgQueryVariables>;
 export const GetPlaceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPlace"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"place"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"desc"}}]}}]}}]} as unknown as DocumentNode<GetPlaceQuery, GetPlaceQueryVariables>;
 export const PlacesIndexRegionQueryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PlacesIndexRegionQuery"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"region"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"placetype"}},{"kind":"Field","name":{"kind":"Name","value":"bbox"}},{"kind":"Field","name":{"kind":"Name","value":"minZoom"}}]}}]}}]} as unknown as DocumentNode<PlacesIndexRegionQueryQuery, PlacesIndexRegionQueryQueryVariables>;

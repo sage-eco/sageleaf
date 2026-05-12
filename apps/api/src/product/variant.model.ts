@@ -20,8 +20,8 @@ import {
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
-import { Component } from '@src/process/component.model'
-import { ComponentRecyclesConnection, StreamScore } from '@src/process/stream.model'
+import { Component, ComponentsConnection } from '@src/process/component.model'
+import { RecyclingStream, StreamContext, StreamScore } from '@src/process/stream.model'
 import { TagConnection } from '@src/process/tag.model'
 import { ImagesConnection } from '@src/product/image.model'
 import { ItemsConnection } from '@src/product/item.model'
@@ -30,13 +30,20 @@ import { Org } from '@src/users/org.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User } from '@src/users/users.model'
 
-@ObjectType({ description: 'Recycling options for a variant, grouped by component' })
+@ObjectType({ description: 'Recycling options for a variant in a specific recycling stream' })
 export class VariantRecycle {
-  @Field(() => ComponentRecyclesConnection)
-  components!: ComponentRecyclesConnection
+  @Field(() => RecyclingStream, { nullable: true })
+  stream?: RecyclingStream
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+
+  @Field(() => ComponentsConnection)
+  components!: ComponentsConnection & {}
 
   variantId!: string
   regionID?: string
+  componentIds: string[] = []
 }
 
 @ObjectType({
@@ -81,10 +88,10 @@ export class Variant extends IDCreatedUpdated implements Named {
   })
   recycleScore?: StreamScore
 
-  @Field(() => VariantRecycle, {
-    description: 'Recycling options for this variant',
+  @Field(() => [VariantRecycle], {
+    description: 'Recycling options for this variant, one entry per recycling stream',
   })
-  recycle!: VariantRecycle
+  recycle!: VariantRecycle[]
 
   @Field(() => RegionsConnection, {
     description: 'Geographic regions associated with this variant',

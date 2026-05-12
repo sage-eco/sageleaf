@@ -1608,19 +1608,20 @@ describe('VariantResolver (integration)', () => {
 
     test('should return recycle components for a variant', async () => {
       // VARIANT_IDS[0] includes COMPONENT_IDS[0] (primary material: MATERIAL_IDS[0])
-      // The process matches MATERIAL_IDS[0] + REGION_IDS[0], so one node is expected
+      // The process matches MATERIAL_IDS[0] + REGION_IDS[0], so one entry is expected
       const res = await gql.send(
         graphql(`
-          query VariantRecycleComponents($id: ID!, $regionID: ID!) {
+          query VariantRecycles($id: ID!, $regionID: ID!) {
             variant(id: $id) {
               recycle(regionID: $regionID) {
+                stream {
+                  name
+                  desc
+                }
                 components {
                   totalCount
                   nodes {
-                    stream {
-                      name
-                      desc
-                    }
+                    id
                   }
                 }
               }
@@ -1630,11 +1631,40 @@ describe('VariantResolver (integration)', () => {
         { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
       )
       expect(res.errors).toBeUndefined()
-      const components = res.data?.variant?.recycle?.components
-      expect(components).toBeDefined()
-      expect(components!.totalCount).toBeGreaterThan(0)
-      const first = components!.nodes.at(0)
-      expect(first?.stream?.name).toBe('Variant Recycle Process')
+      const recycle = res.data?.variant?.recycle
+      expect(recycle).toBeDefined()
+      expect(recycle!.length).toBeGreaterThan(0)
+      const first = recycle!.at(0)!
+      expect(first.stream?.name).toBe('Variant Recycle Process')
+      expect(first.components.totalCount).toBeGreaterThan(0)
+      const nodeIds = first.components.nodes.map((n: { id: string }) => n.id)
+      expect(nodeIds).toContain(COMPONENT_IDS[0])
+    })
+
+    test('should support pagination args on components field', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantRecycleComponentsPaginated($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              recycle(regionID: $regionID) {
+                components(first: 1) {
+                  totalCount
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const recycle = res.data?.variant?.recycle
+      expect(recycle?.length).toBeGreaterThan(0)
+      const components = recycle!.at(0)!.components
+      expect(components.nodes.length).toBeLessThanOrEqual(1)
+      expect(components.totalCount).toBeGreaterThan(0)
     })
 
     test('should return the same stream data at variant level as at component level', async () => {
@@ -1655,16 +1685,12 @@ describe('VariantResolver (integration)', () => {
       )
       const variantRes = await gql.send(
         graphql(`
-          query VariantRecycleConsistencyVariant($id: ID!, $regionID: ID!) {
+          query VariantRecyclesConsistencyVariant($id: ID!, $regionID: ID!) {
             variant(id: $id) {
               recycle(regionID: $regionID) {
-                components {
-                  nodes {
-                    stream {
-                      name
-                      desc
-                    }
-                  }
+                stream {
+                  name
+                  desc
                 }
               }
             }
@@ -1676,25 +1702,20 @@ describe('VariantResolver (integration)', () => {
       expect(variantRes.errors).toBeUndefined()
 
       const componentStream = componentRes.data?.component?.recycle?.at(0)?.stream
-      const variantStream = variantRes.data?.variant?.recycle?.components?.nodes?.at(0)?.stream
+      const variantStream = variantRes.data?.variant?.recycle?.at(0)?.stream
       expect(componentStream?.name).toBeDefined()
       expect(variantStream?.name).toBe(componentStream?.name)
       expect(variantStream?.desc).toBe(componentStream?.desc)
     })
 
-    test('should return empty components when no region is provided', async () => {
+    test('should return empty recycle when no region is provided', async () => {
       const res = await gql.send(
         graphql(`
-          query VariantRecycleNoRegion($id: ID!) {
+          query VariantRecyclesNoRegion($id: ID!) {
             variant(id: $id) {
               recycle {
-                components {
-                  totalCount
-                  nodes {
-                    stream {
-                      name
-                    }
-                  }
+                stream {
+                  name
                 }
               }
             }
@@ -1703,7 +1724,7 @@ describe('VariantResolver (integration)', () => {
         { id: VARIANT_IDS[0] },
       )
       expect(res.errors).toBeUndefined()
-      expect(res.data?.variant?.recycle?.components?.totalCount).toBe(0)
+      expect(res.data?.variant?.recycle).toHaveLength(0)
     })
   })
 })

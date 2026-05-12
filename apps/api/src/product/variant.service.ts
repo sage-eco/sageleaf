@@ -12,7 +12,9 @@ import { CursorOptions } from '@src/common/transform'
 import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
 import { LocationService } from '@src/geo/location.service'
 import { Region } from '@src/geo/region.entity'
-import { ComponentRecycle, StreamScore, StreamScoreRating } from '@src/process/stream.model'
+import { Component } from '@src/process/component.entity'
+import { Process } from '@src/process/process.entity'
+import { StreamScore, StreamScoreRating } from '@src/process/stream.model'
 import { StreamService } from '@src/process/stream.service'
 import { Tag } from '@src/process/tag.entity'
 import { TagService } from '@src/process/tag.service'
@@ -137,6 +139,14 @@ export class VariantService implements IEntityService<Variant> {
     }
   }
 
+  async componentsByIds(ids: string[], opts: CursorOptions<Component>) {
+    if (ids.length === 0) return { items: [], count: 0 }
+    opts.where.id = { $in: ids }
+    const items = await this.em.find(Component, opts.where, opts.options)
+    const count = await this.em.count(Component, { id: { $in: ids } })
+    return { items, count }
+  }
+
   async recycleScore(variantID: string, regionID?: string) {
     const variant = await this.em.findOne(
       Variant,
@@ -167,26 +177,60 @@ export class VariantService implements IEntityService<Variant> {
     return variantScore
   }
 
-  recycle(variantID: string, regionID?: string): VariantRecycle {
-    const result = new VariantRecycle()
-    result.variantId = variantID
-    result.regionID = regionID
-    return result
-  }
-
-  async recycleComponents(variantID: string, regionID?: string): Promise<ComponentRecycle[]> {
+  async recycle(variantID: string, regionID?: string): Promise<VariantRecycle[]> {
     const regionSearch = await this.locationService.resolveLocation(regionID)
-    if (!regionSearch || regionSearch.length === 0) return []
+    if (!regionSearch?.length) return []
 
     const variant = await this.em.findOne(Variant, { id: variantID }, { populate: ['components'] })
     if (!variant) return []
 
-    const items: ComponentRecycle[] = []
+    const processMap = new Map<
+      string,
+      { process: Process; componentIds: string[]; components: Component[] }
+    >()
+
     for (const component of variant.components.getItems()) {
-      const entries = await this.streamService.recycleComponent(component.id, regionID)
-      items.push(...entries)
+      const matches = await this.streamService.findProcessesForComponent(component.id, regionID)
+      for (const { process, component: comp } of matches) {
+        if (!processMap.has(process.id)) {
+          processMap.set(process.id, { process, componentIds: [], components: [] })
+        }
+        const entry = processMap.get(process.id)!
+        if (!entry.componentIds.includes(comp.id)) {
+          entry.componentIds.push(comp.id)
+          entry.components.push(comp)
+        }
+      }
     }
-    return items
+
+    // Variant-specific processes apply to the whole variant
+    const variantProcesses = await this.em.find(Process, {
+      variant: variantID,
+      region: { id: { $in: regionSearch } },
+    })
+    const allComponentIds = variant.components.getItems().map((c) => c.id)
+    const allComponents = variant.components.getItems()
+    for (const process of variantProcesses) {
+      if (!processMap.has(process.id)) {
+        processMap.set(process.id, {
+          process,
+          componentIds: allComponentIds,
+          components: allComponents,
+        })
+      }
+    }
+
+    const result: VariantRecycle[] = []
+    for (const { process, componentIds, components } of processMap.values()) {
+      const r = new VariantRecycle()
+      r.variantId = variantID
+      r.regionID = regionID
+      r.componentIds = componentIds
+      r.stream = this.streamService.buildStream(process, components)
+      r.context = []
+      result.push(r)
+    }
+    return result
   }
 
   async create(input: CreateVariantInput, userID: string) {

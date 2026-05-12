@@ -432,20 +432,6 @@ export type ComponentRecycle = {
   stream?: Maybe<RecyclingStream>;
 };
 
-export type ComponentRecycleEdge = {
-  __typename?: 'ComponentRecycleEdge';
-  cursor: Scalars['String']['output'];
-  node: ComponentRecycle;
-};
-
-export type ComponentRecyclesConnection = {
-  __typename?: 'ComponentRecyclesConnection';
-  edges: Array<ComponentRecycleEdge>;
-  nodes: Array<ComponentRecycle>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
 export type ComponentRegionInput = {
   id: Scalars['ID']['input'];
 };
@@ -1002,8 +988,8 @@ export type Item = Named & {
   id: Scalars['ID']['output'];
   imageURL?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
-  /** Recycling options for this item */
-  recycle: ItemRecycle;
+  /** Recycling options for this item, one entry per recycling stream */
+  recycle: Array<ItemRecycle>;
   /** Recyclability score for this item */
   recycleScore?: Maybe<StreamScore>;
   /** Similar items related to this item */
@@ -1104,15 +1090,27 @@ export type ItemHistoryEdge = {
   node: ItemHistory;
 };
 
-/** Recycling options for an item, grouped by component */
+/** Recycling options for an item in a specific recycling stream */
 export type ItemRecycle = {
   __typename?: 'ItemRecycle';
-  components: ComponentRecyclesConnection;
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<RecyclingStream>;
+  variants: VariantsConnection;
 };
 
 
-/** Recycling options for an item, grouped by component */
+/** Recycling options for an item in a specific recycling stream */
 export type ItemRecycleComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Recycling options for an item in a specific recycling stream */
+export type ItemRecycleVariantsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -3046,8 +3044,8 @@ export type Variant = Named & {
   name?: Maybe<Scalars['String']['output']>;
   /** Organizations associated with this variant (e.g. manufacturer, importer) */
   orgs: VariantOrgsConnection;
-  /** Recycling options for this variant */
-  recycle: VariantRecycle;
+  /** Recycling options for this variant, one entry per recycling stream */
+  recycle: Array<VariantRecycle>;
   /** Aggregated recyclability score for this variant */
   recycleScore?: Maybe<StreamScore>;
   /** Geographic regions associated with this variant */
@@ -3243,14 +3241,16 @@ export type VariantOrgsInput = {
   id: Scalars['ID']['input'];
 };
 
-/** Recycling options for a variant, grouped by component */
+/** Recycling options for a variant in a specific recycling stream */
 export type VariantRecycle = {
   __typename?: 'VariantRecycle';
-  components: ComponentRecyclesConnection;
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<RecyclingStream>;
 };
 
 
-/** Recycling options for a variant, grouped by component */
+/** Recycling options for a variant in a specific recycling stream */
 export type VariantRecycleComponentsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;

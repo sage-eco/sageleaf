@@ -23,6 +23,7 @@ import { Region } from '@src/geo/region.entity'
 import { Material } from '@src/process/material.entity'
 import { Process, ProcessIntent } from '@src/process/process.entity'
 import { Item, ItemsCategories, ItemsTags } from '@src/product/item.entity'
+import { Variant } from '@src/product/variant.entity'
 import { WindmillMockService } from '@src/windmill/windmill.mock.service'
 import { WindmillService } from '@src/windmill/windmill.service'
 
@@ -1034,20 +1035,21 @@ describe('ItemResolver (integration)', () => {
       await em.flush()
     })
 
-    test('should return recycle components for an item', async () => {
+    test('should return recycle entries for an item', async () => {
       // ITEM_IDS[0] is linked to VARIANT_IDS which include COMPONENT_IDS[0] (material: MATERIAL_IDS[0])
       const res = await gql.send(
         graphql(`
-          query ItemRecycleComponents($id: ID!, $regionID: ID!) {
+          query ItemRecycles($id: ID!, $regionID: ID!) {
             item(id: $id) {
               recycle(regionID: $regionID) {
+                stream {
+                  name
+                  desc
+                }
                 components {
                   totalCount
                   nodes {
-                    stream {
-                      name
-                      desc
-                    }
+                    id
                   }
                 }
               }
@@ -1057,11 +1059,86 @@ describe('ItemResolver (integration)', () => {
         { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
       )
       expect(res.errors).toBeUndefined()
-      const components = res.data?.item?.recycle?.components
-      expect(components).toBeDefined()
-      expect(components!.totalCount).toBeGreaterThan(0)
-      const first = components!.nodes.at(0)
-      expect(first?.stream?.name).toBe('Item Recycle Process')
+      const recycle = res.data?.item?.recycle
+      expect(recycle).toBeDefined()
+      expect(recycle!.length).toBeGreaterThan(0)
+      const first = recycle!.at(0)!
+      expect(first.stream?.name).toBe('Item Recycle Process')
+      expect(first.components.totalCount).toBeGreaterThan(0)
+      const nodeIds = first.components.nodes.map((n: { id: string }) => n.id)
+      expect(nodeIds).toContain(COMPONENT_IDS[0])
+    })
+
+    test('should support pagination args on components field', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ItemRecycleComponentsPaginated($id: ID!, $regionID: ID!) {
+            item(id: $id) {
+              recycle(regionID: $regionID) {
+                components(first: 1) {
+                  totalCount
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const recycle = res.data?.item?.recycle
+      expect(recycle?.length).toBeGreaterThan(0)
+      const components = recycle!.at(0)!.components
+      expect(components.nodes.length).toBeLessThanOrEqual(1)
+      expect(components.totalCount).toBeGreaterThan(0)
+    })
+
+    test('should return variants for a variant-specific process on ItemRecycle', async () => {
+      const VARIANT_PROCESS_ID = 'proc_ITEM_VARIANT_TEST__'
+      const em = orm.em.fork()
+      em.create(Process, {
+        id: VARIANT_PROCESS_ID,
+        name: { en: 'Item Variant-Specific Process' },
+        desc: { en: 'A process linked directly to a variant, not a material' },
+        intent: ProcessIntent.RECYCLE,
+        instructions: {},
+        variant: em.getReference(Variant, VARIANT_IDS[0]),
+        region: em.getReference(Region, REGION_IDS[0]),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      await em.flush()
+
+      const res = await gql.send(
+        graphql(`
+          query ItemRecycleVariants($id: ID!, $regionID: ID!) {
+            item(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                }
+                variants {
+                  totalCount
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const recycle = res.data?.item?.recycle
+      expect(recycle?.length).toBeGreaterThan(0)
+      const variantEntry = recycle!.find((r) => r.stream?.name === 'Item Variant-Specific Process')
+      expect(variantEntry).toBeDefined()
+      expect(variantEntry!.variants.totalCount).toBeGreaterThan(0)
+      const variantIds = variantEntry!.variants.nodes.map((n: { id: string }) => n.id)
+      expect(variantIds).toContain(VARIANT_IDS[0])
     })
 
     test('should return the same stream data at item level as at component level', async () => {
@@ -1082,16 +1159,12 @@ describe('ItemResolver (integration)', () => {
       )
       const itemRes = await gql.send(
         graphql(`
-          query ItemRecycleConsistencyItem($id: ID!, $regionID: ID!) {
+          query ItemRecyclesConsistencyItem($id: ID!, $regionID: ID!) {
             item(id: $id) {
               recycle(regionID: $regionID) {
-                components {
-                  nodes {
-                    stream {
-                      name
-                      desc
-                    }
-                  }
+                stream {
+                  name
+                  desc
                 }
               }
             }
@@ -1103,7 +1176,7 @@ describe('ItemResolver (integration)', () => {
       expect(itemRes.errors).toBeUndefined()
 
       const componentStream = componentRes.data?.component?.recycle?.at(0)?.stream
-      const itemStream = itemRes.data?.item?.recycle?.components?.nodes?.at(0)?.stream
+      const itemStream = itemRes.data?.item?.recycle?.at(0)?.stream
       expect(componentStream?.name).toBeDefined()
       expect(itemStream?.name).toBe(componentStream?.name)
       expect(itemStream?.desc).toBe(componentStream?.desc)
@@ -1115,13 +1188,9 @@ describe('ItemResolver (integration)', () => {
           query ItemRecycleConsistencyVariant($id: ID!, $regionID: ID!) {
             variant(id: $id) {
               recycle(regionID: $regionID) {
-                components {
-                  nodes {
-                    stream {
-                      name
-                      desc
-                    }
-                  }
+                stream {
+                  name
+                  desc
                 }
               }
             }
@@ -1131,16 +1200,12 @@ describe('ItemResolver (integration)', () => {
       )
       const itemRes = await gql.send(
         graphql(`
-          query ItemRecycleConsistencyItemVsVariant($id: ID!, $regionID: ID!) {
+          query ItemRecyclesConsistencyItemVsVariant($id: ID!, $regionID: ID!) {
             item(id: $id) {
               recycle(regionID: $regionID) {
-                components {
-                  nodes {
-                    stream {
-                      name
-                      desc
-                    }
-                  }
+                stream {
+                  name
+                  desc
                 }
               }
             }
@@ -1151,8 +1216,8 @@ describe('ItemResolver (integration)', () => {
       expect(variantRes.errors).toBeUndefined()
       expect(itemRes.errors).toBeUndefined()
 
-      const variantStream = variantRes.data?.variant?.recycle?.components?.nodes?.at(0)?.stream
-      const itemStream = itemRes.data?.item?.recycle?.components?.nodes?.at(0)?.stream
+      const variantStream = variantRes.data?.variant?.recycle?.at(0)?.stream
+      const itemStream = itemRes.data?.item?.recycle?.at(0)?.stream
       expect(variantStream?.name).toBeDefined()
       expect(itemStream?.name).toBe(variantStream?.name)
       expect(itemStream?.desc).toBe(variantStream?.desc)
@@ -1183,19 +1248,14 @@ describe('ItemResolver (integration)', () => {
       expect(res.data?.item?.recycleScore === null || res.data?.item?.recycleScore).toBeDefined()
     })
 
-    test('should return empty components when no region is provided', async () => {
+    test('should return empty recycle when no region is provided', async () => {
       const res = await gql.send(
         graphql(`
-          query ItemRecycleNoRegion($id: ID!) {
+          query ItemRecyclesNoRegion($id: ID!) {
             item(id: $id) {
               recycle {
-                components {
-                  totalCount
-                  nodes {
-                    stream {
-                      name
-                    }
-                  }
+                stream {
+                  name
                 }
               }
             }
@@ -1204,7 +1264,7 @@ describe('ItemResolver (integration)', () => {
         { id: ITEM_IDS[0] },
       )
       expect(res.errors).toBeUndefined()
-      expect(res.data?.item?.recycle?.components?.totalCount).toBe(0)
+      expect(res.data?.item?.recycle).toHaveLength(0)
     })
   })
 })

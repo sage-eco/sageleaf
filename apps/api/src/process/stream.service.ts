@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common'
 import { I18nService } from '@src/common/i18n.service'
 import { LocationService } from '@src/geo/location.service'
 import { Component } from '@src/process/component.entity'
+import { MaterialTree } from '@src/process/material.entity'
 import { Process } from '@src/process/process.entity'
 import {
   CaveatLevel,
@@ -23,42 +24,53 @@ export class StreamService {
   ) {}
 
   async recycleComponent(componentId: string, regionId?: string) {
+    const matches = await this.findProcessesForComponent(componentId, regionId)
+    return matches.map(({ process, component }) => this.buildComponentRecycle(process, component))
+  }
+
+  async findProcessesForComponent(
+    componentId: string,
+    regionId?: string,
+  ): Promise<Array<{ process: Process; component: Component }>> {
     const component = await this.em.findOne(
       Component,
       { id: componentId },
       { populate: ['primaryMaterial', 'materials', 'tags'] },
     )
-    if (!component) {
-      throw new Error(`Component with ID "${componentId}" not found`)
-    }
+    if (!component) return []
 
     const regionSearch = await this.locationService.resolveLocation(regionId)
-    if (!regionSearch || regionSearch.length === 0) {
-      throw new Error('No region specified and no location resolved')
-    }
+    if (!regionSearch?.length) return []
 
-    const materialSearch: string[] = []
-    materialSearch.push(component.primaryMaterial.id)
+    // Exclude composite materials that are descendants of the primaryMaterial
+    const descendants = await this.em.find(MaterialTree, { ancestor: component.primaryMaterial.id })
+    const descendantIds = new Set(
+      descendants.filter((d) => Number(d.depth) > 0).map((d) => d.descendant.id),
+    )
+
+    const materialSearch = [component.primaryMaterial.id]
     for (const material of component.materials.getItems()) {
-      materialSearch.push(material.id)
+      if (!descendantIds.has(material.id)) {
+        materialSearch.push(material.id)
+      }
     }
 
-    // Search for processes that match this component
     const processes = await this.em.find(Process, {
       material: { id: { $in: materialSearch } },
       region: { id: { $in: regionSearch } },
     })
 
-    const recycle: ComponentRecycle[] = []
-    if (processes.length > 0) {
-      const r = new ComponentRecycle()
-      const processMatch = processes[0]
-      r.stream = new RecyclingStream()
-      r.stream.name = this.i18n.tr(processMatch.name)
-      r.stream.desc = this.i18n.tr(processMatch.desc)
-      r.stream.score = this.calculateScore(processMatch)
-      r.stream.container = processMatch.instructions.container
-      const caveats: StreamCaveats[] = []
+    return processes.map((process) => ({ process, component }))
+  }
+
+  buildStream(process: Process, components: Component[]): RecyclingStream {
+    const s = new RecyclingStream()
+    s.name = this.i18n.tr(process.name)
+    s.desc = this.i18n.tr(process.desc)
+    s.score = this.calculateScore(process)
+    s.container = process.instructions.container
+    const caveats: StreamCaveats[] = []
+    for (const component of components) {
       for (const tag of component.tags) {
         for (const rule of tag.rules?.recycle ?? []) {
           if (rule.caveat) {
@@ -70,10 +82,16 @@ export class StreamService {
           }
         }
       }
-      r.stream.caveats = caveats
-      recycle.push(r)
     }
-    return recycle
+    s.caveats = caveats
+    return s
+  }
+
+  private buildComponentRecycle(process: Process, component: Component): ComponentRecycle {
+    return Object.assign(new ComponentRecycle(), {
+      stream: this.buildStream(process, [component]),
+      context: [],
+    })
   }
 
   async recycleComponentScore(componentId: string, regionId?: string) {

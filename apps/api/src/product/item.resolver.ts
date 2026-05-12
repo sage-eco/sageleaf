@@ -9,7 +9,7 @@ import { EditService } from '@src/changes/edit.service'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { DeleteOutput, ModelEditSchema } from '@src/graphql/base.model'
-import { ComponentRecyclesConnection } from '@src/process/stream.model'
+import { Component, ComponentsConnection } from '@src/process/component.model'
 import { Tag, TagConnection } from '@src/process/tag.model'
 import { CategoriesConnection, Category } from '@src/product/category.model'
 import { Item as ItemEntity } from '@src/product/item.entity'
@@ -24,6 +24,7 @@ import {
   ItemRecycle,
   ItemRecycleArgs,
   ItemRecycleComponentsArgs,
+  ItemRecycleVariantsArgs,
   ItemsArgs,
   ItemsConnection,
   ItemTagsArgs,
@@ -113,7 +114,7 @@ export class ItemResolver {
     return score
   }
 
-  @ResolveField(() => ItemRecycle)
+  @ResolveField(() => [ItemRecycle])
   async recycle(@Parent() item: Item, @Args() args: ItemRecycleArgs) {
     return this.itemService.recycle(item.id, args.regionID)
   }
@@ -196,17 +197,27 @@ export class ItemRecycleResolver {
     private readonly transform: TransformService,
   ) {}
 
-  @ResolveField(() => ComponentRecyclesConnection)
+  @ResolveField(() => ComponentsConnection)
   async components(
     @Parent() parent: ItemRecycle,
-    @Args() _args: ItemRecycleComponentsArgs,
-  ): Promise<ComponentRecyclesConnection> {
-    const items = await this.itemService.recycleComponents(parent.itemId, parent.regionID)
-    return this.transform.objectsToPaginated(
-      ComponentRecyclesConnection,
-      { items, count: items.length },
-      true,
+    @Args() args: ItemRecycleComponentsArgs,
+  ): Promise<ComponentsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(
+      ItemRecycleComponentsArgs,
+      args,
     )
+    const cursor = await this.itemService.componentsByIds(parent.componentIds, filter)
+    return this.transform.entityToPaginated(Component, ComponentsConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField(() => VariantsConnection)
+  async variants(
+    @Parent() parent: ItemRecycle,
+    @Args() args: ItemRecycleVariantsArgs,
+  ): Promise<VariantsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ItemRecycleVariantsArgs, args)
+    const cursor = await this.itemService.variantsByIds(parent.variantIds, filter)
+    return this.transform.entityToPaginated(Variant, VariantsConnection, cursor, parsedArgs)
   }
 }
 

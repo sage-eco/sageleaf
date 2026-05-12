@@ -17,20 +17,32 @@ import {
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
-import { ComponentRecyclesConnection, StreamScore } from '@src/process/stream.model'
+import { ComponentsConnection } from '@src/process/component.model'
+import { RecyclingStream, StreamContext, StreamScore } from '@src/process/stream.model'
 import { TagConnection } from '@src/process/tag.model'
 import { CategoriesConnection } from '@src/product/category.model'
 import { VariantsConnection } from '@src/product/variant.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User } from '@src/users/users.model'
 
-@ObjectType({ description: 'Recycling options for an item, grouped by component' })
+@ObjectType({ description: 'Recycling options for an item in a specific recycling stream' })
 export class ItemRecycle {
-  @Field(() => ComponentRecyclesConnection)
-  components!: ComponentRecyclesConnection
+  @Field(() => RecyclingStream, { nullable: true })
+  stream?: RecyclingStream
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+
+  @Field(() => ComponentsConnection)
+  components!: ComponentsConnection & {}
+
+  @Field(() => VariantsConnection)
+  variants!: VariantsConnection & {}
 
   itemId!: string
   regionID?: string
+  componentIds: string[] = []
+  variantIds: string[] = []
 }
 
 @ObjectType({
@@ -67,10 +79,10 @@ export class Item extends IDCreatedUpdated implements Named {
   })
   recycleScore?: StreamScore
 
-  @Field(() => ItemRecycle, {
-    description: 'Recycling options for this item',
+  @Field(() => [ItemRecycle], {
+    description: 'Recycling options for this item, one entry per recycling stream',
   })
-  recycle!: ItemRecycle
+  recycle!: ItemRecycle[]
 
   @Field(() => ItemsConnection, { description: 'Similar items related to this item' })
   related!: ItemsConnection & {}
@@ -142,6 +154,9 @@ export class ItemRecycleArgs {
 
 @ArgsType()
 export class ItemRecycleComponentsArgs extends PaginationBasicArgs {}
+
+@ArgsType()
+export class ItemRecycleVariantsArgs extends PaginationBasicArgs {}
 
 @InputType()
 export class ItemCategoriesInput {
