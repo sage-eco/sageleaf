@@ -1,0 +1,71 @@
+apps/api/src/process/component.resolver.ts
+  s_afb358de8f84bc::t_f587835a3143e6 22-23,150-174
+  s_afb358de8f84bc::t_8c1fcf63aa6688 175-177
+apps/api/test/gql/gql.ts
+  s_afb358de8f84bc::t_f587835a3143e6 325-330,390-395,734-739,799-804,2081-2084,2088-2104,2341-2364
+  s_afb358de8f84bc::t_b8da23eebc9321 192-196,601-605,1549-1568
+  s_afb358de8f84bc::t_845311efe77fb3 2085-2087
+apps/api/src/product/variant.resolver.ts
+  s_afb358de8f84bc::t_7e7c69b6c8ee4a 343-349
+  s_afb358de8f84bc::t_f587835a3143e6 37-39,41-43,162-185,308-342
+apps/api/src/process/component.resolver.spec.ts
+  s_afb358de8f84bc::t_f587835a3143e6 816-839,841-845,847-851,853-857,859-863,865-869,871-984
+apps/api/src/process/component.service.ts
+  s_afb358de8f84bc::t_f587835a3143e6 135-150
+apps/api/src/process/stream.model.ts
+  s_afb358de8f84bc::t_f587835a3143e6 195-259
+apps/api/src/process/process.entity.ts
+  s_afb358de8f84bc::t_f587835a3143e6 38-39
+apps/api/src/product/item.resolver.ts
+  s_afb358de8f84bc::t_f587835a3143e6 28-35,130-153,256-306
+  s_afb358de8f84bc::t_7d2dff2fcdb168 307-311
+apps/api/src/product/item.resolver.spec.ts
+  s_afb358de8f84bc::t_f587835a3143e6 1270-1296,1298-1303,1305-1311,1313-1318,1320-1325,1327-1332,1334-1420,1422-1450,1452-1521
+apps/frontend/app/gql/graphql.ts
+  s_afb358de8f84bc::t_f587835a3143e6 319-322,327-330,367-378,387-398,467-473,478-484,1041-1044,1047-1050,1089-1100,1109-1120,1198-1251,2402-2414,2498-2512,3211-3214,3219-3222,3287-3298,3316-3327,3453-3469,3474-3488
+apps/api/src/process/component.model.ts
+  s_afb358de8f84bc::t_9027c1dd6cd4e4 227-235
+  s_afb358de8f84bc::t_f587835a3143e6 24-27,29,91-114,214-226
+apps/api/src/product/variant.model.ts
+  s_afb358de8f84bc::t_989a76fbeedad6 338
+  s_afb358de8f84bc::t_f587835a3143e6 24-28,30,55-86,134-154,313-337
+  s_afb358de8f84bc::t_4bc424114df58a 155
+apps/api/src/product/item.service.ts
+  s_afb358de8f84bc::t_f587835a3143e6 14,21-25,27,155-176,195,220-289,308-310,312,336,360,362,364
+apps/api/schema/schema.gql
+  s_afb358de8f84bc::t_f587835a3143e6 228-233,239-244,296-301,306-311,900-905,909-914,960-975,1538-1553,1631-1647,2398-2403,2409-2414,2517-2523,2528-2532
+apps/api/src/product/variant.resolver.spec.ts
+  s_afb358de8f84bc::t_f587835a3143e6 1730-1756,1758-1763,1765-1771,1773-1778,1780-1785,1787-1792,1794-1869,1871-1896,1898-1967
+apps/api/src/product/product.module.ts
+  s_afb358de8f84bc::t_f587835a3143e6 13-16,19,25,27,53-54,60-61
+apps/api/test/gql/graphql.ts
+  s_afb358de8f84bc::t_b8da23eebc9321 4809-4846,6752-6756
+  s_afb358de8f84bc::t_f587835a3143e6 319-322,327-330,367-378,387-395,467-473,478-484,1041-1044,1047-1050,1089-1100,1109-1120,1198-1251,2402-2414,2498-2512,3211-3214,3219-3222,3287-3294,3316-3327,3453-3469,3474-3488,5774-5815,5817-5819,6242-6286,6885-6890,6950-6955
+  s_afb358de8f84bc::t_845311efe77fb3 396-398,3295-3298,5816
+apps/api/src/process/stream.service.ts
+  s_afb358de8f84bc::t_f587835a3143e6 8,12-13,15-16,22-24,26-35,45,49-58,62,87,90-95,124-140,148-161,164-178,182-185
+apps/api/src/product/variant.service.ts
+  s_afb358de8f84bc::t_f587835a3143e6 16,31-35,37,157-178,196,209-271,273-274,287-289,291,308,322,324
+apps/api/src/product/item.model.ts
+  s_afb358de8f84bc::t_1194cae1d2b52a 262
+  s_afb358de8f84bc::t_f587835a3143e6 21-25,27,54-93,133-137,139-154,229-261
+  s_afb358de8f84bc::t_b934f5694afc54 138
+packages/ui/app/gql/graphql.ts
+  s_afb358de8f84bc::t_f587835a3143e6 319-322,327-330,367-378,387-398,467-473,478-484,1041-1044,1047-1050,1089-1100,1109-1120,1198-1251,2402-2414,2498-2512,3211-3214,3219-3222,3287-3298,3316-3327,3453-3469,3474-3488
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "7ddef794907605f15472e33a7475ff891255faa5",
+  "prompts": {},
+  "sessions": {
+    "s_afb358de8f84bc": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "c2898fce-f3e8-4308-beb5-44c07d05aecb",
+        "model": "unknown"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
