@@ -22,7 +22,14 @@ import { clearDatabase } from '@src/db/test.utils'
 import { Region } from '@src/geo/region.entity'
 import { Material } from '@src/process/material.entity'
 import { Process, ProcessIntent } from '@src/process/process.entity'
+import {
+  Program,
+  ProgramsOrgs,
+  ProgramsProcesses,
+  ProgramStatus,
+} from '@src/process/program.entity'
 import { Variant as VariantEntity } from '@src/product/variant.entity'
+import { Org } from '@src/users/org.entity'
 
 describe('VariantResolver (integration)', () => {
   let app: INestApplication
@@ -1963,6 +1970,242 @@ describe('VariantResolver (integration)', () => {
       )
       expect(res.errors).toBeUndefined()
       expect(res.data?.variant?.reuse).toHaveLength(0)
+    })
+  })
+
+  describe('programs() on variant stream types', () => {
+    const IDS = {
+      PROCESS_RECYCLE: 'y1qqmTDyT692cdYY-bpvr',
+      PROCESS_REDUCE: 'AjvewwLbNsbdvP2EpQnp0',
+      PROCESS_REUSE: 'LIWz4RA0b_QTTlAy8Rzvf',
+      PROGRAM_A: 'G6Cn7_zQMuhZyxu5MmV3o',
+      PROGRAM_B: 'xLVHP64-CfHZIS1Az-QkY',
+      ORG_A: 'crBSqMRbuHWSuOs7Aaa5N',
+      ORG_B: '-FhXgxB9iVVJGCC2FA9RL',
+    }
+
+    beforeAll(async () => {
+      const em = orm.em.fork()
+      const region = em.getReference(Region, REGION_IDS[0])
+      const material = em.getReference(Material, MATERIAL_IDS[0])
+
+      em.create(Org, {
+        id: IDS.ORG_A,
+        name: 'Variant Stream Org A',
+        slug: 'variant-stream-org-a',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      em.create(Org, {
+        id: IDS.ORG_B,
+        name: 'Variant Stream Org B',
+        slug: 'variant-stream-org-b',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      await em.flush()
+
+      const baseFields = {
+        instructions: {},
+        material,
+        region,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      em.create(Process, {
+        id: IDS.PROCESS_RECYCLE,
+        name: { en: 'VPgStr Recycle' },
+        intent: ProcessIntent.RECYCLE,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.PROCESS_REDUCE,
+        name: { en: 'VPgStr Reduce' },
+        intent: ProcessIntent.REDUCE,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.PROCESS_REUSE,
+        name: { en: 'VPgStr Reuse' },
+        intent: ProcessIntent.REUSE,
+        ...baseFields,
+      })
+      await em.flush()
+
+      em.create(Program, {
+        id: IDS.PROGRAM_A,
+        name: { en: 'Variant Program Alpha' },
+        status: ProgramStatus.ACTIVE,
+        instructions: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      em.create(Program, {
+        id: IDS.PROGRAM_B,
+        name: { en: 'Variant Program Beta' },
+        status: ProgramStatus.ACTIVE,
+        instructions: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      await em.flush()
+
+      em.create(ProgramsProcesses, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        process: em.getReference(Process, IDS.PROCESS_RECYCLE),
+      })
+      em.create(ProgramsProcesses, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        process: em.getReference(Process, IDS.PROCESS_REDUCE),
+      })
+      em.create(ProgramsProcesses, {
+        program: em.getReference(Program, IDS.PROGRAM_B),
+        process: em.getReference(Process, IDS.PROCESS_REUSE),
+      })
+      em.create(ProgramsOrgs, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        org: em.getReference(Org, IDS.ORG_A),
+        role: 'operator',
+      })
+      em.create(ProgramsOrgs, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        org: em.getReference(Org, IDS.ORG_B),
+        role: 'supporter',
+      })
+      await em.flush()
+    })
+
+    test('variant recycle stream programs() returns one row per org', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantRecyclePrograms($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                  programs {
+                    nodes {
+                      program {
+                        name
+                      }
+                      org {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const recycleResults = res.data?.variant?.recycle ?? []
+      const vpgStr = recycleResults.find((r) => r.stream?.name === 'VPgStr Recycle')
+      expect(vpgStr).toBeDefined()
+      const nodes = vpgStr!.stream!.programs.nodes
+      expect(nodes).toHaveLength(2)
+      const orgNames = nodes.map((n) => n.org?.name).sort()
+      expect(orgNames).toEqual(['Variant Stream Org A', 'Variant Stream Org B'])
+    })
+
+    test('variant reduce stream programs() returns correct programs', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantReducePrograms($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              reduce(regionID: $regionID) {
+                stream {
+                  name
+                  programs {
+                    nodes {
+                      program {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const reduceResults = res.data?.variant?.reduce ?? []
+      const vpgStr = reduceResults.find((r) => r.stream?.name === 'VPgStr Reduce')
+      expect(vpgStr).toBeDefined()
+      expect(vpgStr!.stream!.programs.nodes.map((n) => n.program.name)).toContain(
+        'Variant Program Alpha',
+      )
+    })
+
+    test('variant reuse stream programs() returns correct programs', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantReusePrograms($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              reuse(regionID: $regionID) {
+                stream {
+                  name
+                  programs {
+                    nodes {
+                      program {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const reuseResults = res.data?.variant?.reuse ?? []
+      const vpgStr = reuseResults.find((r) => r.stream?.name === 'VPgStr Reuse')
+      expect(vpgStr).toBeDefined()
+      expect(vpgStr!.stream!.programs.nodes.map((n) => n.program.name)).toContain(
+        'Variant Program Beta',
+      )
+    })
+
+    test('programs(query) filter works on variant recycle stream', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantRecycleProgramsFilter($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                  programs(query: "Alpha") {
+                    nodes {
+                      program {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const recycleResults = res.data?.variant?.recycle ?? []
+      const vpgStr = recycleResults.find((r) => r.stream?.name === 'VPgStr Recycle')
+      expect(vpgStr).toBeDefined()
+      const nodes = vpgStr!.stream!.programs.nodes
+      expect(nodes.length).toBeGreaterThan(0)
+      for (const n of nodes) {
+        expect(n.program.name).toContain('Alpha')
+      }
     })
   })
 })

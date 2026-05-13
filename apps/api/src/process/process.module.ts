@@ -18,6 +18,11 @@ import { ProcessService } from '@src/process/process.service'
 import { ProgramResolver } from '@src/process/program.resolver'
 import { ProgramSchemaService } from '@src/process/program.schema'
 import { ProgramService } from '@src/process/program.service'
+import {
+  RecyclingStreamResolver,
+  ReduceStreamResolver,
+  ReuseStreamResolver,
+} from '@src/process/stream.resolver'
 import { StreamService } from '@src/process/stream.service'
 import { TagResolver } from '@src/process/tag.resolver'
 import { TagSchemaService } from '@src/process/tag.schema'
@@ -58,6 +63,9 @@ import { UsersModule } from '@src/users/users.module'
     TagService,
     TagSchemaService,
     StreamService,
+    RecyclingStreamResolver,
+    ReduceStreamResolver,
+    ReuseStreamResolver,
     VariantService,
   ],
   exports: [

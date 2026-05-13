@@ -1,9 +1,15 @@
-import { Field, ObjectType, registerEnumType } from '@nestjs/graphql'
+import { ArgsType, Field, ObjectType, registerEnumType } from '@nestjs/graphql'
+import { z } from 'zod/v4'
 
+import { Place } from '@src/geo/place.model'
+import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import {
   ProcessInstructionsAccess,
   ProcessInstructionsContainerType,
 } from '@src/process/process.entity'
+import { Program } from '@src/process/program.model'
+import { TagCaveatLevel as CaveatLevel } from '@src/process/tag.entity'
+import { Org } from '@src/users/org.model'
 
 export enum StreamScoreRating {
   A_PLUS = 'A_PLUS',
@@ -114,12 +120,6 @@ export class Container {
   imageEntryPoint?: ContainerImageEntryPoint
 }
 
-export enum CaveatLevel {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-}
-
 registerEnumType(CaveatLevel, {
   name: 'CaveatLevel',
   description: 'The severity level of a caveat',
@@ -141,6 +141,8 @@ export class StreamCaveats {
   description: 'A recycling collection stream in a region, with score and container information',
 })
 export class RecyclingStream {
+  processId!: string
+
   @Field(() => String, { nullable: true })
   name?: string
 
@@ -197,6 +199,8 @@ export class ComponentRecycle {
   description: 'A reduce stream describing ways to reduce waste or resource consumption',
 })
 export class ReduceStream {
+  processId!: string
+
   @Field(() => String, { nullable: true })
   name?: string
 
@@ -218,6 +222,8 @@ export class ReduceStream {
 
 @ObjectType({ description: 'A reuse stream describing ways to reuse, repair, or refurbish' })
 export class ReuseStream {
+  processId!: string
+
   @Field(() => String, { nullable: true })
   name?: string
 
@@ -256,4 +262,29 @@ export class ComponentReuse {
 
   @Field(() => [StreamContext])
   context: StreamContext[] = []
+}
+
+@ObjectType({ description: 'A program associated with a recycling, reduce, or reuse stream' })
+export class StreamProgram {
+  @Field(() => Program)
+  program!: Program
+
+  @Field(() => Org, { nullable: true })
+  org?: Org
+
+  @Field(() => Place, { nullable: true })
+  place?: Place
+}
+
+@ObjectType()
+export class StreamProgramsConnection extends Paginated(StreamProgram) {}
+
+@ArgsType()
+export class StreamProgramsArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema.extend({
+    query: z.string().optional(),
+  })
+
+  @Field(() => String, { nullable: true })
+  query?: string
 }

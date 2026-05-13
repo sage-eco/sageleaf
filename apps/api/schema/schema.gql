@@ -1527,6 +1527,7 @@ type RecyclingStream {
   container: Container
   desc: String
   name: String
+  programs(after: String, before: String, first: Int, last: Int, query: String): StreamProgramsConnection!
 
   """Aggregated recyclability score for this stream"""
   score: StreamScore
@@ -1543,6 +1544,7 @@ type ReduceStream {
   caveats: [StreamCaveats!]
   desc: String
   name: String
+  programs(after: String, before: String, first: Int, last: Int, query: String): StreamProgramsConnection!
 
   """Aggregated score for this stream"""
   score: StreamScore
@@ -1637,6 +1639,7 @@ type ReuseStream {
   container: Container
   desc: String
   name: String
+  programs(after: String, before: String, first: Int, last: Int, query: String): StreamProgramsConnection!
 
   """Aggregated score for this stream"""
   score: StreamScore
@@ -1738,6 +1741,25 @@ type StreamContext {
   key: String!
   markdown: String
   name: String
+}
+
+"""A program associated with a recycling, reduce, or reuse stream"""
+type StreamProgram {
+  org: Org
+  place: Place
+  program: Program!
+}
+
+type StreamProgramEdge {
+  cursor: String!
+  node: StreamProgram!
+}
+
+type StreamProgramsConnection {
+  edges: [StreamProgramEdge!]!
+  nodes: [StreamProgram!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 """A recyclability score for a component or variant in a recycling stream"""

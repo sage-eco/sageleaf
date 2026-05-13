@@ -16,7 +16,14 @@ import { clearDatabase } from '@src/db/test.utils'
 import { Region } from '@src/geo/region.entity'
 import { Material } from '@src/process/material.entity'
 import { Process, ProcessIntent } from '@src/process/process.entity'
+import {
+  Program,
+  ProgramsOrgs,
+  ProgramsProcesses,
+  ProgramStatus,
+} from '@src/process/program.entity'
 import { Tag, TagCaveatLevel, TagType } from '@src/process/tag.entity'
+import { Org } from '@src/users/org.entity'
 import { WindmillMockService } from '@src/windmill/windmill.mock.service'
 import { WindmillService } from '@src/windmill/windmill.service'
 
@@ -1148,6 +1155,249 @@ describe('ComponentResolver (integration)', () => {
       const latest = component!.history.nodes!.at(-1)!
       expect(latest.original).toBeTruthy()
       expect(latest.changes).toBeTruthy()
+    })
+  })
+
+  describe('programs() on stream types', () => {
+    const IDS = {
+      PROCESS_RECYCLE: 'F7KLOgmfwpKxMOIHL5Np3',
+      PROCESS_REDUCE: 'RCrhnWFWGgu4co-69Soe7',
+      PROCESS_REUSE: 'FvEIrnMeLxy2-BEA4rOhL',
+      PROGRAM_A: '3ddxuirQhyyLRXBeDQr1E',
+      PROGRAM_B: 'OuXXLbHHu3Vr8lYLchZhy',
+      ORG_A: 'PMC4xjXZGrxSeCzH1lb1x',
+      ORG_B: 'BBK5S8mfgETIXtzdK2hKe',
+    }
+
+    beforeAll(async () => {
+      const em = orm.em.fork()
+      const region = em.getReference(Region, REGION_IDS[0])
+      const material = em.getReference(Material, MATERIAL_IDS[0])
+
+      em.create(Org, {
+        id: IDS.ORG_A,
+        name: 'Stream Org A',
+        slug: 'stream-org-a',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      em.create(Org, {
+        id: IDS.ORG_B,
+        name: 'Stream Org B',
+        slug: 'stream-org-b',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      await em.flush()
+
+      const baseFields = {
+        instructions: {},
+        material,
+        region,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      em.create(Process, {
+        id: IDS.PROCESS_RECYCLE,
+        name: { en: 'PgStr Recycle' },
+        intent: ProcessIntent.RECYCLE,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.PROCESS_REDUCE,
+        name: { en: 'PgStr Reduce' },
+        intent: ProcessIntent.REDUCE,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.PROCESS_REUSE,
+        name: { en: 'PgStr Reuse' },
+        intent: ProcessIntent.REUSE,
+        ...baseFields,
+      })
+      await em.flush()
+
+      em.create(Program, {
+        id: IDS.PROGRAM_A,
+        name: { en: 'Stream Program Alpha' },
+        status: ProgramStatus.ACTIVE,
+        instructions: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      em.create(Program, {
+        id: IDS.PROGRAM_B,
+        name: { en: 'Stream Program Beta' },
+        status: ProgramStatus.ACTIVE,
+        instructions: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      await em.flush()
+
+      // Link processes to programs
+      em.create(ProgramsProcesses, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        process: em.getReference(Process, IDS.PROCESS_RECYCLE),
+      })
+      em.create(ProgramsProcesses, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        process: em.getReference(Process, IDS.PROCESS_REDUCE),
+      })
+      em.create(ProgramsProcesses, {
+        program: em.getReference(Program, IDS.PROGRAM_B),
+        process: em.getReference(Process, IDS.PROCESS_REUSE),
+      })
+      // Program A has two orgs — should produce 2 rows for recycle stream
+      em.create(ProgramsOrgs, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        org: em.getReference(Org, IDS.ORG_A),
+        role: 'operator',
+      })
+      em.create(ProgramsOrgs, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        org: em.getReference(Org, IDS.ORG_B),
+        role: 'supporter',
+      })
+      await em.flush()
+    })
+
+    test('recycle stream programs() returns one row per org in the program', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ComponentRecyclePrograms($id: ID!, $regionID: ID!) {
+            component(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                  programs {
+                    nodes {
+                      program {
+                        name
+                      }
+                      org {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: componentID, regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const recycleResults = res.data?.component?.recycle ?? []
+      const pgStrRecycle = recycleResults.find((r) => r.stream?.name === 'PgStr Recycle')
+      expect(pgStrRecycle).toBeDefined()
+      const nodes = pgStrRecycle!.stream!.programs.nodes
+      // Program A has 2 orgs → 2 rows
+      expect(nodes).toHaveLength(2)
+      expect(nodes.map((n) => n.program.name)).toEqual([
+        'Stream Program Alpha',
+        'Stream Program Alpha',
+      ])
+      const orgNames = nodes.map((n) => n.org?.name).sort()
+      expect(orgNames).toEqual(['Stream Org A', 'Stream Org B'])
+    })
+
+    test('reduce stream programs() returns correct programs', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ComponentReducePrograms($id: ID!, $regionID: ID!) {
+            component(id: $id) {
+              reduce(regionID: $regionID) {
+                stream {
+                  name
+                  programs {
+                    nodes {
+                      program {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: componentID, regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const reduceResults = res.data?.component?.reduce ?? []
+      const pgStrReduce = reduceResults.find((r) => r.stream?.name === 'PgStr Reduce')
+      expect(pgStrReduce).toBeDefined()
+      const nodes = pgStrReduce!.stream!.programs.nodes
+      expect(nodes.map((n) => n.program.name)).toContain('Stream Program Alpha')
+    })
+
+    test('reuse stream programs() returns correct programs', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ComponentReusePrograms($id: ID!, $regionID: ID!) {
+            component(id: $id) {
+              reuse(regionID: $regionID) {
+                stream {
+                  name
+                  programs {
+                    nodes {
+                      program {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: componentID, regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const reuseResults = res.data?.component?.reuse ?? []
+      const pgStrReuse = reuseResults.find((r) => r.stream?.name === 'PgStr Reuse')
+      expect(pgStrReuse).toBeDefined()
+      const nodes = pgStrReuse!.stream!.programs.nodes
+      expect(nodes.map((n) => n.program.name)).toContain('Stream Program Beta')
+    })
+
+    test('programs(query) filters by program name', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ComponentRecycleProgramsFilter($id: ID!, $regionID: ID!) {
+            component(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                  programs(query: "Alpha") {
+                    nodes {
+                      program {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: componentID, regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const recycleResults = res.data?.component?.recycle ?? []
+      const pgStrRecycle = recycleResults.find((r) => r.stream?.name === 'PgStr Recycle')
+      expect(pgStrRecycle).toBeDefined()
+      // "Alpha" matches "Stream Program Alpha" but not "Stream Program Beta"
+      const nodes = pgStrRecycle!.stream!.programs.nodes
+      expect(nodes.length).toBeGreaterThan(0)
+      for (const n of nodes) {
+        expect(n.program.name).toContain('Alpha')
+      }
     })
   })
 })

@@ -2,12 +2,14 @@ import { EntityManager } from '@mikro-orm/postgresql'
 import { Injectable } from '@nestjs/common'
 
 import { I18nService } from '@src/common/i18n.service'
+import { TransformService } from '@src/common/transform'
 import { LocationService } from '@src/geo/location.service'
+import { Place } from '@src/geo/place.model'
 import { Component } from '@src/process/component.entity'
 import { MaterialTree } from '@src/process/material.entity'
 import { Process, ProcessIntent } from '@src/process/process.entity'
+import { Program } from '@src/process/program.model'
 import {
-  CaveatLevel,
   ComponentRecycle,
   ComponentReduce,
   ComponentReuse,
@@ -15,9 +17,12 @@ import {
   ReduceStream,
   ReuseStream,
   StreamCaveats,
+  StreamProgram,
+  StreamProgramsArgs,
   StreamScore,
   StreamScoreRating,
 } from '@src/process/stream.model'
+import { Org } from '@src/users/org.model'
 
 const RECYCLE_INTENTS = [
   ProcessIntent.RECYCLE,
@@ -39,6 +44,7 @@ export class StreamService {
     private readonly em: EntityManager,
     private readonly i18n: I18nService,
     private readonly locationService: LocationService,
+    private readonly transform: TransformService,
   ) {}
 
   async recycleComponent(componentId: string, regionId?: string) {
@@ -99,6 +105,7 @@ export class StreamService {
 
   buildStream(process: Process, components: Component[]): RecyclingStream {
     const s = new RecyclingStream()
+    s.processId = process.id
     s.name = this.i18n.tr(process.name)
     s.desc = this.i18n.tr(process.desc)
     s.score = this.calculateScore(process)
@@ -109,7 +116,7 @@ export class StreamService {
         for (const rule of tag.rules?.recycle ?? []) {
           if (rule.caveat) {
             const c = new StreamCaveats()
-            c.level = rule.caveat.level as unknown as CaveatLevel
+            c.level = rule.caveat.level
             c.name = this.i18n.tr(rule.caveat.name)
             c.desc = this.i18n.tr(rule.caveat.desc)
             caveats.push(c)
@@ -123,6 +130,7 @@ export class StreamService {
 
   buildReduceStream(process: Process): ReduceStream {
     const s = new ReduceStream()
+    s.processId = process.id
     s.name = this.i18n.tr(process.name)
     s.desc = this.i18n.tr(process.desc)
     s.score = this.calculateScore(process)
@@ -131,6 +139,7 @@ export class StreamService {
 
   buildReuseStream(process: Process): ReuseStream {
     const s = new ReuseStream()
+    s.processId = process.id
     s.name = this.i18n.tr(process.name)
     s.desc = this.i18n.tr(process.desc)
     s.score = this.calculateScore(process)
@@ -201,5 +210,49 @@ export class StreamService {
     }
     score.ratingF = this.i18n.t(`stream.scoreRating.${score.rating}`)
     return score
+  }
+
+  async findProgramsForProcess(
+    processId: string,
+    args: StreamProgramsArgs,
+  ): Promise<{ items: StreamProgram[]; count: number }> {
+    const process = await this.em.findOne(
+      Process,
+      { id: processId },
+      { populate: ['programs', 'programs.orgs', 'place'] },
+    )
+    if (!process) return { items: [], count: 0 }
+
+    const placeModel = process.place?.isInitialized()
+      ? await this.transform.entityToModel(Place, process.place)
+      : undefined
+
+    const rows: StreamProgram[] = []
+    for (const programEntity of process.programs) {
+      if (
+        args.query &&
+        !JSON.stringify(programEntity.name).toLowerCase().includes(args.query.toLowerCase())
+      ) {
+        continue
+      }
+      const programModel = await this.transform.entityToModel(Program, programEntity)
+      const orgs = programEntity.orgs.isInitialized() ? programEntity.orgs.getItems() : []
+      if (orgs.length === 0) {
+        const row = new StreamProgram()
+        row.program = programModel
+        row.place = placeModel
+        rows.push(row)
+      } else {
+        for (const orgEntity of orgs) {
+          const orgModel = await this.transform.entityToModel(Org, orgEntity)
+          const row = new StreamProgram()
+          row.program = programModel
+          row.org = orgModel
+          row.place = placeModel
+          rows.push(row)
+        }
+      }
+    }
+    return { items: rows, count: rows.length }
   }
 }

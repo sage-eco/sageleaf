@@ -3,7 +3,6 @@ import { Frown } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import { useFragment, type FragmentType } from '~/gql/fragment-masking'
-import type { ComponentRecycle } from '~/gql/types.generated'
 
 const ItemRecycleStreamsFragment = graphql(`
   fragment ItemRecycleStreams on ItemRecycle {
@@ -44,12 +43,8 @@ const props = defineProps<{
   loading?: boolean
 }>()
 
-const recycleEntries = computed<ComponentRecycle[]>(() =>
-  props.recycle
-    ? props.recycle.map(
-        (r) => useFragment(ItemRecycleStreamsFragment, r) as unknown as ComponentRecycle,
-      )
-    : [],
+const recycleEntries = computed(() =>
+  props.recycle ? props.recycle.map((r) => useFragment(ItemRecycleStreamsFragment, r)) : [],
 )
 </script>
 

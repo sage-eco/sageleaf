@@ -22,8 +22,15 @@ import { clearDatabase } from '@src/db/test.utils'
 import { Region } from '@src/geo/region.entity'
 import { Material } from '@src/process/material.entity'
 import { Process, ProcessIntent } from '@src/process/process.entity'
+import {
+  Program,
+  ProgramsOrgs,
+  ProgramsProcesses,
+  ProgramStatus,
+} from '@src/process/program.entity'
 import { Item, ItemsCategories, ItemsTags } from '@src/product/item.entity'
 import { Variant } from '@src/product/variant.entity'
+import { Org } from '@src/users/org.entity'
 import { WindmillMockService } from '@src/windmill/windmill.mock.service'
 import { WindmillService } from '@src/windmill/windmill.service'
 
@@ -1517,6 +1524,242 @@ describe('ItemResolver (integration)', () => {
       )
       expect(res.errors).toBeUndefined()
       expect(res.data?.item?.reuse).toHaveLength(0)
+    })
+  })
+
+  describe('programs() on item stream types', () => {
+    const IDS = {
+      PROCESS_RECYCLE: 'KNsMyC_Xg7rCF_ogA-HKc',
+      PROCESS_REDUCE: 'eWirCvzW3m_LLwzxsFjd1',
+      PROCESS_REUSE: 'SLiOf9dMQwBdXT51-J4m_',
+      PROGRAM_A: 'a9GfuJTnOJLSCMhJ72Ia-',
+      PROGRAM_B: 'OjmAP77VSVkfbBWPlH3GN',
+      ORG_A: 'OMOqr4eNJHvoxC-0v7pI3',
+      ORG_B: 'J2OZC9GhF44cOLvNDQ-uJ',
+    }
+
+    beforeAll(async () => {
+      const em = orm.em.fork()
+      const region = em.getReference(Region, REGION_IDS[0])
+      const material = em.getReference(Material, MATERIAL_IDS[0])
+
+      em.create(Org, {
+        id: IDS.ORG_A,
+        name: 'Item Stream Org A',
+        slug: 'item-stream-org-a',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      em.create(Org, {
+        id: IDS.ORG_B,
+        name: 'Item Stream Org B',
+        slug: 'item-stream-org-b',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      await em.flush()
+
+      const baseFields = {
+        instructions: {},
+        material,
+        region,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      em.create(Process, {
+        id: IDS.PROCESS_RECYCLE,
+        name: { en: 'IPgStr Recycle' },
+        intent: ProcessIntent.RECYCLE,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.PROCESS_REDUCE,
+        name: { en: 'IPgStr Reduce' },
+        intent: ProcessIntent.REDUCE,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.PROCESS_REUSE,
+        name: { en: 'IPgStr Reuse' },
+        intent: ProcessIntent.REUSE,
+        ...baseFields,
+      })
+      await em.flush()
+
+      em.create(Program, {
+        id: IDS.PROGRAM_A,
+        name: { en: 'Item Program Alpha' },
+        status: ProgramStatus.ACTIVE,
+        instructions: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      em.create(Program, {
+        id: IDS.PROGRAM_B,
+        name: { en: 'Item Program Beta' },
+        status: ProgramStatus.ACTIVE,
+        instructions: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      await em.flush()
+
+      em.create(ProgramsProcesses, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        process: em.getReference(Process, IDS.PROCESS_RECYCLE),
+      })
+      em.create(ProgramsProcesses, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        process: em.getReference(Process, IDS.PROCESS_REDUCE),
+      })
+      em.create(ProgramsProcesses, {
+        program: em.getReference(Program, IDS.PROGRAM_B),
+        process: em.getReference(Process, IDS.PROCESS_REUSE),
+      })
+      em.create(ProgramsOrgs, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        org: em.getReference(Org, IDS.ORG_A),
+        role: 'operator',
+      })
+      em.create(ProgramsOrgs, {
+        program: em.getReference(Program, IDS.PROGRAM_A),
+        org: em.getReference(Org, IDS.ORG_B),
+        role: 'supporter',
+      })
+      await em.flush()
+    })
+
+    test('item recycle stream programs() returns one row per org', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ItemRecyclePrograms($id: ID!, $regionID: ID!) {
+            item(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                  programs {
+                    nodes {
+                      program {
+                        name
+                      }
+                      org {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const recycleResults = res.data?.item?.recycle ?? []
+      const iPgStr = recycleResults.find((r) => r.stream?.name === 'IPgStr Recycle')
+      expect(iPgStr).toBeDefined()
+      const nodes = iPgStr!.stream!.programs.nodes
+      expect(nodes).toHaveLength(2)
+      const orgNames = nodes.map((n) => n.org?.name).sort()
+      expect(orgNames).toEqual(['Item Stream Org A', 'Item Stream Org B'])
+    })
+
+    test('item reduce stream programs() returns correct programs', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ItemReducePrograms($id: ID!, $regionID: ID!) {
+            item(id: $id) {
+              reduce(regionID: $regionID) {
+                stream {
+                  name
+                  programs {
+                    nodes {
+                      program {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const reduceResults = res.data?.item?.reduce ?? []
+      const iPgStr = reduceResults.find((r) => r.stream?.name === 'IPgStr Reduce')
+      expect(iPgStr).toBeDefined()
+      expect(iPgStr!.stream!.programs.nodes.map((n) => n.program.name)).toContain(
+        'Item Program Alpha',
+      )
+    })
+
+    test('item reuse stream programs() returns correct programs', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ItemReusePrograms($id: ID!, $regionID: ID!) {
+            item(id: $id) {
+              reuse(regionID: $regionID) {
+                stream {
+                  name
+                  programs {
+                    nodes {
+                      program {
+                        name
+                      }
+                    }
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const reuseResults = res.data?.item?.reuse ?? []
+      const iPgStr = reuseResults.find((r) => r.stream?.name === 'IPgStr Reuse')
+      expect(iPgStr).toBeDefined()
+      expect(iPgStr!.stream!.programs.nodes.map((n) => n.program.name)).toContain(
+        'Item Program Beta',
+      )
+    })
+
+    test('programs(query) filter works on item recycle stream', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ItemRecycleProgramsFilter($id: ID!, $regionID: ID!) {
+            item(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                  programs(query: "Alpha") {
+                    nodes {
+                      program {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: ITEM_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const recycleResults = res.data?.item?.recycle ?? []
+      const iPgStr = recycleResults.find((r) => r.stream?.name === 'IPgStr Recycle')
+      expect(iPgStr).toBeDefined()
+      const nodes = iPgStr!.stream!.programs.nodes
+      expect(nodes.length).toBeGreaterThan(0)
+      for (const n of nodes) {
+        expect(n.program.name).toContain('Alpha')
+      }
     })
   })
 })

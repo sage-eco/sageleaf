@@ -2389,10 +2389,21 @@ export type RecyclingStream = {
   container?: Maybe<Container>;
   desc?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  programs: StreamProgramsConnection;
   /** Aggregated recyclability score for this stream */
   score?: Maybe<StreamScore>;
   /** Per-material recyclability scores within this stream */
   scores?: Maybe<Array<StreamScore>>;
+};
+
+
+/** A recycling collection stream in a region, with score and container information */
+export type RecyclingStreamProgramsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** A reduce stream describing ways to reduce waste or resource consumption */
@@ -2402,10 +2413,21 @@ export type ReduceStream = {
   caveats?: Maybe<Array<StreamCaveats>>;
   desc?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  programs: StreamProgramsConnection;
   /** Aggregated score for this stream */
   score?: Maybe<StreamScore>;
   /** Per-material scores within this stream */
   scores?: Maybe<Array<StreamScore>>;
+};
+
+
+/** A reduce stream describing ways to reduce waste or resource consumption */
+export type ReduceStreamProgramsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Type of the referenced model in a relation edit */
@@ -2500,10 +2522,21 @@ export type ReuseStream = {
   container?: Maybe<Container>;
   desc?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  programs: StreamProgramsConnection;
   /** Aggregated score for this stream */
   score?: Maybe<StreamScore>;
   /** Per-material scores within this stream */
   scores?: Maybe<Array<StreamScore>>;
+};
+
+
+/** A reuse stream describing ways to reuse, repair, or refurbish */
+export type ReuseStreamProgramsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type SearchResultConnection = {
@@ -2611,6 +2644,28 @@ export type StreamContext = {
   key: Scalars['String']['output'];
   markdown?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+};
+
+/** A program associated with a recycling, reduce, or reuse stream */
+export type StreamProgram = {
+  __typename?: 'StreamProgram';
+  org?: Maybe<Org>;
+  place?: Maybe<Place>;
+  program: Program;
+};
+
+export type StreamProgramEdge = {
+  __typename?: 'StreamProgramEdge';
+  cursor: Scalars['String']['output'];
+  node: StreamProgram;
+};
+
+export type StreamProgramsConnection = {
+  __typename?: 'StreamProgramsConnection';
+  edges: Array<StreamProgramEdge>;
+  nodes: Array<StreamProgram>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
 };
 
 /** A recyclability score for a component or variant in a recycling stream */
