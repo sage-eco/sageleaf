@@ -18,7 +18,13 @@ import {
 import { Named } from '@src/graphql/interfaces.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ComponentsConnection } from '@src/process/component.model'
-import { RecyclingStream, StreamContext, StreamScore } from '@src/process/stream.model'
+import {
+  RecyclingStream,
+  ReduceStream,
+  ReuseStream,
+  StreamContext,
+  StreamScore,
+} from '@src/process/stream.model'
 import { TagConnection } from '@src/process/tag.model'
 import { CategoriesConnection } from '@src/product/category.model'
 import { VariantsConnection } from '@src/product/variant.model'
@@ -29,6 +35,46 @@ import { User } from '@src/users/users.model'
 export class ItemRecycle {
   @Field(() => RecyclingStream, { nullable: true })
   stream?: RecyclingStream
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+
+  @Field(() => ComponentsConnection)
+  components!: ComponentsConnection & {}
+
+  @Field(() => VariantsConnection)
+  variants!: VariantsConnection & {}
+
+  itemId!: string
+  regionID?: string
+  componentIds: string[] = []
+  variantIds: string[] = []
+}
+
+@ObjectType({ description: 'Reduce options for an item' })
+export class ItemReduce {
+  @Field(() => ReduceStream, { nullable: true })
+  stream?: ReduceStream & {}
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+
+  @Field(() => ComponentsConnection)
+  components!: ComponentsConnection & {}
+
+  @Field(() => VariantsConnection)
+  variants!: VariantsConnection & {}
+
+  itemId!: string
+  regionID?: string
+  componentIds: string[] = []
+  variantIds: string[] = []
+}
+
+@ObjectType({ description: 'Reuse options for an item' })
+export class ItemReuse {
+  @Field(() => ReuseStream, { nullable: true })
+  stream?: ReuseStream & {}
 
   @Field(() => [StreamContext])
   context: StreamContext[] = []
@@ -83,6 +129,28 @@ export class Item extends IDCreatedUpdated implements Named {
     description: 'Recycling options for this item, one entry per recycling stream',
   })
   recycle!: ItemRecycle[]
+
+  @Field(() => StreamScore, {
+    nullable: true,
+    description: 'Reduce score for this item',
+  })
+  reduceScore?: StreamScore
+
+  @Field(() => [ItemReduce], {
+    description: 'Reduce options for this item, one entry per reduce stream',
+  })
+  reduce!: ItemReduce[]
+
+  @Field(() => StreamScore, {
+    nullable: true,
+    description: 'Reuse score for this item',
+  })
+  reuseScore?: StreamScore
+
+  @Field(() => [ItemReuse], {
+    description: 'Reuse options for this item, one entry per reuse stream',
+  })
+  reuse!: ItemReuse[]
 
   @Field(() => ItemsConnection, { description: 'Similar items related to this item' })
   related!: ItemsConnection & {}
@@ -157,6 +225,40 @@ export class ItemRecycleComponentsArgs extends PaginationBasicArgs {}
 
 @ArgsType()
 export class ItemRecycleVariantsArgs extends PaginationBasicArgs {}
+
+@ArgsType()
+export class ItemReduceArgs {
+  static schema = z.object({
+    regionID: z.string().optional(),
+  })
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  regionID?: string
+}
+
+@ArgsType()
+export class ItemReduceComponentsArgs extends PaginationBasicArgs {}
+
+@ArgsType()
+export class ItemReduceVariantsArgs extends PaginationBasicArgs {}
+
+@ArgsType()
+export class ItemReuseArgs {
+  static schema = z.object({
+    regionID: z.string().optional(),
+  })
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  regionID?: string
+}
+
+@ArgsType()
+export class ItemReuseComponentsArgs extends PaginationBasicArgs {}
+
+@ArgsType()
+export class ItemReuseVariantsArgs extends PaginationBasicArgs {}
 
 @InputType()
 export class ItemCategoriesInput {

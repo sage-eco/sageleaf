@@ -1727,4 +1727,242 @@ describe('VariantResolver (integration)', () => {
       expect(res.data?.variant?.recycle).toHaveLength(0)
     })
   })
+
+  describe('Variant reduce and reuse fields', () => {
+    // Two REDUCE processes (one via material_id, one via variant_id) and
+    // multiple reuse-group processes across both associations
+    const IDS = {
+      REDUCE_MAT: 'UDvaADxUoJ4tPNpTsYKym',
+      REDUCE_VRT: 'jXNaim2W9Yin9JSBGpuNq',
+      REPAIR_MAT: '0lCEtE7TvCfwnenjgwzSm',
+      REFURB_VRT: 'LHnOgg3GEBhX4QXdpDCGx',
+      REPURP_VRT: 'tUH45ss054LUIf9I9fuFt',
+      REUSE_MAT: 'R4QmY73qkJmmcH50UtOIn',
+    }
+
+    beforeAll(async () => {
+      const em = orm.em.fork()
+      const base = {
+        instructions: {},
+        region: em.getReference(Region, REGION_IDS[0]),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      // REDUCE via material_id and variant_id
+      em.create(Process, {
+        id: IDS.REDUCE_MAT,
+        name: { en: 'V Reduce Mat' },
+        intent: ProcessIntent.REDUCE,
+        material: em.getReference(Material, MATERIAL_IDS[0]),
+        ...base,
+      })
+      em.create(Process, {
+        id: IDS.REDUCE_VRT,
+        name: { en: 'V Reduce Vrt' },
+        intent: ProcessIntent.REDUCE,
+        variant: em.getReference(VariantEntity, VARIANT_IDS[0]),
+        ...base,
+      })
+      // REUSE group via material_id (REPAIR, REUSE) and variant_id (REFURBISH, REPURPOSE)
+      em.create(Process, {
+        id: IDS.REPAIR_MAT,
+        name: { en: 'V Repair Mat' },
+        intent: ProcessIntent.REPAIR,
+        material: em.getReference(Material, MATERIAL_IDS[0]),
+        ...base,
+      })
+      em.create(Process, {
+        id: IDS.REFURB_VRT,
+        name: { en: 'V Refurb Vrt' },
+        intent: ProcessIntent.REFURBISH,
+        variant: em.getReference(VariantEntity, VARIANT_IDS[0]),
+        ...base,
+      })
+      em.create(Process, {
+        id: IDS.REPURP_VRT,
+        name: { en: 'V Repurpose Vrt' },
+        intent: ProcessIntent.REPURPOSE,
+        variant: em.getReference(VariantEntity, VARIANT_IDS[0]),
+        ...base,
+      })
+      em.create(Process, {
+        id: IDS.REUSE_MAT,
+        name: { en: 'V Reuse Mat' },
+        intent: ProcessIntent.REUSE,
+        material: em.getReference(Material, MATERIAL_IDS[0]),
+        ...base,
+      })
+      await em.flush()
+    })
+
+    test('should return reduce entries from both material_id and variant_id associations', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantReduce($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              reduce(regionID: $regionID) {
+                stream {
+                  name
+                }
+                components {
+                  totalCount
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const reduce = res.data?.variant?.reduce ?? []
+      const names = reduce.map((r) => r.stream?.name)
+      // Both material-based and variant-based REDUCE processes appear
+      expect(names).toContain('V Reduce Mat')
+      expect(names).toContain('V Reduce Vrt')
+      // Variant-based process has all components of the variant
+      const vrtEntry = reduce.find((r) => r.stream?.name === 'V Reduce Vrt')!
+      expect(vrtEntry.components.totalCount).toBeGreaterThan(0)
+      expect(vrtEntry.components.nodes.map((n: { id: string }) => n.id)).toContain(COMPONENT_IDS[0])
+      // Material-based process is tied to the component with that material
+      const matEntry = reduce.find((r) => r.stream?.name === 'V Reduce Mat')!
+      expect(matEntry.components.nodes.map((n: { id: string }) => n.id)).toContain(COMPONENT_IDS[0])
+    })
+
+    test('should return reuse entries from both material_id and variant_id associations', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantReuse($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              reuse(regionID: $regionID) {
+                stream {
+                  name
+                }
+                components {
+                  totalCount
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const reuse = res.data?.variant?.reuse ?? []
+      const names = reuse.map((r) => r.stream?.name)
+      // All four reuse-group processes appear
+      expect(names).toContain('V Repair Mat')
+      expect(names).toContain('V Refurb Vrt')
+      expect(names).toContain('V Repurpose Vrt')
+      expect(names).toContain('V Reuse Mat')
+      // REDUCE must not bleed into reuse()
+      expect(names).not.toContain('V Reduce Mat')
+      expect(names).not.toContain('V Reduce Vrt')
+      // Variant-based reuse entries cover all components
+      const refurbEntry = reuse.find((r) => r.stream?.name === 'V Refurb Vrt')!
+      expect(refurbEntry.components.totalCount).toBeGreaterThan(0)
+      expect(refurbEntry.components.nodes.map((n: { id: string }) => n.id)).toContain(
+        COMPONENT_IDS[0],
+      )
+    })
+
+    test('should not return reduce or reuse processes in recycle()', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantRecycleIsolation($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const names = res.data?.variant?.recycle?.map((r) => r.stream?.name) ?? []
+      for (const n of [
+        'V Reduce Mat',
+        'V Reduce Vrt',
+        'V Repair Mat',
+        'V Refurb Vrt',
+        'V Repurpose Vrt',
+        'V Reuse Mat',
+      ]) {
+        expect(names).not.toContain(n)
+      }
+    })
+
+    test('should support pagination on reduce components field', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantReduceComponentsPaginated($id: ID!, $regionID: ID!) {
+            variant(id: $id) {
+              reduce(regionID: $regionID) {
+                components(first: 1) {
+                  totalCount
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0], regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const reduce = res.data?.variant?.reduce ?? []
+      expect(reduce.length).toBeGreaterThan(0)
+      for (const entry of reduce) {
+        expect(entry.components.nodes.length).toBeLessThanOrEqual(1)
+        expect(entry.components.totalCount).toBeGreaterThan(0)
+      }
+    })
+
+    test('should return empty reduce when no region is provided', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantReduceNoRegion($id: ID!) {
+            variant(id: $id) {
+              reduce {
+                stream {
+                  name
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      expect(res.data?.variant?.reduce).toHaveLength(0)
+    })
+
+    test('should return empty reuse when no region is provided', async () => {
+      const res = await gql.send(
+        graphql(`
+          query VariantReuseNoRegion($id: ID!) {
+            variant(id: $id) {
+              reuse {
+                stream {
+                  name
+                }
+              }
+            }
+          }
+        `),
+        { id: VARIANT_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      expect(res.data?.variant?.reuse).toHaveLength(0)
+    })
+  })
 })

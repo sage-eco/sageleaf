@@ -132,6 +132,22 @@ export class ComponentService implements IEntityService<Component> {
     return score
   }
 
+  async reduce(componentId: string, regionId?: string) {
+    return this.streamService.reduceComponent(componentId, regionId)
+  }
+
+  async reduceScore(componentId: string, regionId?: string) {
+    return this.streamService.reduceComponentScore(componentId, regionId)
+  }
+
+  async reuse(componentId: string, regionId?: string) {
+    return this.streamService.reuseComponent(componentId, regionId)
+  }
+
+  async reuseScore(componentId: string, regionId?: string) {
+    return this.streamService.reuseComponentScore(componentId, regionId)
+  }
+
   async create(input: CreateComponentInput, userID: string) {
     const component = new Component()
     if (!isUsingChange(input)) {

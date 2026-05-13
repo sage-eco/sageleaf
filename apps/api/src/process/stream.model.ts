@@ -192,3 +192,68 @@ export class ComponentRecycle {
   @Field(() => [StreamContext])
   context: StreamContext[] = []
 }
+
+@ObjectType({
+  description: 'A reduce stream describing ways to reduce waste or resource consumption',
+})
+export class ReduceStream {
+  @Field(() => String, { nullable: true })
+  name?: string
+
+  @Field(() => String, { nullable: true })
+  desc?: string
+
+  @Field(() => StreamScore, { nullable: true, description: 'Aggregated score for this stream' })
+  score?: StreamScore
+
+  @Field(() => [StreamScore], {
+    nullable: true,
+    description: 'Per-material scores within this stream',
+  })
+  scores?: StreamScore[]
+
+  @Field(() => [StreamCaveats], { nullable: true, description: 'Caveats about this stream' })
+  caveats?: StreamCaveats[]
+}
+
+@ObjectType({ description: 'A reuse stream describing ways to reuse, repair, or refurbish' })
+export class ReuseStream {
+  @Field(() => String, { nullable: true })
+  name?: string
+
+  @Field(() => String, { nullable: true })
+  desc?: string
+
+  @Field(() => StreamScore, { nullable: true, description: 'Aggregated score for this stream' })
+  score?: StreamScore
+
+  @Field(() => [StreamScore], {
+    nullable: true,
+    description: 'Per-material scores within this stream',
+  })
+  scores?: StreamScore[]
+
+  @Field(() => Container, { nullable: true, description: 'The collection container used' })
+  container?: Container
+
+  @Field(() => [StreamCaveats], { nullable: true, description: 'Caveats about this stream' })
+  caveats?: StreamCaveats[]
+}
+
+@ObjectType({ description: 'A reduce option for a component' })
+export class ComponentReduce {
+  @Field(() => ReduceStream, { nullable: true })
+  stream?: ReduceStream & {}
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+}
+
+@ObjectType({ description: 'A reuse option for a component' })
+export class ComponentReuse {
+  @Field(() => ReuseStream, { nullable: true })
+  stream?: ReuseStream & {}
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+}

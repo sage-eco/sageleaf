@@ -13,7 +13,7 @@ import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity
 import { LocationService } from '@src/geo/location.service'
 import { Region } from '@src/geo/region.entity'
 import { Component } from '@src/process/component.entity'
-import { Process } from '@src/process/process.entity'
+import { Process, ProcessIntent } from '@src/process/process.entity'
 import { StreamScore, StreamScoreRating } from '@src/process/stream.model'
 import { StreamService } from '@src/process/stream.service'
 import { Tag } from '@src/process/tag.entity'
@@ -28,7 +28,13 @@ import {
   VariantsSources,
   VariantsTags,
 } from '@src/product/variant.entity'
-import { CreateVariantInput, UpdateVariantInput, VariantRecycle } from '@src/product/variant.model'
+import {
+  CreateVariantInput,
+  UpdateVariantInput,
+  VariantRecycle,
+  VariantReduce,
+  VariantReuse,
+} from '@src/product/variant.model'
 
 @Injectable()
 @IsEntityService(Variant)
@@ -148,6 +154,28 @@ export class VariantService implements IEntityService<Variant> {
   }
 
   async recycleScore(variantID: string, regionID?: string) {
+    return this.computeVariantScore(variantID, regionID, (id, rid) =>
+      this.streamService.recycleComponentScore(id, rid),
+    )
+  }
+
+  async reduceScore(variantID: string, regionID?: string) {
+    return this.computeVariantScore(variantID, regionID, (id, rid) =>
+      this.streamService.reduceComponentScore(id, rid),
+    )
+  }
+
+  async reuseScore(variantID: string, regionID?: string) {
+    return this.computeVariantScore(variantID, regionID, (id, rid) =>
+      this.streamService.reuseComponentScore(id, rid),
+    )
+  }
+
+  private async computeVariantScore(
+    variantID: string,
+    regionID: string | undefined,
+    scoreFunc: (componentId: string, regionID?: string) => Promise<StreamScore | null>,
+  ) {
     const variant = await this.em.findOne(
       Variant,
       { id: variantID },
@@ -165,7 +193,7 @@ export class VariantService implements IEntityService<Variant> {
     }
     let totalScore = 0
     for (const component of variant.components.getItems()) {
-      const score = await this.streamService.recycleComponentScore(component.id, regionID)
+      const score = await scoreFunc(component.id, regionID)
       if (score && score.score) {
         totalScore += score.score
       }
@@ -178,6 +206,72 @@ export class VariantService implements IEntityService<Variant> {
   }
 
   async recycle(variantID: string, regionID?: string): Promise<VariantRecycle[]> {
+    return this.buildVariantStreams(
+      variantID,
+      regionID,
+      [ProcessIntent.RECYCLE, ProcessIntent.ENERGY_RECOVERY, ProcessIntent.LANDFILL],
+      (process, componentIds, stream) => {
+        const r = new VariantRecycle()
+        r.variantId = variantID
+        r.regionID = regionID
+        r.componentIds = componentIds
+        r.stream = stream
+        r.context = []
+        return r
+      },
+    )
+  }
+
+  async reduce(variantID: string, regionID?: string): Promise<VariantReduce[]> {
+    return this.buildVariantStreams(
+      variantID,
+      regionID,
+      [ProcessIntent.REDUCE],
+      (process, componentIds, _stream) => {
+        const r = new VariantReduce()
+        r.variantId = variantID
+        r.regionID = regionID
+        r.componentIds = componentIds
+        r.stream = this.streamService.buildReduceStream(process)
+        r.context = []
+        return r
+      },
+    )
+  }
+
+  async reuse(variantID: string, regionID?: string): Promise<VariantReuse[]> {
+    return this.buildVariantStreams(
+      variantID,
+      regionID,
+      [
+        ProcessIntent.REUSE,
+        ProcessIntent.REPAIR,
+        ProcessIntent.REFURBISH,
+        ProcessIntent.REMANUFACTURE,
+        ProcessIntent.REPURPOSE,
+      ],
+      (process, componentIds, _stream) => {
+        const r = new VariantReuse()
+        r.variantId = variantID
+        r.regionID = regionID
+        r.componentIds = componentIds
+        r.stream = this.streamService.buildReuseStream(process)
+        r.context = []
+        return r
+      },
+    )
+  }
+
+  private async buildVariantStreams<T>(
+    variantID: string,
+    regionID: string | undefined,
+    intents: ProcessIntent[],
+    build: (
+      process: Process,
+      componentIds: string[],
+      stream: ReturnType<typeof this.streamService.buildStream>,
+    ) => T,
+  ): Promise<T[]> {
     const regionSearch = await this.locationService.resolveLocation(regionID)
     if (!regionSearch?.length) return []
 
@@ -190,7 +284,11 @@ export class VariantService implements IEntityService<Variant> {
     >()
 
     for (const component of variant.components.getItems()) {
-      const matches = await this.streamService.findProcessesForComponent(component.id, regionID)
+      const matches = await this.streamService.findProcessesForComponent(
+        component.id,
+        regionID,
+        intents,
+      )
       for (const { process, component: comp } of matches) {
         if (!processMap.has(process.id)) {
           processMap.set(process.id, { process, componentIds: [], components: [] })
@@ -207,6 +305,7 @@ export class VariantService implements IEntityService<Variant> {
     const variantProcesses = await this.em.find(Process, {
       variant: variantID,
       region: { id: { $in: regionSearch } },
+      intent: { $in: intents },
     })
     const allComponentIds = variant.components.getItems().map((c) => c.id)
     const allComponents = variant.components.getItems()
@@ -220,15 +319,9 @@ export class VariantService implements IEntityService<Variant> {
       }
     }
 
-    const result: VariantRecycle[] = []
+    const result: T[] = []
     for (const { process, componentIds, components } of processMap.values()) {
-      const r = new VariantRecycle()
-      r.variantId = variantID
-      r.regionID = regionID
-      r.componentIds = componentIds
-      r.stream = this.streamService.buildStream(process, components)
-      r.context = []
-      result.push(r)
+      result.push(build(process, componentIds, this.streamService.buildStream(process, components)))
     }
     return result
   }

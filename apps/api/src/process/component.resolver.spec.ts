@@ -813,6 +813,175 @@ describe('ComponentResolver (integration)', () => {
     })
   })
 
+  describe('reduce and reuse fields', () => {
+    // One REDUCE process and five reuse-group processes, all via material_id association
+    const IDS = {
+      REDUCE: '9iOFBSh1EldfJt7RFnzQJ',
+      REPAIR: 'jCPuFo05jiQIQPjUqGy8L',
+      REFURB: 'LDiVgnewlHdClq9dPASL3',
+      REMANUF: 'nrrX6Axr08vQ3Xk2oCmyH',
+      REPURP: 'XpxQ8R0q4C5wT7Tid8osj',
+      REUSE: 'W4tbQn6ezQdGiN1hyS5J9',
+    }
+
+    beforeAll(async () => {
+      const em = orm.em.fork()
+      const baseFields = {
+        instructions: {},
+        material: em.getReference(Material, MATERIAL_IDS[0]),
+        region: em.getReference(Region, REGION_IDS[0]),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      em.create(Process, {
+        id: IDS.REDUCE,
+        name: { en: 'C Reduce' },
+        intent: ProcessIntent.REDUCE,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.REPAIR,
+        name: { en: 'C Repair' },
+        intent: ProcessIntent.REPAIR,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.REFURB,
+        name: { en: 'C Refurb' },
+        intent: ProcessIntent.REFURBISH,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.REMANUF,
+        name: { en: 'C Remanuf' },
+        intent: ProcessIntent.REMANUFACTURE,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.REPURP,
+        name: { en: 'C Repurpose' },
+        intent: ProcessIntent.REPURPOSE,
+        ...baseFields,
+      })
+      em.create(Process, {
+        id: IDS.REUSE,
+        name: { en: 'C Reuse' },
+        intent: ProcessIntent.REUSE,
+        ...baseFields,
+      })
+      await em.flush()
+    })
+
+    test('should return the single REDUCE process in reduce()', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ComponentReduce($id: ID!, $regionID: ID!) {
+            component(id: $id) {
+              reduce(regionID: $regionID) {
+                stream {
+                  name
+                }
+              }
+            }
+          }
+        `),
+        { id: componentID, regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const names = res.data?.component?.reduce?.map((r) => r.stream?.name) ?? []
+      expect(names).toContain('C Reduce')
+      // Must not contain any reuse-group intents
+      expect(names).not.toContain('C Repair')
+      expect(names).not.toContain('C Reuse')
+    })
+
+    test('should return all five reuse-group intents in reuse()', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ComponentReuse($id: ID!, $regionID: ID!) {
+            component(id: $id) {
+              reuse(regionID: $regionID) {
+                stream {
+                  name
+                }
+              }
+            }
+          }
+        `),
+        { id: componentID, regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const names = res.data?.component?.reuse?.map((r) => r.stream?.name) ?? []
+      expect(names).toContain('C Repair')
+      expect(names).toContain('C Refurb')
+      expect(names).toContain('C Remanuf')
+      expect(names).toContain('C Repurpose')
+      expect(names).toContain('C Reuse')
+      // REDUCE must not appear in reuse()
+      expect(names).not.toContain('C Reduce')
+    })
+
+    test('should not return reduce or reuse processes in recycle()', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ComponentRecycleIsolation($id: ID!, $regionID: ID!) {
+            component(id: $id) {
+              recycle(regionID: $regionID) {
+                stream {
+                  name
+                }
+              }
+            }
+          }
+        `),
+        { id: componentID, regionID: REGION_IDS[0] },
+      )
+      expect(res.errors).toBeUndefined()
+      const names = res.data?.component?.recycle?.map((r) => r.stream?.name) ?? []
+      for (const n of ['C Reduce', 'C Repair', 'C Refurb', 'C Remanuf', 'C Repurpose', 'C Reuse']) {
+        expect(names).not.toContain(n)
+      }
+    })
+
+    test('should return empty reduce when no region is provided', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ComponentReduceNoRegion($id: ID!) {
+            component(id: $id) {
+              reduce {
+                stream {
+                  name
+                }
+              }
+            }
+          }
+        `),
+        { id: componentID },
+      )
+      expect(res.errors).toBeUndefined()
+      expect(res.data?.component?.reduce).toHaveLength(0)
+    })
+
+    test('should return empty reuse when no region is provided', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ComponentReuseNoRegion($id: ID!) {
+            component(id: $id) {
+              reuse {
+                stream {
+                  name
+                }
+              }
+            }
+          }
+        `),
+        { id: componentID },
+      )
+      expect(res.errors).toBeUndefined()
+      expect(res.data?.component?.reuse).toHaveLength(0)
+    })
+  })
+
   describe('recycle caveats from tag rules', () => {
     let caveatsComponentId: string
     const CAVEAT_TAG_ID = 'tagX_CAVEAT_TESTTAG___'

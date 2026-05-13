@@ -35,6 +35,8 @@ export enum ProcessIntent {
   REMANUFACTURE = 'REMANUFACTURE',
   // Use components in new products with different functions.
   REPURPOSE = 'REPURPOSE',
+  // Reduce resource consumption or waste generation.
+  REDUCE = 'REDUCE',
   // Recycle components into raw materials.
   RECYCLE = 'RECYCLE',
   // Energy recovery typically through incineration.

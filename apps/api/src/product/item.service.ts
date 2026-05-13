@@ -11,14 +11,20 @@ import { CursorOptions } from '@src/common/transform'
 import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
 import { LocationService } from '@src/geo/location.service'
 import { Component } from '@src/process/component.entity'
-import { Process } from '@src/process/process.entity'
+import { Process, ProcessIntent } from '@src/process/process.entity'
 import { StreamScore, StreamScoreRating } from '@src/process/stream.model'
 import { StreamService } from '@src/process/stream.service'
 import { Tag } from '@src/process/tag.entity'
 import { TagService } from '@src/process/tag.service'
 import { Category } from '@src/product/category.entity'
 import { Item, ItemHistory, ItemsCategories, ItemsTags } from '@src/product/item.entity'
-import { CreateItemInput, ItemRecycle, UpdateItemInput } from '@src/product/item.model'
+import {
+  CreateItemInput,
+  ItemRecycle,
+  ItemReduce,
+  ItemReuse,
+  UpdateItemInput,
+} from '@src/product/item.model'
 import { Variant } from '@src/product/variant.entity'
 
 @Injectable()
@@ -146,6 +152,28 @@ export class ItemService implements IEntityService<Item> {
   }
 
   async recycleScore(itemID: string, regionID?: string) {
+    return this.computeItemScore(itemID, regionID, (id, rid) =>
+      this.streamService.recycleComponentScore(id, rid),
+    )
+  }
+
+  async reduceScore(itemID: string, regionID?: string) {
+    return this.computeItemScore(itemID, regionID, (id, rid) =>
+      this.streamService.reduceComponentScore(id, rid),
+    )
+  }
+
+  async reuseScore(itemID: string, regionID?: string) {
+    return this.computeItemScore(itemID, regionID, (id, rid) =>
+      this.streamService.reuseComponentScore(id, rid),
+    )
+  }
+
+  private async computeItemScore(
+    itemID: string,
+    regionID: string | undefined,
+    scoreFunc: (componentId: string, regionID?: string) => Promise<StreamScore | null>,
+  ) {
     const regionSearch = await this.locationService.resolveLocation(regionID)
     if (!regionSearch || regionSearch.length === 0) {
       return null
@@ -164,7 +192,7 @@ export class ItemService implements IEntityService<Item> {
       let totalScore = 0
       let scoredCount = 0
       for (const component of components) {
-        const score = await this.streamService.recycleComponentScore(component.id, regionID)
+        const score = await scoreFunc(component.id, regionID)
         if (score?.score != null) {
           totalScore += score.score
           scoredCount++
@@ -189,6 +217,76 @@ export class ItemService implements IEntityService<Item> {
   }
 
   async recycle(itemID: string, regionID?: string): Promise<ItemRecycle[]> {
+    return this.buildItemStreams(
+      itemID,
+      regionID,
+      [ProcessIntent.RECYCLE, ProcessIntent.ENERGY_RECOVERY, ProcessIntent.LANDFILL],
+      (process, componentIds, variantIds, stream) => {
+        const r = new ItemRecycle()
+        r.itemId = itemID
+        r.regionID = regionID
+        r.componentIds = componentIds
+        r.variantIds = variantIds
+        r.stream = stream
+        r.context = []
+        return r
+      },
+    )
+  }
+
+  async reduce(itemID: string, regionID?: string): Promise<ItemReduce[]> {
+    return this.buildItemStreams(
+      itemID,
+      regionID,
+      [ProcessIntent.REDUCE],
+      (process, componentIds, variantIds) => {
+        const r = new ItemReduce()
+        r.itemId = itemID
+        r.regionID = regionID
+        r.componentIds = componentIds
+        r.variantIds = variantIds
+        r.stream = this.streamService.buildReduceStream(process)
+        r.context = []
+        return r
+      },
+    )
+  }
+
+  async reuse(itemID: string, regionID?: string): Promise<ItemReuse[]> {
+    return this.buildItemStreams(
+      itemID,
+      regionID,
+      [
+        ProcessIntent.REUSE,
+        ProcessIntent.REPAIR,
+        ProcessIntent.REFURBISH,
+        ProcessIntent.REMANUFACTURE,
+        ProcessIntent.REPURPOSE,
+      ],
+      (process, componentIds, variantIds) => {
+        const r = new ItemReuse()
+        r.itemId = itemID
+        r.regionID = regionID
+        r.componentIds = componentIds
+        r.variantIds = variantIds
+        r.stream = this.streamService.buildReuseStream(process)
+        r.context = []
+        return r
+      },
+    )
+  }
+
+  private async buildItemStreams<T>(
+    itemID: string,
+    regionID: string | undefined,
+    intents: ProcessIntent[],
+    build: (
+      process: Process,
+      componentIds: string[],
+      variantIds: string[],
+      stream: ReturnType<typeof this.streamService.buildStream>,
+    ) => T,
+  ): Promise<T[]> {
     const regionSearch = await this.locationService.resolveLocation(regionID)
     if (!regionSearch?.length) return []
 
@@ -207,7 +305,11 @@ export class ItemService implements IEntityService<Item> {
 
     for (const variant of variants) {
       for (const component of variant.components.getItems()) {
-        const matches = await this.streamService.findProcessesForComponent(component.id, regionID)
+        const matches = await this.streamService.findProcessesForComponent(
+          component.id,
+          regionID,
+          intents,
+        )
         for (const { process, component: comp } of matches) {
           if (!processMap.has(process.id)) {
             processMap.set(process.id, {
@@ -231,6 +333,7 @@ export class ItemService implements IEntityService<Item> {
     const variantProcesses = await this.em.find(Process, {
       variant: { id: { $in: variantIds } },
       region: { id: { $in: regionSearch } },
+      intent: { $in: intents },
     })
     for (const process of variantProcesses) {
       const matchingVariant = variants.find((v) => {
@@ -254,16 +357,11 @@ export class ItemService implements IEntityService<Item> {
       }
     }
 
-    const result: ItemRecycle[] = []
+    const result: T[] = []
     for (const { process, componentIds, components, variantIds: vIds } of processMap.values()) {
-      const r = new ItemRecycle()
-      r.itemId = itemID
-      r.regionID = regionID
-      r.componentIds = componentIds
-      r.variantIds = vIds
-      r.stream = this.streamService.buildStream(process, components)
-      r.context = []
-      result.push(r)
+      result.push(
+        build(process, componentIds, vIds, this.streamService.buildStream(process, components)),
+      )
     }
     return result
   }

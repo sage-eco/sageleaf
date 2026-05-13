@@ -5,15 +5,33 @@ import { I18nService } from '@src/common/i18n.service'
 import { LocationService } from '@src/geo/location.service'
 import { Component } from '@src/process/component.entity'
 import { MaterialTree } from '@src/process/material.entity'
-import { Process } from '@src/process/process.entity'
+import { Process, ProcessIntent } from '@src/process/process.entity'
 import {
   CaveatLevel,
   ComponentRecycle,
+  ComponentReduce,
+  ComponentReuse,
   RecyclingStream,
+  ReduceStream,
+  ReuseStream,
   StreamCaveats,
   StreamScore,
   StreamScoreRating,
 } from '@src/process/stream.model'
+
+const RECYCLE_INTENTS = [
+  ProcessIntent.RECYCLE,
+  ProcessIntent.ENERGY_RECOVERY,
+  ProcessIntent.LANDFILL,
+]
+const REDUCE_INTENTS = [ProcessIntent.REDUCE]
+const REUSE_INTENTS = [
+  ProcessIntent.REUSE,
+  ProcessIntent.REPAIR,
+  ProcessIntent.REFURBISH,
+  ProcessIntent.REMANUFACTURE,
+  ProcessIntent.REPURPOSE,
+]
 
 @Injectable()
 export class StreamService {
@@ -24,13 +42,24 @@ export class StreamService {
   ) {}
 
   async recycleComponent(componentId: string, regionId?: string) {
-    const matches = await this.findProcessesForComponent(componentId, regionId)
+    const matches = await this.findProcessesForComponent(componentId, regionId, RECYCLE_INTENTS)
     return matches.map(({ process, component }) => this.buildComponentRecycle(process, component))
+  }
+
+  async reduceComponent(componentId: string, regionId?: string) {
+    const matches = await this.findProcessesForComponent(componentId, regionId, REDUCE_INTENTS)
+    return matches.map(({ process, component }) => this.buildComponentReduce(process, component))
+  }
+
+  async reuseComponent(componentId: string, regionId?: string) {
+    const matches = await this.findProcessesForComponent(componentId, regionId, REUSE_INTENTS)
+    return matches.map(({ process, component }) => this.buildComponentReuse(process, component))
   }
 
   async findProcessesForComponent(
     componentId: string,
     regionId?: string,
+    intents?: ProcessIntent[],
   ): Promise<Array<{ process: Process; component: Component }>> {
     const component = await this.em.findOne(
       Component,
@@ -55,10 +84,15 @@ export class StreamService {
       }
     }
 
-    const processes = await this.em.find(Process, {
+    const where: Record<string, any> = {
       material: { id: { $in: materialSearch } },
       region: { id: { $in: regionSearch } },
-    })
+    }
+    if (intents?.length) {
+      where.intent = { $in: intents }
+    }
+
+    const processes = await this.em.find(Process, where)
 
     return processes.map((process) => ({ process, component }))
   }
@@ -87,6 +121,23 @@ export class StreamService {
     return s
   }
 
+  buildReduceStream(process: Process): ReduceStream {
+    const s = new ReduceStream()
+    s.name = this.i18n.tr(process.name)
+    s.desc = this.i18n.tr(process.desc)
+    s.score = this.calculateScore(process)
+    return s
+  }
+
+  buildReuseStream(process: Process): ReuseStream {
+    const s = new ReuseStream()
+    s.name = this.i18n.tr(process.name)
+    s.desc = this.i18n.tr(process.desc)
+    s.score = this.calculateScore(process)
+    s.container = process.instructions.container
+    return s
+  }
+
   private buildComponentRecycle(process: Process, component: Component): ComponentRecycle {
     return Object.assign(new ComponentRecycle(), {
       stream: this.buildStream(process, [component]),
@@ -94,20 +145,44 @@ export class StreamService {
     })
   }
 
+  private buildComponentReduce(process: Process, _component: Component): ComponentReduce {
+    return Object.assign(new ComponentReduce(), {
+      stream: this.buildReduceStream(process),
+      context: [],
+    })
+  }
+
+  private buildComponentReuse(process: Process, _component: Component): ComponentReuse {
+    return Object.assign(new ComponentReuse(), {
+      stream: this.buildReuseStream(process),
+      context: [],
+    })
+  }
+
   async recycleComponentScore(componentId: string, regionId?: string) {
     const recycle = await this.recycleComponent(componentId, regionId)
-    if (!recycle) {
-      return null
-    }
+    return this.averageStreamScore(recycle)
+  }
+
+  async reduceComponentScore(componentId: string, regionId?: string) {
+    const reduce = await this.reduceComponent(componentId, regionId)
+    return this.averageStreamScore(reduce)
+  }
+
+  async reuseComponentScore(componentId: string, regionId?: string) {
+    const reuse = await this.reuseComponent(componentId, regionId)
+    return this.averageStreamScore(reuse)
+  }
+
+  private averageStreamScore(entries: Array<{ stream?: { score?: StreamScore } }>) {
+    if (!entries.length) return null
     const score = new StreamScore()
     let totalScore = 0
     let validScores = 0
-    for (const r of recycle) {
-      if (r.stream && r.stream.score) {
-        if (r.stream.score.score) {
-          totalScore += r.stream.score.score
-          validScores++
-        }
+    for (const r of entries) {
+      if (r.stream?.score?.score) {
+        totalScore += r.stream.score.score
+        validScores++
       }
     }
     score.score = validScores > 0 ? totalScore / validScores : undefined

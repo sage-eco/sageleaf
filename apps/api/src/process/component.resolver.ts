@@ -19,6 +19,8 @@ import {
   ComponentHistoryConnection,
   ComponentMaterial,
   ComponentRecycleArgs,
+  ComponentReduceArgs,
+  ComponentReuseArgs,
   ComponentsArgs,
   ComponentsConnection,
   ComponentSource,
@@ -142,6 +144,34 @@ export class ComponentResolver {
     if (!score) {
       return null
     }
+    return score
+  }
+
+  @ResolveField()
+  async reduce(@Parent() component: Component, @Args() args: ComponentReduceArgs) {
+    const result = await this.componentService.reduce(component.id, args.regionID)
+    if (!result) return null
+    return result
+  }
+
+  @ResolveField()
+  async reduceScore(@Parent() component: Component, @Args() args: ComponentReduceArgs) {
+    const score = await this.componentService.reduceScore(component.id, args.regionID)
+    if (!score) return null
+    return score
+  }
+
+  @ResolveField()
+  async reuse(@Parent() component: Component, @Args() args: ComponentReuseArgs) {
+    const result = await this.componentService.reuse(component.id, args.regionID)
+    if (!result) return null
+    return result
+  }
+
+  @ResolveField()
+  async reuseScore(@Parent() component: Component, @Args() args: ComponentReuseArgs) {
+    const score = await this.componentService.reuseScore(component.id, args.regionID)
+    if (!score) return null
     return score
   }
 
