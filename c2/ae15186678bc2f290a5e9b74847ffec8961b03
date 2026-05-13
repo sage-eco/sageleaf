@@ -1,0 +1,73 @@
+apps/frontend/app/components/item/RecycleStreams.vue
+  s_afb358de8f84bc::t_570dfe91377cf8 46-47
+apps/api/src/process/stream.service.ts
+  s_afb358de8f84bc::t_8879d8b12b49db 227,238,242-243,249-251
+  s_afb358de8f84bc::t_85b44824332853 7,11
+  s_afb358de8f84bc::t_ec042c827087fd 133
+  s_afb358de8f84bc::t_92a22ea918eb53 20-21
+  s_afb358de8f84bc::t_fc68d221b3a873 47
+  s_afb358de8f84bc::t_60d6362df2ffcf 108
+  s_afb358de8f84bc::t_3244bbf8671f40 142
+  s_afb358de8f84bc::t_5357b494732351 119
+  s_afb358de8f84bc::t_2bc80035fc5ec8 214-226,228-237,239-241,244-248,252-257
+apps/api/test/gql/graphql.ts
+  s_afb358de8f84bc::t_9dc6d2e8bc82aa 2403-2412,2427-2434,2536-2545,2653-2674,4931-4936,4938-4944,4946-4951,4954-4960,4962,5907-5912,5914-5920,5922-5928,5930-5935,5938,6407-6412,6414-6420,6422-6428,6430-6436,7046-7049,7115-7118
+  s_afb358de8f84bc::t_dae27f2adbb065 6912-6915
+apps/api/test/gql/gql.ts
+  s_afb358de8f84bc::t_dae27f2adbb065 201-204,622-625,1612,1616,1620,1624
+  s_afb358de8f84bc::t_9dc6d2e8bc82aa 192-196,329-338,398-407,613-617,750-759,819-828,1576,1580,1584,1588,1592,1613-1615,1617-1619,1621-1623,2124-2132,2136,2140,2144,2148,2152-2160,2400-2416,2420,2424,2428,2432,2436
+apps/api/src/process/process.module.ts
+  s_afb358de8f84bc::t_efac55b67f0ed1 66-68
+  s_afb358de8f84bc::t_c0476fd4ddeff9 21-25
+apps/api/src/process/stream.resolver.ts
+  s_afb358de8f84bc::t_feca630cfae357 20
+  s_afb358de8f84bc::t_10475546040f95 54
+  s_afb358de8f84bc::t_72446e9f49baef 1-19,21-36,38-53,55-62
+  s_afb358de8f84bc::t_fa43e06a9f1e8a 37
+apps/api/schema/schema.gql
+  s_afb358de8f84bc::t_9029738d752039 1530,1547,1642
+  s_afb358de8f84bc::t_1ef9decc9acf05 1746-1762
+apps/api/src/product/item.resolver.spec.ts
+  s_afb358de8f84bc::t_79579196ff7f8d 1529-1531,1539-1695,1697-1727,1729-1764
+  s_afb358de8f84bc::t_be39b627320847 1532-1538
+  s_afb358de8f84bc::t_b5cb28159e86ce 25-28,30
+packages/ui/app/components/recycle/Container.vue
+  s_afb358de8f84bc::t_9e3484b9089daf 52,56,60
+  s_afb358de8f84bc::t_606447fe4a181d 49-51,53,55
+apps/api/src/process/stream.model.ts
+  s_afb358de8f84bc::t_8566364aa5997f 225-226
+  s_afb358de8f84bc::t_f1693d9d48a961 202-203
+  s_afb358de8f84bc::t_7bf70aeebe5886 266-269,271-272,274-275,277-290
+  s_afb358de8f84bc::t_56995f9602dc82 11
+  s_afb358de8f84bc::t_3f44abb294947f 144-145
+  s_afb358de8f84bc::t_6262d79d497b30 270,273,276
+  s_afb358de8f84bc::t_320d4b4ec2778b 1-2,4-5,10,12
+apps/api/src/process/component.resolver.spec.ts
+  s_afb358de8f84bc::t_64d30666fcc1c4 1272
+  s_afb358de8f84bc::t_3368d3c587a8b4 1313
+  s_afb358de8f84bc::t_83a11e994cdb69 1375
+  s_afb358de8f84bc::t_5efd71175a4192 1344
+  s_afb358de8f84bc::t_9af60c6c9210bd 1160-1162,1170-1271,1273-1299,1301-1312,1314-1343,1345-1374,1376-1402
+  s_afb358de8f84bc::t_6d0f5536917f49 19-22,24
+  s_afb358de8f84bc::t_582b31c3135afd 1163-1169
+apps/api/src/product/variant.resolver.spec.ts
+  s_afb358de8f84bc::t_d5fe14d16447e8 1978-1984
+  s_afb358de8f84bc::t_df1a0d6d874916 1975-1977,1985-2141,2143-2173,2175-2210
+  s_afb358de8f84bc::t_3e8e43b4bf15e8 25-28,30,32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "c2ae15186678bc2f290a5e9b74847ffec8961b03",
+  "prompts": {},
+  "sessions": {
+    "s_afb358de8f84bc": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "c2898fce-f3e8-4308-beb5-44c07d05aecb",
+        "model": "unknown"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
