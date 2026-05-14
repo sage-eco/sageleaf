@@ -116,9 +116,9 @@ export type PaginationArgsSchema = z.ZodObject
 export class PaginationBasicArgs implements IPaginationArgs {
   static schema = z
     .object({
-      first: z.number().positive().optional(),
+      first: z.number().positive().nullish(),
       after: z.base64().nullish(),
-      last: z.number().positive().optional(),
+      last: z.number().positive().nullish(),
       before: z.base64().nullish(),
     })
     .refine((data) => !(data.first && data.last), {
