@@ -20,8 +20,14 @@ import {
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
-import { Component } from '@src/process/component.model'
-import { ComponentRecyclesConnection, StreamScore } from '@src/process/stream.model'
+import { Component, ComponentsConnection } from '@src/process/component.model'
+import {
+  RecyclingStream,
+  ReduceStream,
+  ReuseStream,
+  StreamContext,
+  StreamScore,
+} from '@src/process/stream.model'
 import { TagConnection } from '@src/process/tag.model'
 import { ImagesConnection } from '@src/product/image.model'
 import { ItemsConnection } from '@src/product/item.model'
@@ -30,13 +36,52 @@ import { Org } from '@src/users/org.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User } from '@src/users/users.model'
 
-@ObjectType({ description: 'Recycling options for a variant, grouped by component' })
+@ObjectType({ description: 'Recycling options for a variant in a specific recycling stream' })
 export class VariantRecycle {
-  @Field(() => ComponentRecyclesConnection)
-  components!: ComponentRecyclesConnection
+  @Field(() => RecyclingStream, { nullable: true })
+  stream?: RecyclingStream
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+
+  @Field(() => ComponentsConnection)
+  components!: ComponentsConnection & {}
 
   variantId!: string
   regionID?: string
+  componentIds: string[] = []
+}
+
+@ObjectType({ description: 'Reduce options for a variant' })
+export class VariantReduce {
+  @Field(() => ReduceStream, { nullable: true })
+  stream?: ReduceStream & {}
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+
+  @Field(() => ComponentsConnection)
+  components!: ComponentsConnection & {}
+
+  variantId!: string
+  regionID?: string
+  componentIds: string[] = []
+}
+
+@ObjectType({ description: 'Reuse options for a variant' })
+export class VariantReuse {
+  @Field(() => ReuseStream, { nullable: true })
+  stream?: ReuseStream & {}
+
+  @Field(() => [StreamContext])
+  context: StreamContext[] = []
+
+  @Field(() => ComponentsConnection)
+  components!: ComponentsConnection & {}
+
+  variantId!: string
+  regionID?: string
+  componentIds: string[] = []
 }
 
 @ObjectType({
@@ -81,10 +126,32 @@ export class Variant extends IDCreatedUpdated implements Named {
   })
   recycleScore?: StreamScore
 
-  @Field(() => VariantRecycle, {
-    description: 'Recycling options for this variant',
+  @Field(() => [VariantRecycle], {
+    description: 'Recycling options for this variant, one entry per recycling stream',
   })
-  recycle!: VariantRecycle
+  recycle!: VariantRecycle[]
+
+  @Field(() => StreamScore, {
+    nullable: true,
+    description: 'Aggregated reduce score for this variant',
+  })
+  reduceScore?: StreamScore
+
+  @Field(() => [VariantReduce], {
+    description: 'Reduce options for this variant, one entry per reduce stream',
+  })
+  reduce!: VariantReduce[]
+
+  @Field(() => StreamScore, {
+    nullable: true,
+    description: 'Aggregated reuse score for this variant',
+  })
+  reuseScore?: StreamScore
+
+  @Field(() => [VariantReuse], {
+    description: 'Reuse options for this variant, one entry per reuse stream',
+  })
+  reuse!: VariantReuse[]
 
   @Field(() => RegionsConnection, {
     description: 'Geographic regions associated with this variant',
@@ -242,6 +309,32 @@ export class VariantRecycleArgs {
 
 @ArgsType()
 export class VariantRecycleComponentsArgs extends PaginationBasicArgs {}
+
+@ArgsType()
+export class VariantReduceArgs {
+  static schema = z.object({
+    regionID: z.string().optional(),
+  })
+
+  @Field(() => ID, { nullable: true })
+  regionID?: string
+}
+
+@ArgsType()
+export class VariantReduceComponentsArgs extends PaginationBasicArgs {}
+
+@ArgsType()
+export class VariantReuseArgs {
+  static schema = z.object({
+    regionID: z.string().optional(),
+  })
+
+  @Field(() => ID, { nullable: true })
+  regionID?: string
+}
+
+@ArgsType()
+export class VariantReuseComponentsArgs extends PaginationBasicArgs {}
 
 @InputType()
 export class VariantItemsInput {

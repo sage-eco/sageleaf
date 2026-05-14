@@ -316,10 +316,18 @@ export type Component = Named & {
   recycle?: Maybe<Array<ComponentRecycle>>;
   /** Aggregated recyclability score for this component */
   recycleScore?: Maybe<StreamScore>;
+  /** Available reduce options for this component by stream */
+  reduce?: Maybe<Array<ComponentReduce>>;
+  /** Aggregated reduce score for this component */
+  reduceScore?: Maybe<StreamScore>;
   /** The geographic region this component's recycling data applies to */
   region?: Maybe<Region>;
   /** Similar components related to this component */
   related: ComponentsConnection;
+  /** Available reuse options for this component by stream */
+  reuse?: Maybe<Array<ComponentReuse>>;
+  /** Aggregated reuse score for this component */
+  reuseScore?: Maybe<StreamScore>;
   sources: ComponentSourcesConnection;
   tags: TagConnection;
   updatedAt: Scalars['DateTime']['output'];
@@ -357,10 +365,34 @@ export type ComponentRecycleScoreArgs = {
 
 
 /** A physical component of a product variant, made of one or more materials */
+export type ComponentReduceArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A physical component of a product variant, made of one or more materials */
+export type ComponentReduceScoreArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A physical component of a product variant, made of one or more materials */
 export type ComponentRelatedArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** A physical component of a product variant, made of one or more materials */
+export type ComponentReuseArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A physical component of a product variant, made of one or more materials */
+export type ComponentReuseScoreArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -432,22 +464,22 @@ export type ComponentRecycle = {
   stream?: Maybe<RecyclingStream>;
 };
 
-export type ComponentRecycleEdge = {
-  __typename?: 'ComponentRecycleEdge';
-  cursor: Scalars['String']['output'];
-  node: ComponentRecycle;
-};
-
-export type ComponentRecyclesConnection = {
-  __typename?: 'ComponentRecyclesConnection';
-  edges: Array<ComponentRecycleEdge>;
-  nodes: Array<ComponentRecycle>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
+/** A reduce option for a component */
+export type ComponentReduce = {
+  __typename?: 'ComponentReduce';
+  context: Array<StreamContext>;
+  stream?: Maybe<ReduceStream>;
 };
 
 export type ComponentRegionInput = {
   id: Scalars['ID']['input'];
+};
+
+/** A reuse option for a component */
+export type ComponentReuse = {
+  __typename?: 'ComponentReuse';
+  context: Array<StreamContext>;
+  stream?: Maybe<ReuseStream>;
 };
 
 export type ComponentSource = {
@@ -1002,12 +1034,20 @@ export type Item = Named & {
   id: Scalars['ID']['output'];
   imageURL?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
-  /** Recycling options for this item */
-  recycle: ItemRecycle;
+  /** Recycling options for this item, one entry per recycling stream */
+  recycle: Array<ItemRecycle>;
   /** Recyclability score for this item */
   recycleScore?: Maybe<StreamScore>;
+  /** Reduce options for this item, one entry per reduce stream */
+  reduce: Array<ItemReduce>;
+  /** Reduce score for this item */
+  reduceScore?: Maybe<StreamScore>;
   /** Similar items related to this item */
   related: ItemsConnection;
+  /** Reuse options for this item, one entry per reuse stream */
+  reuse: Array<ItemReuse>;
+  /** Reuse score for this item */
+  reuseScore?: Maybe<StreamScore>;
   /** Metadata tags applied to this item */
   tags: TagConnection;
   updatedAt: Scalars['DateTime']['output'];
@@ -1047,10 +1087,34 @@ export type ItemRecycleScoreArgs = {
 
 
 /** A product or consumable item that can be categorized and have multiple variants */
+export type ItemReduceArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A product or consumable item that can be categorized and have multiple variants */
+export type ItemReduceScoreArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A product or consumable item that can be categorized and have multiple variants */
 export type ItemRelatedArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** A product or consumable item that can be categorized and have multiple variants */
+export type ItemReuseArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A product or consumable item that can be categorized and have multiple variants */
+export type ItemReuseScoreArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -1104,15 +1168,81 @@ export type ItemHistoryEdge = {
   node: ItemHistory;
 };
 
-/** Recycling options for an item, grouped by component */
+/** Recycling options for an item in a specific recycling stream */
 export type ItemRecycle = {
   __typename?: 'ItemRecycle';
-  components: ComponentRecyclesConnection;
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<RecyclingStream>;
+  variants: VariantsConnection;
 };
 
 
-/** Recycling options for an item, grouped by component */
+/** Recycling options for an item in a specific recycling stream */
 export type ItemRecycleComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Recycling options for an item in a specific recycling stream */
+export type ItemRecycleVariantsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** Reduce options for an item */
+export type ItemReduce = {
+  __typename?: 'ItemReduce';
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<ReduceStream>;
+  variants: VariantsConnection;
+};
+
+
+/** Reduce options for an item */
+export type ItemReduceComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Reduce options for an item */
+export type ItemReduceVariantsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** Reuse options for an item */
+export type ItemReuse = {
+  __typename?: 'ItemReuse';
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<ReuseStream>;
+  variants: VariantsConnection;
+};
+
+
+/** Reuse options for an item */
+export type ItemReuseComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Reuse options for an item */
+export type ItemReuseVariantsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -2263,10 +2393,45 @@ export type RecyclingStream = {
   container?: Maybe<Container>;
   desc?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  programs: StreamProgramsConnection;
   /** Aggregated recyclability score for this stream */
   score?: Maybe<StreamScore>;
   /** Per-material recyclability scores within this stream */
   scores?: Maybe<Array<StreamScore>>;
+};
+
+
+/** A recycling collection stream in a region, with score and container information */
+export type RecyclingStreamProgramsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** A reduce stream describing ways to reduce waste or resource consumption */
+export type ReduceStream = {
+  __typename?: 'ReduceStream';
+  /** Caveats about this stream */
+  caveats?: Maybe<Array<StreamCaveats>>;
+  desc?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  programs: StreamProgramsConnection;
+  /** Aggregated score for this stream */
+  score?: Maybe<StreamScore>;
+  /** Per-material scores within this stream */
+  scores?: Maybe<Array<StreamScore>>;
+};
+
+
+/** A reduce stream describing ways to reduce waste or resource consumption */
+export type ReduceStreamProgramsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Type of the referenced model in a relation edit */
@@ -2350,6 +2515,32 @@ export type RemoveRefOutput = {
   change?: Maybe<Change>;
   currentModel?: Maybe<EditModel>;
   model?: Maybe<EditModel>;
+};
+
+/** A reuse stream describing ways to reuse, repair, or refurbish */
+export type ReuseStream = {
+  __typename?: 'ReuseStream';
+  /** Caveats about this stream */
+  caveats?: Maybe<Array<StreamCaveats>>;
+  /** The collection container used */
+  container?: Maybe<Container>;
+  desc?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  programs: StreamProgramsConnection;
+  /** Aggregated score for this stream */
+  score?: Maybe<StreamScore>;
+  /** Per-material scores within this stream */
+  scores?: Maybe<Array<StreamScore>>;
+};
+
+
+/** A reuse stream describing ways to reuse, repair, or refurbish */
+export type ReuseStreamProgramsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type SearchResultConnection = {
@@ -2457,6 +2648,28 @@ export type StreamContext = {
   key: Scalars['String']['output'];
   markdown?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+};
+
+/** A program associated with a recycling, reduce, or reuse stream */
+export type StreamProgram = {
+  __typename?: 'StreamProgram';
+  org?: Maybe<Org>;
+  place?: Maybe<Place>;
+  program: Program;
+};
+
+export type StreamProgramEdge = {
+  __typename?: 'StreamProgramEdge';
+  cursor: Scalars['String']['output'];
+  node: StreamProgram;
+};
+
+export type StreamProgramsConnection = {
+  __typename?: 'StreamProgramsConnection';
+  edges: Array<StreamProgramEdge>;
+  nodes: Array<StreamProgram>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
 };
 
 /** A recyclability score for a component or variant in a recycling stream */
@@ -3046,14 +3259,22 @@ export type Variant = Named & {
   name?: Maybe<Scalars['String']['output']>;
   /** Organizations associated with this variant (e.g. manufacturer, importer) */
   orgs: VariantOrgsConnection;
-  /** Recycling options for this variant */
-  recycle: VariantRecycle;
+  /** Recycling options for this variant, one entry per recycling stream */
+  recycle: Array<VariantRecycle>;
   /** Aggregated recyclability score for this variant */
   recycleScore?: Maybe<StreamScore>;
+  /** Reduce options for this variant, one entry per reduce stream */
+  reduce: Array<VariantReduce>;
+  /** Aggregated reduce score for this variant */
+  reduceScore?: Maybe<StreamScore>;
   /** Geographic regions associated with this variant */
   regions: RegionsConnection;
   /** Similar variants related to this variant */
   related: VariantsConnection;
+  /** Reuse options for this variant, one entry per reuse stream */
+  reuse: Array<VariantReuse>;
+  /** Aggregated reuse score for this variant */
+  reuseScore?: Maybe<StreamScore>;
   sources: VariantSourcesConnection;
   /** Metadata tags applied to this variant */
   tags: TagConnection;
@@ -3119,6 +3340,18 @@ export type VariantRecycleScoreArgs = {
 
 
 /** A specific variant or SKU of a product item, composed of physical components */
+export type VariantReduceArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A specific variant or SKU of a product item, composed of physical components */
+export type VariantReduceScoreArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A specific variant or SKU of a product item, composed of physical components */
 export type VariantRegionsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -3132,6 +3365,18 @@ export type VariantRelatedArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** A specific variant or SKU of a product item, composed of physical components */
+export type VariantReuseArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+/** A specific variant or SKU of a product item, composed of physical components */
+export type VariantReuseScoreArgs = {
+  regionID?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -3243,15 +3488,34 @@ export type VariantOrgsInput = {
   id: Scalars['ID']['input'];
 };
 
-/** Recycling options for a variant, grouped by component */
+/** Recycling options for a variant in a specific recycling stream */
 export type VariantRecycle = {
   __typename?: 'VariantRecycle';
-  components: ComponentRecyclesConnection;
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<RecyclingStream>;
 };
 
 
-/** Recycling options for a variant, grouped by component */
+/** Recycling options for a variant in a specific recycling stream */
 export type VariantRecycleComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** Reduce options for a variant */
+export type VariantReduce = {
+  __typename?: 'VariantReduce';
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<ReduceStream>;
+};
+
+
+/** Reduce options for a variant */
+export type VariantReduceComponentsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -3260,6 +3524,23 @@ export type VariantRecycleComponentsArgs = {
 
 export type VariantRegionsInput = {
   id: Scalars['ID']['input'];
+};
+
+/** Reuse options for a variant */
+export type VariantReuse = {
+  __typename?: 'VariantReuse';
+  components: ComponentsConnection;
+  context: Array<StreamContext>;
+  stream?: Maybe<ReuseStream>;
+};
+
+
+/** Reuse options for a variant */
+export type VariantReuseComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type VariantSource = {

@@ -10,7 +10,7 @@ import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { Region, RegionsConnection } from '@src/geo/region.model'
 import { DeleteOutput, ModelEditSchema } from '@src/graphql/base.model'
-import { ComponentRecyclesConnection } from '@src/process/stream.model'
+import { Component, ComponentsConnection } from '@src/process/component.model'
 import { Tag, TagConnection } from '@src/process/tag.model'
 import { Image, ImagesArgs, ImagesConnection } from '@src/product/image.model'
 import { Item, ItemsConnection } from '@src/product/item.model'
@@ -34,7 +34,13 @@ import {
   VariantRecycle,
   VariantRecycleArgs,
   VariantRecycleComponentsArgs,
+  VariantReduce,
+  VariantReduceArgs,
+  VariantReduceComponentsArgs,
   VariantRegionsArgs,
+  VariantReuse,
+  VariantReuseArgs,
+  VariantReuseComponentsArgs,
   VariantsArgs,
   VariantsConnection,
   VariantSource,
@@ -148,9 +154,33 @@ export class VariantResolver {
     return score
   }
 
-  @ResolveField(() => VariantRecycle)
+  @ResolveField(() => [VariantRecycle])
   async recycle(@Parent() variant: Variant, @Args() args: VariantRecycleArgs) {
     return this.variantService.recycle(variant.id, args.regionID)
+  }
+
+  @ResolveField(() => [VariantReduce])
+  async reduce(@Parent() variant: Variant, @Args() args: VariantReduceArgs) {
+    return this.variantService.reduce(variant.id, args.regionID)
+  }
+
+  @ResolveField()
+  async reduceScore(@Parent() variant: Variant, @Args() args: VariantReduceArgs) {
+    const score = await this.variantService.reduceScore(variant.id, args.regionID)
+    if (!score) return null
+    return score
+  }
+
+  @ResolveField(() => [VariantReuse])
+  async reuse(@Parent() variant: Variant, @Args() args: VariantReuseArgs) {
+    return this.variantService.reuse(variant.id, args.regionID)
+  }
+
+  @ResolveField()
+  async reuseScore(@Parent() variant: Variant, @Args() args: VariantReuseArgs) {
+    const score = await this.variantService.reuseScore(variant.id, args.regionID)
+    if (!score) return null
+    return score
   }
 
   @Mutation(() => CreateVariantOutput, {
@@ -261,17 +291,59 @@ export class VariantRecycleResolver {
     private readonly transform: TransformService,
   ) {}
 
-  @ResolveField(() => ComponentRecyclesConnection)
+  @ResolveField(() => ComponentsConnection)
   async components(
     @Parent() parent: VariantRecycle,
-    @Args() _args: VariantRecycleComponentsArgs,
-  ): Promise<ComponentRecyclesConnection> {
-    const items = await this.variantService.recycleComponents(parent.variantId, parent.regionID)
-    return this.transform.objectsToPaginated(
-      ComponentRecyclesConnection,
-      { items, count: items.length },
-      true,
+    @Args() args: VariantRecycleComponentsArgs,
+  ): Promise<ComponentsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(
+      VariantRecycleComponentsArgs,
+      args,
     )
+    const cursor = await this.variantService.componentsByIds(parent.componentIds, filter)
+    return this.transform.entityToPaginated(Component, ComponentsConnection, cursor, parsedArgs)
+  }
+}
+
+@Resolver(() => VariantReduce)
+export class VariantReduceResolver {
+  constructor(
+    private readonly variantService: VariantService,
+    private readonly transform: TransformService,
+  ) {}
+
+  @ResolveField(() => ComponentsConnection)
+  async components(
+    @Parent() parent: VariantReduce,
+    @Args() args: VariantReduceComponentsArgs,
+  ): Promise<ComponentsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(
+      VariantReduceComponentsArgs,
+      args,
+    )
+    const cursor = await this.variantService.componentsByIds(parent.componentIds, filter)
+    return this.transform.entityToPaginated(Component, ComponentsConnection, cursor, parsedArgs)
+  }
+}
+
+@Resolver(() => VariantReuse)
+export class VariantReuseResolver {
+  constructor(
+    private readonly variantService: VariantService,
+    private readonly transform: TransformService,
+  ) {}
+
+  @ResolveField(() => ComponentsConnection)
+  async components(
+    @Parent() parent: VariantReuse,
+    @Args() args: VariantReuseComponentsArgs,
+  ): Promise<ComponentsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(
+      VariantReuseComponentsArgs,
+      args,
+    )
+    const cursor = await this.variantService.componentsByIds(parent.componentIds, filter)
+    return this.transform.entityToPaginated(Component, ComponentsConnection, cursor, parsedArgs)
   }
 }
 

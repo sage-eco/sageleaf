@@ -46,11 +46,18 @@
 <script setup lang="ts">
 import { useElementSize } from '@vueuse/core'
 
-import type { ComponentRecycle } from '~/gql/types.generated'
+import type { RecyclingStream } from '~/gql/types.generated'
+
+type RecycleDisplay = {
+  stream?: (Omit<RecyclingStream, 'programs'> & { programs?: RecyclingStream['programs'] }) | null
+  context:
+    | ReadonlyArray<{ key: string; markdown?: string | null }>
+    | Array<{ key: string; markdown?: string | null }>
+}
 
 const { image, recycle } = defineProps<{
   image?: string | null
-  recycle: ComponentRecycle
+  recycle: RecycleDisplay
 }>()
 
 const containerImage = useTemplateRef<HTMLImageElement>('containerImage')

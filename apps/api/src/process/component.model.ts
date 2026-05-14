@@ -21,7 +21,12 @@ import { Named } from '@src/graphql/interfaces.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { type ComponentPhysical, type ComponentVisual } from '@src/process/component.entity'
 import { Material } from '@src/process/material.model'
-import { ComponentRecycle, StreamScore } from '@src/process/stream.model'
+import {
+  ComponentRecycle,
+  ComponentReduce,
+  ComponentReuse,
+  StreamScore,
+} from '@src/process/stream.model'
 import { TagConnection } from '@src/process/tag.model'
 import { ImagesConnection } from '@src/product/image.model'
 import { User as UserEntity } from '@src/users/users.entity'
@@ -82,6 +87,30 @@ export class Component extends IDCreatedUpdated implements Named {
     description: 'Aggregated recyclability score for this component',
   })
   recycleScore?: StreamScore
+
+  @Field(() => [ComponentReduce], {
+    nullable: true,
+    description: 'Available reduce options for this component by stream',
+  })
+  reduce?: ComponentReduce[]
+
+  @Field(() => StreamScore, {
+    nullable: true,
+    description: 'Aggregated reduce score for this component',
+  })
+  reduceScore?: StreamScore
+
+  @Field(() => [ComponentReuse], {
+    nullable: true,
+    description: 'Available reuse options for this component by stream',
+  })
+  reuse?: ComponentReuse[]
+
+  @Field(() => StreamScore, {
+    nullable: true,
+    description: 'Aggregated reuse score for this component',
+  })
+  reuseScore?: StreamScore
 
   @Field(() => ImagesConnection, { description: 'Images associated with this component' })
   images!: ImagesConnection
@@ -173,6 +202,28 @@ export class ComponentsArgs extends PaginationBasicArgs {
 
 @ArgsType()
 export class ComponentRecycleArgs {
+  static schema = z.object({
+    regionID: z.string().optional(),
+  })
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  regionID?: string
+}
+
+@ArgsType()
+export class ComponentReduceArgs {
+  static schema = z.object({
+    regionID: z.string().optional(),
+  })
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  regionID?: string
+}
+
+@ArgsType()
+export class ComponentReuseArgs {
   static schema = z.object({
     regionID: z.string().optional(),
   })

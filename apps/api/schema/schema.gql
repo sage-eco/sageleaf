@@ -225,11 +225,23 @@ type Component implements Named {
   """Aggregated recyclability score for this component"""
   recycleScore(regionID: ID): StreamScore
 
+  """Available reduce options for this component by stream"""
+  reduce(regionID: ID): [ComponentReduce!]
+
+  """Aggregated reduce score for this component"""
+  reduceScore(regionID: ID): StreamScore
+
   """The geographic region this component's recycling data applies to"""
   region: Region
 
   """Similar components related to this component"""
   related(limit: Int, offset: Int, query: String): ComponentsConnection!
+
+  """Available reuse options for this component by stream"""
+  reuse(regionID: ID): [ComponentReuse!]
+
+  """Aggregated reuse score for this component"""
+  reuseScore(regionID: ID): StreamScore
   sources(after: String, before: String, first: Int, last: Int, type: String): ComponentSourcesConnection!
   tags(after: String, before: String, first: Int, last: Int): TagConnection!
   updatedAt: DateTime!
@@ -281,20 +293,20 @@ type ComponentRecycle {
   stream: RecyclingStream
 }
 
-type ComponentRecycleEdge {
-  cursor: String!
-  node: ComponentRecycle!
-}
-
-type ComponentRecyclesConnection {
-  edges: [ComponentRecycleEdge!]!
-  nodes: [ComponentRecycle!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
+"""A reduce option for a component"""
+type ComponentReduce {
+  context: [StreamContext!]!
+  stream: ReduceStream
 }
 
 input ComponentRegionInput {
   id: ID!
+}
+
+"""A reuse option for a component"""
+type ComponentReuse {
+  context: [StreamContext!]!
+  stream: ReuseStream
 }
 
 type ComponentSource {
@@ -879,14 +891,26 @@ type Item implements Named {
   imageURL: String
   name: String
 
-  """Recycling options for this item"""
-  recycle(regionID: ID): ItemRecycle!
+  """Recycling options for this item, one entry per recycling stream"""
+  recycle(regionID: ID): [ItemRecycle!]!
 
   """Recyclability score for this item"""
   recycleScore(regionID: ID): StreamScore
 
+  """Reduce options for this item, one entry per reduce stream"""
+  reduce(regionID: ID): [ItemReduce!]!
+
+  """Reduce score for this item"""
+  reduceScore(regionID: ID): StreamScore
+
   """Similar items related to this item"""
   related(limit: Int, offset: Int, query: String): ItemsConnection!
+
+  """Reuse options for this item, one entry per reuse stream"""
+  reuse(regionID: ID): [ItemReuse!]!
+
+  """Reuse score for this item"""
+  reuseScore(regionID: ID): StreamScore
 
   """Metadata tags applied to this item"""
   tags(after: String, before: String, first: Int, last: Int): TagConnection!
@@ -925,9 +949,28 @@ type ItemHistoryEdge {
   node: ItemHistory!
 }
 
-"""Recycling options for an item, grouped by component"""
+"""Recycling options for an item in a specific recycling stream"""
 type ItemRecycle {
-  components(after: String, before: String, first: Int, last: Int): ComponentRecyclesConnection!
+  components(after: String, before: String, first: Int, last: Int): ComponentsConnection!
+  context: [StreamContext!]!
+  stream: RecyclingStream
+  variants(after: String, before: String, first: Int, last: Int): VariantsConnection!
+}
+
+"""Reduce options for an item"""
+type ItemReduce {
+  components(after: String, before: String, first: Int, last: Int): ComponentsConnection!
+  context: [StreamContext!]!
+  stream: ReduceStream
+  variants(after: String, before: String, first: Int, last: Int): VariantsConnection!
+}
+
+"""Reuse options for an item"""
+type ItemReuse {
+  components(after: String, before: String, first: Int, last: Int): ComponentsConnection!
+  context: [StreamContext!]!
+  stream: ReuseStream
+  variants(after: String, before: String, first: Int, last: Int): VariantsConnection!
 }
 
 input ItemTagsInput {
@@ -1484,11 +1527,29 @@ type RecyclingStream {
   container: Container
   desc: String
   name: String
+  programs(after: String, before: String, first: Int, last: Int, query: String): StreamProgramsConnection!
 
   """Aggregated recyclability score for this stream"""
   score: StreamScore
 
   """Per-material recyclability scores within this stream"""
+  scores: [StreamScore!]
+}
+
+"""
+A reduce stream describing ways to reduce waste or resource consumption
+"""
+type ReduceStream {
+  """Caveats about this stream"""
+  caveats: [StreamCaveats!]
+  desc: String
+  name: String
+  programs(after: String, before: String, first: Int, last: Int, query: String): StreamProgramsConnection!
+
+  """Aggregated score for this stream"""
+  score: StreamScore
+
+  """Per-material scores within this stream"""
   scores: [StreamScore!]
 }
 
@@ -1567,6 +1628,24 @@ type RemoveRefOutput {
   change: Change
   currentModel: EditModel
   model: EditModel
+}
+
+"""A reuse stream describing ways to reuse, repair, or refurbish"""
+type ReuseStream {
+  """Caveats about this stream"""
+  caveats: [StreamCaveats!]
+
+  """The collection container used"""
+  container: Container
+  desc: String
+  name: String
+  programs(after: String, before: String, first: Int, last: Int, query: String): StreamProgramsConnection!
+
+  """Aggregated score for this stream"""
+  score: StreamScore
+
+  """Per-material scores within this stream"""
+  scores: [StreamScore!]
 }
 
 type SearchResultConnection {
@@ -1662,6 +1741,25 @@ type StreamContext {
   key: String!
   markdown: String
   name: String
+}
+
+"""A program associated with a recycling, reduce, or reuse stream"""
+type StreamProgram {
+  org: Org
+  place: Place
+  program: Program!
+}
+
+type StreamProgramEdge {
+  cursor: String!
+  node: StreamProgram!
+}
+
+type StreamProgramsConnection {
+  edges: [StreamProgramEdge!]!
+  nodes: [StreamProgram!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 """A recyclability score for a component or variant in a recycling stream"""
@@ -2313,17 +2411,29 @@ type Variant implements Named {
   """
   orgs(after: String, before: String, first: Int, last: Int): VariantOrgsConnection!
 
-  """Recycling options for this variant"""
-  recycle(regionID: ID): VariantRecycle!
+  """Recycling options for this variant, one entry per recycling stream"""
+  recycle(regionID: ID): [VariantRecycle!]!
 
   """Aggregated recyclability score for this variant"""
   recycleScore(regionID: ID): StreamScore
+
+  """Reduce options for this variant, one entry per reduce stream"""
+  reduce(regionID: ID): [VariantReduce!]!
+
+  """Aggregated reduce score for this variant"""
+  reduceScore(regionID: ID): StreamScore
 
   """Geographic regions associated with this variant"""
   regions(after: String, before: String, first: Int, last: Int): RegionsConnection!
 
   """Similar variants related to this variant"""
   related(limit: Int, offset: Int, query: String): VariantsConnection!
+
+  """Reuse options for this variant, one entry per reuse stream"""
+  reuse(regionID: ID): [VariantReuse!]!
+
+  """Aggregated reuse score for this variant"""
+  reuseScore(regionID: ID): StreamScore
   sources(after: String, before: String, first: Int, last: Int): VariantSourcesConnection!
 
   """Metadata tags applied to this variant"""
@@ -2419,13 +2529,29 @@ input VariantOrgsInput {
   id: ID!
 }
 
-"""Recycling options for a variant, grouped by component"""
+"""Recycling options for a variant in a specific recycling stream"""
 type VariantRecycle {
-  components(after: String, before: String, first: Int, last: Int): ComponentRecyclesConnection!
+  components(after: String, before: String, first: Int, last: Int): ComponentsConnection!
+  context: [StreamContext!]!
+  stream: RecyclingStream
+}
+
+"""Reduce options for a variant"""
+type VariantReduce {
+  components(after: String, before: String, first: Int, last: Int): ComponentsConnection!
+  context: [StreamContext!]!
+  stream: ReduceStream
 }
 
 input VariantRegionsInput {
   id: ID!
+}
+
+"""Reuse options for a variant"""
+type VariantReuse {
+  components(after: String, before: String, first: Int, last: Int): ComponentsConnection!
+  context: [StreamContext!]!
+  stream: ReuseStream
 }
 
 type VariantSource {

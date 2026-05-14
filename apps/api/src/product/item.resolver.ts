@@ -9,7 +9,7 @@ import { EditService } from '@src/changes/edit.service'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { DeleteOutput, ModelEditSchema } from '@src/graphql/base.model'
-import { ComponentRecyclesConnection } from '@src/process/stream.model'
+import { Component, ComponentsConnection } from '@src/process/component.model'
 import { Tag, TagConnection } from '@src/process/tag.model'
 import { CategoriesConnection, Category } from '@src/product/category.model'
 import { Item as ItemEntity } from '@src/product/item.entity'
@@ -24,6 +24,15 @@ import {
   ItemRecycle,
   ItemRecycleArgs,
   ItemRecycleComponentsArgs,
+  ItemRecycleVariantsArgs,
+  ItemReduce,
+  ItemReduceArgs,
+  ItemReduceComponentsArgs,
+  ItemReduceVariantsArgs,
+  ItemReuse,
+  ItemReuseArgs,
+  ItemReuseComponentsArgs,
+  ItemReuseVariantsArgs,
   ItemsArgs,
   ItemsConnection,
   ItemTagsArgs,
@@ -113,9 +122,33 @@ export class ItemResolver {
     return score
   }
 
-  @ResolveField(() => ItemRecycle)
+  @ResolveField(() => [ItemRecycle])
   async recycle(@Parent() item: Item, @Args() args: ItemRecycleArgs) {
     return this.itemService.recycle(item.id, args.regionID)
+  }
+
+  @ResolveField(() => [ItemReduce])
+  async reduce(@Parent() item: Item, @Args() args: ItemReduceArgs) {
+    return this.itemService.reduce(item.id, args.regionID)
+  }
+
+  @ResolveField()
+  async reduceScore(@Parent() item: Item, @Args() args: ItemReduceArgs) {
+    const score = await this.itemService.reduceScore(item.id, args.regionID)
+    if (!score) return null
+    return score
+  }
+
+  @ResolveField(() => [ItemReuse])
+  async reuse(@Parent() item: Item, @Args() args: ItemReuseArgs) {
+    return this.itemService.reuse(item.id, args.regionID)
+  }
+
+  @ResolveField()
+  async reuseScore(@Parent() item: Item, @Args() args: ItemReuseArgs) {
+    const score = await this.itemService.reuseScore(item.id, args.regionID)
+    if (!score) return null
+    return score
   }
 
   @ResolveField()
@@ -196,17 +229,83 @@ export class ItemRecycleResolver {
     private readonly transform: TransformService,
   ) {}
 
-  @ResolveField(() => ComponentRecyclesConnection)
+  @ResolveField(() => ComponentsConnection)
   async components(
     @Parent() parent: ItemRecycle,
-    @Args() _args: ItemRecycleComponentsArgs,
-  ): Promise<ComponentRecyclesConnection> {
-    const items = await this.itemService.recycleComponents(parent.itemId, parent.regionID)
-    return this.transform.objectsToPaginated(
-      ComponentRecyclesConnection,
-      { items, count: items.length },
-      true,
+    @Args() args: ItemRecycleComponentsArgs,
+  ): Promise<ComponentsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(
+      ItemRecycleComponentsArgs,
+      args,
     )
+    const cursor = await this.itemService.componentsByIds(parent.componentIds, filter)
+    return this.transform.entityToPaginated(Component, ComponentsConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField(() => VariantsConnection)
+  async variants(
+    @Parent() parent: ItemRecycle,
+    @Args() args: ItemRecycleVariantsArgs,
+  ): Promise<VariantsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ItemRecycleVariantsArgs, args)
+    const cursor = await this.itemService.variantsByIds(parent.variantIds, filter)
+    return this.transform.entityToPaginated(Variant, VariantsConnection, cursor, parsedArgs)
+  }
+}
+
+@Resolver(() => ItemReduce)
+export class ItemReduceResolver {
+  constructor(
+    private readonly itemService: ItemService,
+    private readonly transform: TransformService,
+  ) {}
+
+  @ResolveField(() => ComponentsConnection)
+  async components(
+    @Parent() parent: ItemReduce,
+    @Args() args: ItemReduceComponentsArgs,
+  ): Promise<ComponentsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ItemReduceComponentsArgs, args)
+    const cursor = await this.itemService.componentsByIds(parent.componentIds, filter)
+    return this.transform.entityToPaginated(Component, ComponentsConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField(() => VariantsConnection)
+  async variants(
+    @Parent() parent: ItemReduce,
+    @Args() args: ItemReduceVariantsArgs,
+  ): Promise<VariantsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ItemReduceVariantsArgs, args)
+    const cursor = await this.itemService.variantsByIds(parent.variantIds, filter)
+    return this.transform.entityToPaginated(Variant, VariantsConnection, cursor, parsedArgs)
+  }
+}
+
+@Resolver(() => ItemReuse)
+export class ItemReuseResolver {
+  constructor(
+    private readonly itemService: ItemService,
+    private readonly transform: TransformService,
+  ) {}
+
+  @ResolveField(() => ComponentsConnection)
+  async components(
+    @Parent() parent: ItemReuse,
+    @Args() args: ItemReuseComponentsArgs,
+  ): Promise<ComponentsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ItemReuseComponentsArgs, args)
+    const cursor = await this.itemService.componentsByIds(parent.componentIds, filter)
+    return this.transform.entityToPaginated(Component, ComponentsConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField(() => VariantsConnection)
+  async variants(
+    @Parent() parent: ItemReuse,
+    @Args() args: ItemReuseVariantsArgs,
+  ): Promise<VariantsConnection> {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ItemReuseVariantsArgs, args)
+    const cursor = await this.itemService.variantsByIds(parent.variantIds, filter)
+    return this.transform.entityToPaginated(Variant, VariantsConnection, cursor, parsedArgs)
   }
 }
 
