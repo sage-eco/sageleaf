@@ -1,0 +1,39 @@
+apps/frontend/app/pages/explore/index.vue
+  s_afb358de8f84bc::t_9f499ca4f6c467 11-36,40-65,67-102,104-131,140-142,144-146,148,177-178,184-186,191-215,217-238,240-268,297-331,347
+  s_afb358de8f84bc::t_17123226558abc 37-39
+  s_afb358de8f84bc::t_d540e6ddf5694c 269-296
+apps/frontend/app/plugins/pmtiles.client.ts
+  s_afb358de8f84bc::t_cabfde0b500c8f 1-11
+apps/frontend/app/gql/graphql.ts
+  s_afb358de8f84bc::t_f66c36e08b59ca 3835-3842,3881-3888,4149-4150,4155,4160
+apps/frontend/app/pages/explore/programs/index.vue
+  s_afb358de8f84bc::t_a4c04dfa0d0036 5-13
+  s_afb358de8f84bc::t_69c3ea2d9467f7 1-4,14-30,32-69,71-101
+  s_afb358de8f84bc::t_261192e345e1e3 70
+apps/frontend/app/pages/explore/items/index.vue
+  s_afb358de8f84bc::t_d32827748d4733 5-12
+  s_afb358de8f84bc::t_ec3b90a7330584 1-4,13-30,32-96
+apps/frontend/app/pages/explore/recent.vue
+  s_afb358de8f84bc::t_3978e93e1df828 1-13
+apps/frontend/app/gql/gql.ts
+  s_afb358de8f84bc::t_f66c36e08b59ca 50,55,113-114,119,124,277-284,301-304,321-324
+apps/frontend/app/pages/explore/places/index.vue
+  s_afb358de8f84bc::t_1ea6e7f5f8f132 24
+  s_afb358de8f84bc::t_7d33256685eecd 237-243
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "d39bedc27afa4f2cdf2bac1bfbcbd0f0113aaff4",
+  "prompts": {},
+  "sessions": {
+    "s_afb358de8f84bc": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "c2898fce-f3e8-4308-beb5-44c07d05aecb",
+        "model": "unknown"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
