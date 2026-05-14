@@ -21,6 +21,7 @@
       <DrawerContent class="min-h-[50vh] p-3">
         <DrawerHeader class="text-left">
           <DrawerTitle>{{ selectedPlace?.name }}</DrawerTitle>
+          <DrawerDescription class="sr-only">Place details</DrawerDescription>
         </DrawerHeader>
         <h3 class="text-md font-semibold">{{ selectedPlace?.desc }}</h3>
         <p>{{ selectedPlace?.tags }}</p>
@@ -52,8 +53,8 @@
 import { Search } from '@lucide/vue'
 import { watchDebounced } from '@vueuse/core'
 import maplibregl, { Map, NavigationControl, type LngLatLike } from 'maplibre-gl'
-import { Protocol } from 'pmtiles'
 import type { ShallowRef } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 
 import { graphql } from '~/gql'
 import type { Place } from '~/gql/types.generated'
@@ -85,9 +86,6 @@ const mapContainer = shallowRef(null)
 const map: ShallowRef<Map | null> = shallowRef(null)
 
 const mapBounds = ref<[number, number][] | null>(null)
-
-const protocol = new Protocol()
-maplibregl.addProtocol('pmtiles', protocol.tile)
 
 const placeSearch = graphql(`
   query PlaceSearch($search: String!, $latLong: [Float!]) {
@@ -234,6 +232,13 @@ onMounted(() => {
   }
   getBounds()
   map.value.on('moveend', getBounds)
+})
+
+onBeforeRouteLeave(() => {
+  if (map.value) {
+    map.value.remove()
+    map.value = null
+  }
 })
 
 onUnmounted(() => {
