@@ -70,6 +70,21 @@ type ModelClass<T extends RefEditModel = RefEditModel> = new () => T
 export type RefEditRelationKind = 'pivot' | 'collection'
 type RefEditCardinality = 'many' | 'one'
 
+/**
+ * Identifies the owning-side definition for inverse-side M:N ref edits.
+ *
+ * When a ref edit definition operates on the inverse side of a ManyToMany relation
+ * (i.e. the `mappedBy` side, which is not tracked in change POJOs), set `owningRef` to
+ * delegate pivot mutations to the owning-side entity. This ensures Change Edits are
+ * created on the owning entity (where the pivot table rows live) rather than the inverse
+ * entity (where changes would be silently ignored during merge).
+ */
+export type OwningRefKey = {
+  model: EditModelType
+  refModel: RefModelType
+  refField: string
+}
+
 export type RefEditDefinition<
   TRoot extends EditEntity = EditEntity,
   TTarget extends EditEntity = EditEntity,
@@ -88,6 +103,12 @@ export type RefEditDefinition<
   populate: string[]
   pivotEntity?: EntityName<TPivot>
   addInputSchema?: z.ZodObject<any>
+  /**
+   * When set, this definition is on the inverse side of a ManyToMany.
+   * `addRef` and `removeRef` will delegate to the owning-side definition identified
+   * by these keys, applying pivot mutations on each target entity instead.
+   */
+  owningRef?: OwningRefKey
 }
 
 const VariantComponentAddInputSchema = VariantComponentsInputSchema.omit({ id: true })
@@ -125,6 +146,11 @@ export const REF_EDIT_DEFINITIONS: RefEditDefinition[] = [
     relationCollection: 'variants',
     cardinality: 'many',
     populate: ['variants'],
+    owningRef: {
+      model: EditModelType.Variant,
+      refModel: RefModelType.Item,
+      refField: 'items',
+    },
   },
   {
     model: EditModelType.Item,
@@ -153,6 +179,11 @@ export const REF_EDIT_DEFINITIONS: RefEditDefinition[] = [
     relationCollection: 'items',
     cardinality: 'many',
     populate: ['items'],
+    owningRef: {
+      model: EditModelType.Item,
+      refModel: RefModelType.Category,
+      refField: 'categories',
+    },
   },
   {
     model: EditModelType.Variant,

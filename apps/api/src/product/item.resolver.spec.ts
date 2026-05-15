@@ -98,6 +98,32 @@ describe('ItemResolver (integration)', () => {
     expect(res.data?.items.totalCount).toBeGreaterThan(0)
   })
 
+  test('should accept explicit null for unused pagination arguments', async () => {
+    const res = await gql.send(
+      graphql(`
+        query ItemResolverListItemsNullArgs(
+          $first: Int
+          $last: Int
+          $after: String
+          $before: String
+        ) {
+          items(first: $first, last: $last, after: $after, before: $before) {
+            nodes {
+              id
+            }
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+            }
+          }
+        }
+      `),
+      { first: 20, last: null, after: null, before: null },
+    )
+    expect(res.errors).toBeUndefined()
+    expect(Array.isArray(res.data?.items.nodes)).toBe(true)
+  })
+
   test('should query a single item', async () => {
     const res = await gql.send(
       graphql(`

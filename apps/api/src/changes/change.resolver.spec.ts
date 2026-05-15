@@ -6,6 +6,7 @@ import { graphql } from '@test/gql'
 import { EditModelType, RefModelType } from '@test/gql/types.generated'
 import { GraphQLTestClient } from '@test/graphql.utils'
 
+import { ChangeEdits } from '@src/changes/change.entity'
 import { ChangeService } from '@src/changes/change.service'
 import { BaseSeeder } from '@src/db/seeds/BaseSeeder'
 import { CATEGORY_IDS, TestCategorySeeder } from '@src/db/seeds/TestCategorySeeder'
@@ -547,6 +548,66 @@ describe('ChangeResolver (integration)', () => {
 
     expect(res.errors).toBeDefined()
     expect(res.errors?.[0]?.message).toContain('No Category found for IDs: ZZZZZZZZZZZZZZZZZZZZZ')
+  })
+
+  test('should create a Variant Change Edit (not Item) when adding Item -> Variant inverse ref via change', async () => {
+    // Regression: addRef(Item, variants) delegates to the owning side (Variant).
+    // The resulting ChangeEdit must record entityName='Variant' so that merging
+    // produces variants_items pivot rows. Previously no owning-side edit was created.
+    const scopedChange = await changeService.create({ title: 'Item->Variant delegation' }, user.id)
+
+    const res = await gql.send(AddRefMutation, {
+      model: EditModelType.Item,
+      id: ITEM_IDS[0],
+      input: {
+        changeID: scopedChange.id,
+        refModel: RefModelType.Variant,
+        ref: VARIANT_IDS[2],
+      },
+    })
+
+    expect(res.errors).toBeUndefined()
+    expect(res.data?.addRef?.change?.id).toBe(scopedChange.id)
+
+    const em = orm.em.fork()
+    const edits = await em.find(ChangeEdits, { change: scopedChange.id })
+    const variantEdit = edits.find(
+      (e) => e.entityName === 'Variant' && e.entityID === VARIANT_IDS[2],
+    )
+    expect(variantEdit).toBeDefined()
+    expect(variantEdit?.changes?.variantItems).toBeDefined()
+
+    const itemEdit = edits.find((e) => e.entityName === 'Item')
+    expect(itemEdit).toBeUndefined()
+  })
+
+  test('should create an Item Change Edit (not Category) when adding Category -> Item inverse ref via change', async () => {
+    // Regression: addRef(Category, items) delegates to the owning side (Item).
+    // The resulting ChangeEdit must record entityName='Item' so merging produces
+    // items_categories pivot rows. Previously no owning-side edit was created.
+    const scopedChange = await changeService.create({ title: 'Category->Item delegation' }, user.id)
+
+    const res = await gql.send(AddRefMutation, {
+      model: EditModelType.Category,
+      id: CATEGORY_IDS[1],
+      input: {
+        changeID: scopedChange.id,
+        refModel: RefModelType.Item,
+        ref: ITEM_IDS[0],
+      },
+    })
+
+    expect(res.errors).toBeUndefined()
+    expect(res.data?.addRef?.change?.id).toBe(scopedChange.id)
+
+    const em = orm.em.fork()
+    const edits = await em.find(ChangeEdits, { change: scopedChange.id })
+    const itemEdit = edits.find((e) => e.entityName === 'Item' && e.entityID === ITEM_IDS[0])
+    expect(itemEdit).toBeDefined()
+    expect(itemEdit?.changes?.itemCategories).toBeDefined()
+
+    const categoryEdit = edits.find((e) => e.entityName === 'Category')
+    expect(categoryEdit).toBeUndefined()
   })
 
   test('should discard an edit', async () => {
