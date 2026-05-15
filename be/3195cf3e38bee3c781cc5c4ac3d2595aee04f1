@@ -1,0 +1,36 @@
+apps/api/src/changes/ref-edit.service.ts
+  s_fa1c4e5aeb8f42::t_fe733d68091f6e 36-40
+  s_fa1c4e5aeb8f42::t_f5bbeed10f202f 91-95
+  s_fa1c4e5aeb8f42::t_5af37e1f79e35e 127-171,174-227,230-241
+apps/api/test/gql/gql.ts
+  s_fa1c4e5aeb8f42::t_f6d640e3577c83 287,709,1955-1958
+apps/api/src/graphql/paginated.ts
+  s_fa1c4e5aeb8f42::t_205743ac5b515d 119,121
+apps/api/src/changes/ref-edit.registry.ts
+  s_fa1c4e5aeb8f42::t_e842aa302f7dc0 73-87,106-111
+  s_fa1c4e5aeb8f42::t_2688ce18f56e62 149-153
+  s_fa1c4e5aeb8f42::t_d89691063979fc 182-186
+apps/api/src/product/item.resolver.spec.ts
+  s_fa1c4e5aeb8f42::t_4d6e4aea1c23ef 101-126
+apps/api/src/changes/change.resolver.spec.ts
+  s_fa1c4e5aeb8f42::t_3e6df868c85ccb 553-587,589-612
+  s_fa1c4e5aeb8f42::t_32b4f46d685a30 9
+apps/api/test/gql/graphql.ts
+  s_fa1c4e5aeb8f42::t_f6d640e3577c83 5558-5567,7008
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "be3195cf3e38bee3c781cc5c4ac3d2595aee04f1",
+  "prompts": {},
+  "sessions": {
+    "s_fa1c4e5aeb8f42": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "248ed52c-9670-4ee9-bbb2-8fc1a9f72634",
+        "model": "unknown"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
