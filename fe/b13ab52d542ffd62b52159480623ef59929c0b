@@ -1,0 +1,25 @@
+apps/api/test/gql/graphql.ts
+  s_fa1c4e5aeb8f42::t_4a36572971748d 4677-4686,6896
+apps/api/src/process/component.service.ts
+  s_fa1c4e5aeb8f42::t_d16d36d24c173f 94
+apps/api/src/process/component.resolver.spec.ts
+  s_fa1c4e5aeb8f42::t_5e044b7bf83a9b 95-144
+apps/api/test/gql/gql.ts
+  s_fa1c4e5aeb8f42::t_4a36572971748d 165,588,1469-1472
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "feb13ab52d542ffd62b52159480623ef59929c0b",
+  "prompts": {},
+  "sessions": {
+    "s_fa1c4e5aeb8f42": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "248ed52c-9670-4ee9-bbb2-8fc1a9f72634",
+        "model": "unknown"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
