@@ -92,6 +92,56 @@ describe('ComponentResolver (integration)', () => {
     expect(res.data?.components.totalCount).toBeGreaterThan(0)
   })
 
+  test('should include initialized materials in components list query', async () => {
+    // Regression: querying components with materials { material { id name } } threw
+    // "Entity is not initialized: Material" because componentMaterials was populated
+    // without its nested material relation, leaving MikroORM proxies unresolved.
+    const res = await gql.send(
+      graphql(`
+        query ComponentResolverListComponentsWithMaterials(
+          $first: Int
+          $last: Int
+          $after: String
+          $before: String
+        ) {
+          components(first: $first, last: $last, after: $after, before: $before) {
+            nodes {
+              id
+              name
+              materials {
+                material {
+                  id
+                  name
+                }
+                materialFraction
+              }
+            }
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+          }
+        }
+      `),
+      { first: 20, last: null, after: null, before: null },
+    )
+    expect(res.errors).toBeUndefined()
+    const nodes = res.data?.components.nodes
+    expect(Array.isArray(nodes)).toBe(true)
+
+    // At least one component in the seed data has materials; verify they are resolved
+    const withMaterials = nodes?.filter((n) => n.materials.length > 0)
+    expect(withMaterials?.length).toBeGreaterThan(0)
+    for (const node of withMaterials ?? []) {
+      for (const cm of node.materials) {
+        expect(cm.material.id).toBeTruthy()
+        expect(cm.material.name).toBeTruthy()
+      }
+    }
+  })
+
   test('should filter components by material', async () => {
     const materialId = MATERIAL_IDS[0]
     const res = await gql.send(

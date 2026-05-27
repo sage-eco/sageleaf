@@ -91,7 +91,7 @@ export class ComponentService implements IEntityService<Component> {
     const component = await this.em.findOne(
       Component,
       { id: componentId },
-      { populate: ['componentMaterials'] },
+      { populate: ['componentMaterials.material'] },
     )
     if (!component) {
       throw new Error(`Component with ID "${componentId}" not found`)
