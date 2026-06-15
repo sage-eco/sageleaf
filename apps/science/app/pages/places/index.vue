@@ -1,9 +1,10 @@
 <template>
   <div>
-    <div class="p-3">
+    <div class="flex gap-2 p-3">
       <Button
         @click="
           requireAuth(() => {
+            copyData = undefined
             editId = 'new'
             showEdit = true
           })
@@ -12,6 +13,20 @@
         <Plus />
         Add Place
       </Button>
+      <CopyEntityDialog
+        entity-type="PLACE"
+        entity-name="Place"
+        label="Place"
+        @selected="
+          (data) => {
+            requireAuth(() => {
+              copyData = data
+              editId = 'new'
+              showEdit = true
+            })
+          }
+        "
+      />
     </div>
     <GridModelChanges v-if="selectedChange" :query="placesChangesQuery" :type="EditModelType.Place">
       <template #default="{ node }">
@@ -46,6 +61,7 @@
           :create-mutation="createPlaceMutation"
           :update-mutation="updatePlaceMutation"
           :create-model-key="'place'"
+          :initial-data="copyData"
           @saved="onSaved"
         />
       </DialogContent>
@@ -154,8 +170,10 @@ const actionButton = (btn: string, id: string) => {
 
 const showEdit = ref(false)
 const editId = ref<string>('new')
+const copyData = ref<Record<string, unknown> | undefined>(undefined)
 const onSaved = () => {
   showEdit.value = false
   editId.value = 'new'
+  copyData.value = undefined
 }
 </script>

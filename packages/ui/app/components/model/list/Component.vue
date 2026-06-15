@@ -4,10 +4,24 @@
     <div>
       <UiImage class="size-10" :src="component.imageURL"></UiImage>
     </div>
-    <div>
+    <div class="min-w-0 flex-1">
       <div class="text-bold">{{ component.name }}</div>
       <div class="text-xs opacity-70">
         {{ component.desc }}
+      </div>
+      <div
+        v-if="component.primaryMaterial?.name || component.materials?.length"
+        class="mt-1 flex flex-wrap gap-1"
+      >
+        <span v-if="component.primaryMaterial?.name" class="badge badge-sm badge-primary">{{
+          component.primaryMaterial.name
+        }}</span>
+        <span
+          v-for="cm in component.materials"
+          :key="cm.material.id"
+          class="badge badge-outline badge-sm"
+          >{{ cm.material.name }}</span
+        >
       </div>
     </div>
     <ModelListActionButtons
@@ -29,6 +43,16 @@ const ListComponentFragment = graphql(`
     name
     desc
     imageURL
+    primaryMaterial {
+      id
+      name
+    }
+    materials {
+      material {
+        id
+        name
+      }
+    }
   }
 `)
 

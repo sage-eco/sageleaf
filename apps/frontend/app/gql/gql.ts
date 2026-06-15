@@ -60,6 +60,7 @@ type Documents = {
     "\n  query CurrentRegionProfile {\n    currentRegion {\n      region {\n        id\n        name\n        desc\n      }\n    }\n  }\n": typeof types.CurrentRegionProfileDocument,
     "\n  query Search($query: String!) {\n    search(query: $query) {\n      nodes {\n        __typename\n        ... on Category {\n          id\n          name\n          descShort\n          desc\n          imageURL\n        }\n        ... on Item {\n          id\n          name_null: name\n          desc\n          imageURL\n        }\n        ... on Variant {\n          id\n          name_null: name\n          desc\n          imageURL\n          orgs(first: 3) {\n            nodes {\n              org {\n                name\n              }\n            }\n          }\n        }\n        ... on Place {\n          id\n          name_null: name\n          address {\n            street\n            city\n            region\n            country\n          }\n        }\n        ... on Org {\n          id\n          name\n          desc\n        }\n      }\n      totalCount\n    }\n  }\n": typeof types.SearchDocument,
     "\n  query ScanSearchQuery($query: String!) {\n    search(query: $query, types: [VARIANT, ITEM]) {\n      nodes {\n        __typename\n        ... on Variant {\n          id\n          name\n          desc\n          imageURL\n        }\n        ... on Item {\n          id\n          name\n          desc\n          imageURL\n        }\n      }\n      totalCount\n    }\n  }\n": typeof types.ScanSearchQueryDocument,
+    "\n  mutation CreateChangeFromForm($input: CreateChangeInput!) {\n    createChange(input: $input) {\n      change {\n        id\n      }\n    }\n  }\n": typeof types.CreateChangeFromFormDocument,
     "\n  query ChangesGetEdit($id: ID!, $changeID: ID!) {\n    change(id: $changeID) {\n      status\n      edits(id: $id) {\n        nodes {\n          updateInput\n        }\n      }\n    }\n  }\n": typeof types.ChangesGetEditDocument,
     "\n  query DirectGetEdit($id: ID!, $entityName: String!) {\n    directEdit(id: $id, entityName: $entityName) {\n      entityName\n      id\n      updateInput\n    }\n  }\n": typeof types.DirectGetEditDocument,
     "\n    query RefCategoryQuery($id: ID!) {\n      category(id: $id) {\n        ...ListCategoryFragment\n      }\n    }\n  ": typeof types.RefCategoryQueryDocument,
@@ -72,7 +73,7 @@ type Documents = {
     "\n    query RefMaterialQuery($id: ID!) {\n      material(id: $id) {\n        ...ListMaterialFragment\n      }\n    }\n  ": typeof types.RefMaterialQueryDocument,
     "\n  fragment ListCategoryFragment on Category {\n    id\n    name_req: name\n    descShort\n    imageURL\n  }\n": typeof types.ListCategoryFragmentFragmentDoc,
     "\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n  }\n": typeof types.ListChangeFragmentFragmentDoc,
-    "\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n  }\n": typeof types.ListComponentFragmentFragmentDoc,
+    "\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n    primaryMaterial {\n      id\n      name\n    }\n    materials {\n      material {\n        id\n        name\n      }\n    }\n  }\n": typeof types.ListComponentFragmentFragmentDoc,
     "\n  fragment ListItemFragment on Item {\n    id\n    name\n    desc\n    imageURL\n  }\n": typeof types.ListItemFragmentFragmentDoc,
     "\n  fragment ListMaterialFragment on Material {\n    id\n    name\n    desc\n    shape\n  }\n": typeof types.ListMaterialFragmentFragmentDoc,
     "\n  fragment ListOrgFragment on Org {\n    id\n    name_req: name\n    desc\n    avatarURL\n  }\n": typeof types.ListOrgFragmentFragmentDoc,
@@ -129,6 +130,7 @@ const documents: Documents = {
     "\n  query CurrentRegionProfile {\n    currentRegion {\n      region {\n        id\n        name\n        desc\n      }\n    }\n  }\n": types.CurrentRegionProfileDocument,
     "\n  query Search($query: String!) {\n    search(query: $query) {\n      nodes {\n        __typename\n        ... on Category {\n          id\n          name\n          descShort\n          desc\n          imageURL\n        }\n        ... on Item {\n          id\n          name_null: name\n          desc\n          imageURL\n        }\n        ... on Variant {\n          id\n          name_null: name\n          desc\n          imageURL\n          orgs(first: 3) {\n            nodes {\n              org {\n                name\n              }\n            }\n          }\n        }\n        ... on Place {\n          id\n          name_null: name\n          address {\n            street\n            city\n            region\n            country\n          }\n        }\n        ... on Org {\n          id\n          name\n          desc\n        }\n      }\n      totalCount\n    }\n  }\n": types.SearchDocument,
     "\n  query ScanSearchQuery($query: String!) {\n    search(query: $query, types: [VARIANT, ITEM]) {\n      nodes {\n        __typename\n        ... on Variant {\n          id\n          name\n          desc\n          imageURL\n        }\n        ... on Item {\n          id\n          name\n          desc\n          imageURL\n        }\n      }\n      totalCount\n    }\n  }\n": types.ScanSearchQueryDocument,
+    "\n  mutation CreateChangeFromForm($input: CreateChangeInput!) {\n    createChange(input: $input) {\n      change {\n        id\n      }\n    }\n  }\n": types.CreateChangeFromFormDocument,
     "\n  query ChangesGetEdit($id: ID!, $changeID: ID!) {\n    change(id: $changeID) {\n      status\n      edits(id: $id) {\n        nodes {\n          updateInput\n        }\n      }\n    }\n  }\n": types.ChangesGetEditDocument,
     "\n  query DirectGetEdit($id: ID!, $entityName: String!) {\n    directEdit(id: $id, entityName: $entityName) {\n      entityName\n      id\n      updateInput\n    }\n  }\n": types.DirectGetEditDocument,
     "\n    query RefCategoryQuery($id: ID!) {\n      category(id: $id) {\n        ...ListCategoryFragment\n      }\n    }\n  ": types.RefCategoryQueryDocument,
@@ -141,7 +143,7 @@ const documents: Documents = {
     "\n    query RefMaterialQuery($id: ID!) {\n      material(id: $id) {\n        ...ListMaterialFragment\n      }\n    }\n  ": types.RefMaterialQueryDocument,
     "\n  fragment ListCategoryFragment on Category {\n    id\n    name_req: name\n    descShort\n    imageURL\n  }\n": types.ListCategoryFragmentFragmentDoc,
     "\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n  }\n": types.ListChangeFragmentFragmentDoc,
-    "\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n  }\n": types.ListComponentFragmentFragmentDoc,
+    "\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n    primaryMaterial {\n      id\n      name\n    }\n    materials {\n      material {\n        id\n        name\n      }\n    }\n  }\n": types.ListComponentFragmentFragmentDoc,
     "\n  fragment ListItemFragment on Item {\n    id\n    name\n    desc\n    imageURL\n  }\n": types.ListItemFragmentFragmentDoc,
     "\n  fragment ListMaterialFragment on Material {\n    id\n    name\n    desc\n    shape\n  }\n": types.ListMaterialFragmentFragmentDoc,
     "\n  fragment ListOrgFragment on Org {\n    id\n    name_req: name\n    desc\n    avatarURL\n  }\n": types.ListOrgFragmentFragmentDoc,
@@ -353,6 +355,10 @@ export function graphql(source: "\n  query ScanSearchQuery($query: String!) {\n 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  mutation CreateChangeFromForm($input: CreateChangeInput!) {\n    createChange(input: $input) {\n      change {\n        id\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateChangeFromForm($input: CreateChangeInput!) {\n    createChange(input: $input) {\n      change {\n        id\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  query ChangesGetEdit($id: ID!, $changeID: ID!) {\n    change(id: $changeID) {\n      status\n      edits(id: $id) {\n        nodes {\n          updateInput\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query ChangesGetEdit($id: ID!, $changeID: ID!) {\n    change(id: $changeID) {\n      status\n      edits(id: $id) {\n        nodes {\n          updateInput\n        }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -401,7 +407,7 @@ export function graphql(source: "\n  fragment ListChangeFragment on Change {\n  
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n  }\n"): (typeof documents)["\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n  }\n"];
+export function graphql(source: "\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n    primaryMaterial {\n      id\n      name\n    }\n    materials {\n      material {\n        id\n        name\n      }\n    }\n  }\n"): (typeof documents)["\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n    primaryMaterial {\n      id\n      name\n    }\n    materials {\n      material {\n        id\n        name\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

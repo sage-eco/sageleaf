@@ -180,19 +180,26 @@ const menuItems = computed(() => [
         title: t.value('nav.categories.hierarchy', { ns: 'science' }),
         url: '/categories/hierarchy',
       },
+      { title: 'Link Items', url: '/categories/link/items' },
     ],
   },
   {
     title: t.value('nav.items', { ns: 'science' }),
     url: '/items',
     icon: List,
-    subItems: [{ title: t.value('nav.items.index', { ns: 'science' }), url: '/items' }],
+    subItems: [
+      { title: t.value('nav.items.index', { ns: 'science' }), url: '/items' },
+      { title: 'Link Variants', url: '/items/link/variants' },
+    ],
   },
   {
     title: t.value('nav.variants', { ns: 'science' }),
     url: '/variants',
     icon: LayoutGrid,
-    subItems: [{ title: t.value('nav.variants.index', { ns: 'science' }), url: '/variants' }],
+    subItems: [
+      { title: t.value('nav.variants.index', { ns: 'science' }), url: '/variants' },
+      { title: 'Link Components', url: '/variants/link/components' },
+    ],
   },
   {
     title: t.value('nav.components', { ns: 'science' }),

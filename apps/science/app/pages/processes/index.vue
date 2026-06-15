@@ -1,9 +1,10 @@
 <template>
   <div>
-    <div class="p-3">
+    <div class="flex gap-2 p-3">
       <Button
         @click="
           requireAuth(() => {
+            copyData = undefined
             editId = 'new'
             showEdit = true
           })
@@ -12,6 +13,19 @@
         <Plus />
         Add Process
       </Button>
+      <CopyEntityDialog
+        entity-name="Process"
+        label="Process"
+        @selected="
+          (data) => {
+            requireAuth(() => {
+              copyData = data
+              editId = 'new'
+              showEdit = true
+            })
+          }
+        "
+      />
     </div>
     <GridModelChanges
       v-if="selectedChange"
@@ -50,6 +64,7 @@
           :create-mutation="createProcessMutation"
           :update-mutation="updateProcessMutation"
           :create-model-key="'process'"
+          :initial-data="copyData"
           @saved="onSaved"
         />
       </DialogContent>
@@ -155,8 +170,10 @@ const updateProcessMutation = graphql(`
 
 const showEdit = ref(false)
 const editId = ref<string>('new')
+const copyData = ref<Record<string, unknown> | undefined>(undefined)
 const onSaved = () => {
   showEdit.value = false
   editId.value = 'new'
+  copyData.value = undefined
 }
 </script>

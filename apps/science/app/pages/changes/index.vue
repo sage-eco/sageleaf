@@ -54,12 +54,24 @@ const { setChange } = useChangeStore()
 
 const { requireAuth } = useRequireAuth()
 
-const selectChange = (btn: string, id: string) => {
+const deleteChangeMutation = graphql(`
+  mutation DeleteChangeFromList($id: ID!) {
+    deleteChange(id: $id) {
+      success
+    }
+  }
+`)
+const { mutate: deleteChange } = useMutation(deleteChangeMutation)
+
+const selectChange = async (btn: string, id: string) => {
   if (btn === 'select') {
     setChange(id)
   } else if (btn === 'edit') {
     editId.value = id
     showEdit.value = true
+  } else if (btn === 'delete') {
+    await deleteChange({ id })
+    await refetch()
   }
 }
 
@@ -78,7 +90,7 @@ const changesQuery = graphql(`
     }
   }
 `)
-const { result: changesData } = useQuery(changesQuery)
+const { result: changesData, refetch } = useQuery(changesQuery)
 const changes = computed(() => changesData.value?.changes?.nodes || [])
 
 const _createChangeMutation = graphql(`

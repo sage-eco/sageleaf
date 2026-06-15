@@ -1,9 +1,10 @@
 <template>
   <div>
-    <div class="p-3">
+    <div class="flex gap-2 p-3">
       <Button
         @click="
           requireAuth(() => {
+            copyData = undefined
             editItemId = 'new'
             showEditItem = true
           })
@@ -12,6 +13,20 @@
         <Plus />
         Add Item
       </Button>
+      <CopyEntityDialog
+        entity-type="ITEM"
+        entity-name="Item"
+        label="Item"
+        @selected="
+          (data) => {
+            requireAuth(() => {
+              copyData = data
+              editItemId = 'new'
+              showEditItem = true
+            })
+          }
+        "
+      />
     </div>
     <GridModelChanges v-if="selectedChange" :query="itemsChangesQuery" :type="EditModelType.Item">
       <template #default="{ node }">
@@ -46,6 +61,7 @@
           :create-mutation="createItemMutation"
           :update-mutation="updateItemMutation"
           :create-model-key="'item'"
+          :initial-data="copyData"
           @saved="onSaved"
         />
       </DialogContent>
@@ -151,8 +167,10 @@ const updateItemMutation = graphql(`
 
 const showEditItem = ref(false)
 const editItemId = ref<string>('new')
+const copyData = ref<Record<string, unknown> | undefined>(undefined)
 const onSaved = () => {
   showEditItem.value = false
   editItemId.value = 'new'
+  copyData.value = undefined
 }
 </script>

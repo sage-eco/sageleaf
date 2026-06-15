@@ -33,35 +33,44 @@ import { ChangeStatus, type Exact } from '~/gql/graphql'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SchemaQuery = any
-const { changeId, modelId, schemaQuery, createMutation, updateMutation, createModelKey, autoSave } =
-  defineProps<{
-    changeId: string | undefined
-    modelId: string
-    schemaQuery: TypedDocumentNode<
-      SchemaQuery,
-      Exact<{
-        [key: string]: never
-      }>
-    >
-    createMutation: TypedDocumentNode<
-      { [key: string]: unknown },
-      {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        input: any
+const {
+  changeId,
+  modelId,
+  schemaQuery,
+  createMutation,
+  updateMutation,
+  createModelKey,
+  autoSave,
+  initialData,
+} = defineProps<{
+  changeId: string | undefined
+  modelId: string
+  schemaQuery: TypedDocumentNode<
+    SchemaQuery,
+    Exact<{
+      [key: string]: never
+    }>
+  >
+  createMutation: TypedDocumentNode<
+    { [key: string]: unknown },
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      input: any
+    }
+  >
+  updateMutation: TypedDocumentNode<
+    { [key: string]: unknown },
+    Exact<{
+      input: {
+        id: string
+        [key: string]: unknown
       }
-    >
-    updateMutation: TypedDocumentNode<
-      { [key: string]: unknown },
-      Exact<{
-        input: {
-          id: string
-          [key: string]: unknown
-        }
-      }>
-    >
-    createModelKey: string
-    autoSave?: boolean
-  }>()
+    }>
+  >
+  createModelKey: string
+  autoSave?: boolean
+  initialData?: Record<string, unknown>
+}>()
 
 const emits = defineEmits<{
   (e: 'created' | 'saved', id: string): void
@@ -92,6 +101,10 @@ const uiSchema = computed(() => {
 const createData = ref<object | null>(null)
 const updateData = ref<object | null>(null)
 const changeStatus = ref<ChangeStatus | null>(null)
+
+if (modelId === 'new' && initialData) {
+  createData.value = sanitizeFormData(initialData)
+}
 const editQuery = graphql(`
   query ChangesGetEdit($id: ID!, $changeID: ID!) {
     change(id: $changeID) {
