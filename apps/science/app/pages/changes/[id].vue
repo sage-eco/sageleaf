@@ -24,6 +24,59 @@
     </div>
 
     <div v-if="entity">
+      <div
+        class="mx-3 mb-3 flex items-center gap-3 rounded-lg border px-4 py-3"
+        :class="{
+          'border-primary/30 bg-primary/10': entity.status === ChangeStatus.Merged,
+          'border-info/30 bg-info/10': entity.status === ChangeStatus.Proposed,
+          'border-success/30 bg-success/10': entity.status === ChangeStatus.Approved,
+          'border-warning/30 bg-warning/10': entity.status === ChangeStatus.Draft,
+          'border-error/30 bg-error/10': entity.status === ChangeStatus.Rejected,
+        }"
+      >
+        <span
+          class="badge badge-md font-semibold"
+          :class="{
+            'badge-primary': entity.status === ChangeStatus.Merged,
+            'badge-info': entity.status === ChangeStatus.Proposed,
+            'badge-success': entity.status === ChangeStatus.Approved,
+            'badge-warning': entity.status === ChangeStatus.Draft,
+            'badge-error': entity.status === ChangeStatus.Rejected,
+          }"
+          >{{ entity.status }}</span
+        >
+        <div class="flex-1 text-sm opacity-60">
+          <span v-if="entity.status === ChangeStatus.Draft">Ready to propose for review</span>
+          <span v-else-if="entity.status === ChangeStatus.Proposed">Awaiting approval</span>
+          <span v-else-if="entity.status === ChangeStatus.Approved"
+            >Approved and ready to merge</span
+          >
+          <span v-else-if="entity.status === ChangeStatus.Rejected">This change was rejected</span>
+          <span v-else-if="entity.status === ChangeStatus.Merged">This change has been merged</span>
+        </div>
+        <template v-if="entity.status === ChangeStatus.Draft">
+          <Button @click="requireAuth(() => doSetStatus(ChangeStatus.Proposed))">
+            <Send class="size-4" />
+            Propose
+          </Button>
+        </template>
+        <template v-else-if="entity.status === ChangeStatus.Proposed">
+          <Button variant="outline" @click="requireAuth(() => doSetStatus(ChangeStatus.Draft))">
+            <RotateCcw class="size-4" />
+            Back to Draft
+          </Button>
+          <Button @click="requireAuth(() => doSetStatus(ChangeStatus.Approved))"> Approve </Button>
+        </template>
+        <template v-else-if="entity.status === ChangeStatus.Approved">
+          <Button
+            class="bg-success text-success-content hover:bg-success/90"
+            @click="requireAuth(() => doMerge())"
+          >
+            <GitMerge class="size-4" />
+            Merge
+          </Button>
+        </template>
+      </div>
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle>Overview</CardTitle>
@@ -32,20 +85,6 @@
           <div><span class="font-semibold">Title:</span> {{ entity.title }}</div>
           <div v-if="entity.description">
             <span class="font-semibold">Description:</span> {{ entity.description }}
-          </div>
-          <div>
-            <span class="font-semibold">Status:</span>
-            <span
-              class="ml-2 badge badge-sm"
-              :class="{
-                'badge-primary': entity.status === ChangeStatus.Merged,
-                'badge-info': entity.status === ChangeStatus.Proposed,
-                'badge-success': entity.status === ChangeStatus.Approved,
-                'badge-warning': entity.status === ChangeStatus.Draft,
-                'badge-error': entity.status === ChangeStatus.Rejected,
-              }"
-              >{{ entity.status }}</span
-            >
           </div>
           <div><span class="font-semibold">Created by:</span> {{ entity.user?.name }}</div>
         </CardContent>
@@ -134,12 +173,6 @@
             <label class="label">Description</label>
             <FormTextArea v-model="editForm.description" placeholder="Description" />
           </div>
-          <div class="flex flex-col gap-1">
-            <label class="label">Status</label>
-            <select v-model="editForm.status" class="select-bordered select w-full">
-              <option v-for="s in statusOptions" :key="s" :value="s">{{ s }}</option>
-            </select>
-          </div>
           <DialogFooter>
             <Button variant="outline" type="button" @click="showEdit = false">Cancel</Button>
             <Button type="submit">Save</Button>
@@ -165,7 +198,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Pencil, Trash2 } from '@lucide/vue'
+import { ArrowLeft, GitMerge, Pencil, RotateCcw, Send, Trash2 } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import { ChangeStatus } from '~/gql/graphql'
@@ -243,15 +276,24 @@ const deleteChangeMutation = graphql(`
   }
 `)
 
+const mergeChangeMutation = graphql(`
+  mutation MergeChangeFromDetail($id: ID!) {
+    mergeChange(id: $id) {
+      change {
+        id
+        status
+      }
+    }
+  }
+`)
+
 const { mutate: updateChange } = useMutation(updateChangeMutation)
 const { mutate: deleteChange } = useMutation(deleteChangeMutation)
-
-const statusOptions = Object.values(ChangeStatus)
+const { mutate: mergeChange } = useMutation(mergeChangeMutation)
 
 const editForm = reactive({
   title: '',
   description: '',
-  status: ChangeStatus.Draft as ChangeStatus,
 })
 
 watch(
@@ -260,7 +302,6 @@ watch(
     if (val) {
       editForm.title = val.title ?? ''
       editForm.description = val.description ?? ''
-      editForm.status = val.status
     }
   },
   { immediate: true },
@@ -269,13 +310,22 @@ watch(
 const showEdit = ref(false)
 const showDelete = ref(false)
 
+const doSetStatus = async (status: ChangeStatus) => {
+  await updateChange({ input: { id, status } })
+  await refetch()
+}
+
+const doMerge = async () => {
+  await mergeChange({ id })
+  await refetch()
+}
+
 const doEdit = async () => {
   await updateChange({
     input: {
       id,
       title: editForm.title,
       description: editForm.description,
-      status: editForm.status,
     },
   })
   await refetch()

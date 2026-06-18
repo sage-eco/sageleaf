@@ -105,7 +105,7 @@ const controlRenderer = defineComponent({
       },
     )
     const onIconSelect = (icon: string) => {
-      input.handleChange(input.control.value.path, `icon://${icon}`)
+      input.handleChange(input.control.value.path, `icon://${icon.replace(':', '/')}`)
       dialogOpen.value = false
     }
     return useVanillaControl(

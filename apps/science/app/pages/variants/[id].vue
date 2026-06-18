@@ -102,7 +102,8 @@
         <CardContent>
           <ul class="space-y-1">
             <li v-for="region in entity.regions?.nodes ?? []" :key="region.id" class="text-sm">
-              {{ region.name }}
+              <div class="font-medium">{{ region.name }}</div>
+              <div v-if="region.desc" class="text-xs opacity-60">{{ region.desc }}</div>
             </li>
           </ul>
           <div v-if="!entity.regions?.nodes?.length" class="text-sm opacity-60">None</div>
@@ -224,6 +225,7 @@ const detailQuery = graphql(`
         nodes {
           id
           name
+          desc
         }
       }
       sources(first: 10) {

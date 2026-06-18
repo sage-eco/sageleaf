@@ -64,12 +64,33 @@
 import { useForm } from '@tanstack/vue-form'
 import { z } from 'zod'
 
+import { graphql } from '~/gql'
+
+const emit = defineEmits<{ created: [id?: string] }>()
+
+const createChangeMutation = graphql(`
+  mutation CreateChangeFromForm($input: CreateChangeInput!) {
+    createChange(input: $input) {
+      change {
+        id
+      }
+    }
+  }
+`)
+
+const { mutate: createChange } = useMutation(createChangeMutation)
+
 const form = useForm({
   defaultValues: {
     title: '',
     description: '',
   },
   validators: {},
-  onSubmit: () => {},
+  onSubmit: async ({ value }) => {
+    const result = await createChange({
+      input: { title: value.title, description: value.description },
+    })
+    emit('created', result?.data?.createChange?.change?.id ?? undefined)
+  },
 })
 </script>

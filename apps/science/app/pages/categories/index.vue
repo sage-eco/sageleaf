@@ -1,9 +1,10 @@
 <template>
   <div>
-    <div class="p-3">
+    <div class="flex gap-2 p-3">
       <Button
         @click="
           requireAuth(() => {
+            copyData = undefined
             editId = 'new'
             showEdit = true
           })
@@ -12,6 +13,20 @@
         <Plus />
         Add Category
       </Button>
+      <CopyEntityDialog
+        entity-type="CATEGORY"
+        entity-name="Category"
+        label="Category"
+        @selected="
+          (data) => {
+            requireAuth(() => {
+              copyData = data
+              editId = 'new'
+              showEdit = true
+            })
+          }
+        "
+      />
     </div>
     <GridModelChanges
       v-if="selectedChange"
@@ -50,6 +65,7 @@
           :create-mutation="createCategoryMutation"
           :update-mutation="updateCategoryMutation"
           :create-model-key="'category'"
+          :initial-data="copyData"
           @saved="onSaved"
         />
       </DialogContent>
@@ -155,8 +171,10 @@ const updateCategoryMutation = graphql(`
 
 const showEdit = ref(false)
 const editId = ref<string>('new')
+const copyData = ref<Record<string, unknown> | undefined>(undefined)
 const onSaved = () => {
   showEdit.value = false
   editId.value = 'new'
+  copyData.value = undefined
 }
 </script>

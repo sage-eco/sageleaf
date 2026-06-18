@@ -44,6 +44,7 @@
             >
               <div class="flex flex-col">
                 <span class="font-medium">{{ level.name }}</span>
+                <span v-if="level.desc" class="text-xs opacity-80">{{ level.desc }}</span>
                 <span class="text-xs opacity-60">{{ level.placetype }}</span>
               </div>
               <div class="flex items-center gap-2">
@@ -93,20 +94,24 @@ const hierarchyQuery = graphql(`
     region(id: $id) {
       id
       name
+      desc
       placetype
       county {
         id
         name
+        desc
         placetype
       }
       province {
         id
         name
+        desc
         placetype
       }
       country {
         id
         name
+        desc
         placetype
       }
     }
@@ -119,20 +124,40 @@ const { result: hierarchyData, loading: loadingHierarchy } = useQuery(
   () => ({ enabled: !!regionStore.selectedRegionId }),
 )
 
-type RegionLevel = { id: string; name?: string | null; placetype?: string | null }
+type RegionLevel = {
+  id: string
+  name?: string | null
+  desc?: string | null
+  placetype?: string | null
+}
 const regionLevels = computed<RegionLevel[]>(() => {
   const reg = hierarchyData.value?.region
   if (!reg) return []
   const levels: RegionLevel[] = []
-  if (reg.id) levels.push({ id: reg.id, name: reg.name, placetype: reg.placetype })
+  if (reg.id) levels.push({ id: reg.id, name: reg.name, desc: reg.desc, placetype: reg.placetype })
   if (reg.county?.id && !levels.some((l) => l.id === reg.county!.id)) {
-    levels.push({ id: reg.county.id, name: reg.county.name, placetype: reg.county.placetype })
+    levels.push({
+      id: reg.county.id,
+      name: reg.county.name,
+      desc: reg.county.desc,
+      placetype: reg.county.placetype,
+    })
   }
   if (reg.province?.id && !levels.some((l) => l.id === reg.province!.id)) {
-    levels.push({ id: reg.province.id, name: reg.province.name, placetype: reg.province.placetype })
+    levels.push({
+      id: reg.province.id,
+      name: reg.province.name,
+      desc: reg.province.desc,
+      placetype: reg.province.placetype,
+    })
   }
   if (reg.country?.id && !levels.some((l) => l.id === reg.country!.id)) {
-    levels.push({ id: reg.country.id, name: reg.country.name, placetype: reg.country.placetype })
+    levels.push({
+      id: reg.country.id,
+      name: reg.country.name,
+      desc: reg.country.desc,
+      placetype: reg.country.placetype,
+    })
   }
   return levels
 })

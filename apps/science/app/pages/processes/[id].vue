@@ -69,7 +69,12 @@
               </tr>
               <tr v-if="entity.region">
                 <td class="font-semibold">Region</td>
-                <td>{{ entity.region.name }}</td>
+                <td>
+                  <div>{{ entity.region.name }}</div>
+                  <div v-if="entity.region.desc" class="text-xs opacity-60">
+                    {{ entity.region.desc }}
+                  </div>
+                </td>
               </tr>
               <tr v-if="entity.variant">
                 <td class="font-semibold">Variant</td>
@@ -194,6 +199,7 @@ const detailQuery = graphql(`
       region {
         id
         name
+        desc
       }
       variant {
         id

@@ -74,6 +74,7 @@
               </div>
               <div class="min-w-0 flex-1">
                 <div class="truncate text-sm font-semibold">{{ res.name }}</div>
+                <div v-if="res.desc" class="truncate text-xs opacity-80">{{ res.desc }}</div>
                 <div class="text-xs opacity-60">{{ res.placetype }}</div>
               </div>
             </button>
@@ -135,6 +136,7 @@ const regionSearchQuery = graphql(`
         ... on Region {
           id
           name
+          desc
           placetype
         }
       }
