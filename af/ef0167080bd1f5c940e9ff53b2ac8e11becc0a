@@ -1,0 +1,56 @@
+apps/frontend/app/plugins/platform.client.ts
+  s_c5e2b0912affb8::t_6fd13edec3de91 1-9,13-18
+  s_c5e2b0912affb8::t_3deec3d7ec5022 10-12
+apps/frontend/app/pages/search/index.vue
+  s_c5e2b0912affb8::t_878e8ee19b85e7 259
+apps/frontend/app/pages/explore/index.vue
+  s_c5e2b0912affb8::t_256613f24527c2 286
+apps/frontend/app/components/place/PlaceRelatedDrawer.vue
+  s_c5e2b0912affb8::t_3d73103d046580 1-97
+Cargo.toml
+  s_c5e2b0912affb8::t_c6346d0fa03ece 27
+apps/frontend/app/pages/explore/places/index.vue
+  s_c5e2b0912affb8::t_dc3787bca123d5 64-65
+  s_c5e2b0912affb8::t_4dd2b72375529b 32
+apps/frontend/nuxt.config.ts
+  s_c5e2b0912affb8::t_d3c075a4c7ffd7 80
+apps/frontend/src-tauri/capabilities/default.json
+  s_c5e2b0912affb8::t_af308429e2be83 6-12
+apps/frontend/i18n/common/en.json
+  s_c5e2b0912affb8::t_b8daa4b224611d 4
+apps/frontend/app/components/search/RecentlyViewed.vue
+  s_c5e2b0912affb8::t_80bbb81f08dac2 194
+apps/frontend/i18n/frontend/en.json
+  s_c5e2b0912affb8::t_74dab40d091eb0 18-24
+apps/frontend/src-tauri/src/lib.rs
+  s_c5e2b0912affb8::t_0dc2219a0fce7b 25
+apps/frontend/src-tauri/Cargo.toml
+  s_c5e2b0912affb8::t_900a745b2dd3e1 25
+apps/frontend/package.json
+  s_c5e2b0912affb8::t_ebc2ff39db1b80 48
+apps/frontend/app/composables/useMapsLink.ts
+  s_c5e2b0912affb8::t_1ce11c13223e4a 1-17
+apps/frontend/app/pages/explore/places/[id].vue
+  s_c5e2b0912affb8::t_96bfaebc43b03b 45,47-50
+  s_c5e2b0912affb8::t_21bf3855df6503 240
+  s_c5e2b0912affb8::t_3e4322f88fdadf 29,32,73,79-83,127,131-134,149
+  s_c5e2b0912affb8::t_0cc98070839533 2-28,30-31,33-41,43-44,46,51-72,74-78,84-126,128-130,135-148,150-162,168-171,176-178,187-231,235,237,241-246,248-258,262-263
+  s_c5e2b0912affb8::t_e4241bc1f2a1d0 42
+  s_c5e2b0912affb8::t_3586c092d31ab6 179-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "afef0167080bd1f5c940e9ff53b2ac8e11becc0a",
+  "prompts": {},
+  "sessions": {
+    "s_c5e2b0912affb8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_123be7997ffeqALjEZlSJO1Im3",
+        "model": "minimax-m3"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
