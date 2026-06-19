@@ -94,7 +94,7 @@ import { computed, ref } from 'vue'
 
 import { useDebugStore } from '~/stores/debug_store'
 
-useTopbar({ title: 'App Settings', back: 'true' })
+useTopbar({ title: 'Preferences', back: 'true' })
 
 const config = useRuntimeConfig()
 const version = config.public.appVersion
