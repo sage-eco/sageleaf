@@ -179,7 +179,7 @@ export default defineNuxtConfig({
 
   posthogConfig: {
     publicKey: 'phc_zJRW2N7cF9qAxfBaCCfXOpz42qQKr2WGOImojvinsUa',
-    host: 'https://eu.i.posthog.com',
+    host: 'https://t.sageleaf.eco',
     clientConfig: {
       capture_exceptions: true, // Enables automatic exception capture on the client side (Vue)
     },
