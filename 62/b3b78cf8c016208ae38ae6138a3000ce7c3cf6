@@ -1,0 +1,96 @@
+apps/frontend/i18n/common/en.json
+  s_c5e2b0912affb8::t_861c2b91849bb1 2
+apps/frontend/app/components/item/VariantsDrawer.vue
+  s_c5e2b0912affb8::t_3c87796bd15b7b 3
+  s_c5e2b0912affb8::t_42637030d250a0 90-92
+  s_c5e2b0912affb8::t_30083a8a537da8 105
+  s_c5e2b0912affb8::t_bf10a1523dba70 54,57,82
+  s_c5e2b0912affb8::t_81a9a5d9bfe801 26
+  s_c5e2b0912affb8::t_b8131fc5702ffb 29-31
+apps/frontend/app/components/component/RecycleStreams.vue
+  s_c5e2b0912affb8::t_231a782fdc453b 65
+  s_c5e2b0912affb8::t_beeee9240bc824 64
+  s_c5e2b0912affb8::t_6bb40f8021cee4 120-126
+  s_c5e2b0912affb8::t_d14165e71521c4 129-134
+  s_c5e2b0912affb8::t_2240ec3d3373f9 6
+apps/frontend/AGENTS.md
+  s_c5e2b0912affb8::t_d5e69a495ccd97 165-169,175-176,186-191,200-201
+apps/frontend/app/assets/icons/undraw-void-wez2.svg
+  s_c5e2b0912affb8::t_151e0cac7664a8 1
+apps/frontend/app/pages/explore/variants/[id].vue
+  s_c5e2b0912affb8::t_84fb98d01f11fb 105
+  s_c5e2b0912affb8::t_91ef6f87d91c08 80-84,92
+  s_c5e2b0912affb8::t_33550d1e151797 109-110
+  s_c5e2b0912affb8::t_34797948c5cdf1 39,46-52
+  s_c5e2b0912affb8::t_93bcdd1a83c6da 91
+apps/frontend/app/components/feedback/FeedbackVoteButtons.vue
+  s_c5e2b0912affb8::t_fb33a8fa3c29a6 40,48,58,65,74
+  s_c5e2b0912affb8::t_36f4ed2d3978a4 116
+  s_c5e2b0912affb8::t_cea2a366945976 138
+  s_c5e2b0912affb8::t_f57ce326faa0b2 3,8-9
+  s_c5e2b0912affb8::t_e02dd6afaba756 156-157
+  s_c5e2b0912affb8::t_f6735896dd2121 143
+  s_c5e2b0912affb8::t_94df4466022543 117
+  s_c5e2b0912affb8::t_36c4d572a5dbcb 13
+  s_c5e2b0912affb8::t_3eb290b38941c1 100,114
+  s_c5e2b0912affb8::t_18dcb70240255e 102
+  s_c5e2b0912affb8::t_43f03835af3fa4 1-2,4-7,10-12,14-32,34-39,42,44-47,50-57,59-64,66-73,75-87,90-99,104-107,110-113,115,118-128,132,137,140,142,144,146-148,152,159-163
+  s_c5e2b0912affb8::t_c315adae279822 139,141
+  s_c5e2b0912affb8::t_cb6cbd82dd4692 129-131
+  s_c5e2b0912affb8::t_e454608bd687b6 133,135
+  s_c5e2b0912affb8::t_a08a3da6f5a2c7 33,41,43,49,101,108-109,145,153
+  s_c5e2b0912affb8::t_a1140572a08471 103
+  s_c5e2b0912affb8::t_9b594595229337 134,136,149-151
+  s_c5e2b0912affb8::t_0e9efefc89fc66 88-89,154-155,158
+apps/frontend/app/gql/graphql.ts
+  s_c5e2b0912affb8::t_42c916f7bae4c4 3597,3602-3608,4138-4139
+apps/frontend/app/components/item/RecycleStreams.vue
+  s_c5e2b0912affb8::t_f496f01dd1fb63 4,43-44,63-68
+apps/frontend/app/pages/explore/index.vue
+  s_c5e2b0912affb8::t_3c4f4406fa99b7 38-46
+  s_c5e2b0912affb8::t_2a2c550b31c25b 29-35
+  s_c5e2b0912affb8::t_059e774f1f2f91 87-94,172-179
+  s_c5e2b0912affb8::t_0a10ca4108523a 95
+  s_c5e2b0912affb8::t_2776105c58d3d7 180
+packages/ui/AGENTS.md
+  s_c5e2b0912affb8::t_739741c7ebd5ea 52
+apps/frontend/app/gql/gql.ts
+  s_c5e2b0912affb8::t_42c916f7bae4c4 19,89-90,177-184
+apps/science/AGENTS.md
+  s_c5e2b0912affb8::t_f4a5c61f6a93a9 27
+apps/frontend/app/pages/explore/items/[id].vue
+  s_c5e2b0912affb8::t_50d18352096969 89-92,100-101
+  s_c5e2b0912affb8::t_51ea155a2ae05d 119
+  s_c5e2b0912affb8::t_0a8c726e57a97c 73-77
+  s_c5e2b0912affb8::t_49e0b91a3c1de4 123-124
+  s_c5e2b0912affb8::t_a832aa7822e6d7 46,50-56
+apps/frontend/app/components/feedback/EmptyDataFeedback.vue
+  s_c5e2b0912affb8::t_f8682d12257283 122-124,146-148
+  s_c5e2b0912affb8::t_be78c8553afe93 1-2,4-8,11-22,35,38-39,42-92,95-102,108-121,125-145,149-150,156-160
+  s_c5e2b0912affb8::t_cf394a06707d0f 3,9-10,26-27,31-34,36-37,40-41
+  s_c5e2b0912affb8::t_64f21ae1d8a217 103-105,107
+  s_c5e2b0912affb8::t_d4d7d43ce4fa7f 153-154
+  s_c5e2b0912affb8::t_0e9efefc89fc66 23-25,28-30,93-94,151-152,155
+apps/frontend/app/components/component/ReuseStreams.vue
+  s_c5e2b0912affb8::t_3accac8b3ed553 1-9,12-18
+apps/frontend/app/pages/explore/places/[id].vue
+  s_c5e2b0912affb8::t_b8455099fcc624 15-21,27
+apps/frontend/i18n/frontend/en.json
+  s_c5e2b0912affb8::t_f1f70126f085f9 10-24,29-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "62b3b78cf8c016208ae38ae6138a3000ce7c3cf6",
+  "prompts": {},
+  "sessions": {
+    "s_c5e2b0912affb8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_123be7997ffeqALjEZlSJO1Im3",
+        "model": "minimax-m3"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
