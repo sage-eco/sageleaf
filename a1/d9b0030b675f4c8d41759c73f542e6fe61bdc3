@@ -1,0 +1,26 @@
+apps/frontend/app/pages/profile/settings.vue
+  s_c5e2b0912affb8::t_bb10bee47555fd 97
+apps/frontend/app/pages/profile/index.vue
+  s_c5e2b0912affb8::t_878e53a7139dd9 95-96,99-161
+  s_c5e2b0912affb8::t_4d0c66bae17b8b 90
+  s_c5e2b0912affb8::t_ba85ef6194fea3 169,171,175,179
+  s_c5e2b0912affb8::t_52f1081d3bfeed 97
+apps/frontend/i18n/frontend/en.json
+  s_c5e2b0912affb8::t_f53253ff618aa2 25-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "a1d9b0030b675f4c8d41759c73f542e6fe61bdc3",
+  "prompts": {},
+  "sessions": {
+    "s_c5e2b0912affb8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_123be7997ffeqALjEZlSJO1Im3",
+        "model": "minimax-m3"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
