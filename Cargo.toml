@@ -24,6 +24,7 @@ tauri-plugin-geolocation = "2.3.2"
 sageleaf-scanleaf = { path = "packages/scanleaf" }
 tauri-plugin-sql = "2.3.2"
 tauri-plugin-opener = "2.5.3"
+tauri-plugin-os = "2.3.2"
 
 [profile.dev]
 incremental = true

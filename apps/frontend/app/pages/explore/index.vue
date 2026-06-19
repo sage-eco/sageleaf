@@ -283,7 +283,7 @@ const recentLink = (type: string, id: string) => {
     case 'Org':
       return `/explore/orgs/${id}`
     case 'Place':
-      return `/places/${id}`
+      return `/explore/places/${id}`
     default:
       return '#'
   }

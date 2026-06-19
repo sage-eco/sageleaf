@@ -45,6 +45,7 @@
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-geolocation": "^2.3.2",
     "@tauri-apps/plugin-opener": "^2.5.3",
+    "@tauri-apps/plugin-os": "^2.3.2",
     "@tauri-apps/plugin-sql": "^2.3.2",
     "@tolgee/format-icu": "^7.0.0",
     "@tolgee/vue": "^7.0.0",

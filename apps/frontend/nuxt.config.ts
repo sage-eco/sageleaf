@@ -77,6 +77,7 @@ export default defineNuxtConfig({
         '@tauri-apps/api/core',
         '@tauri-apps/plugin-sql',
         '@tauri-apps/plugin-geolocation',
+        '@tauri-apps/plugin-os',
         '@tauri-apps/plugin-barcode-scanner',
         'maplibre-gl',
         'pmtiles',
