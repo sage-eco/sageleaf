@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChevronRight as ChevronRightIcon, Tags as TagsIcon } from '@lucide/vue'
+import { T } from '@tolgee/vue'
 
 defineProps<{
   variants?: Array<{
@@ -22,10 +23,12 @@ const isOpen = ref(false)
 </script>
 
 <template>
-  <div class="mt-4">
+  <div v-if="loading || variants?.length" class="mt-4">
     <!-- Section header -->
     <div class="flex items-center justify-between px-4 pb-3">
-      <h3 class="text-xs font-semibold tracking-wider uppercase opacity-50">Refine by Variant</h3>
+      <h3 class="text-xs font-semibold tracking-wider uppercase opacity-50">
+        <T ns="frontend" key-name="variants.refine" />
+      </h3>
       <button
         v-if="variants?.length"
         class="flex items-center gap-1 text-xs font-medium text-primary"
@@ -48,11 +51,11 @@ const isOpen = ref(false)
       v-else-if="variants?.length"
       class="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2"
     >
-      <button
+      <NuxtLink
         v-for="variant in variants"
         :key="variant.id"
+        :to="`/explore/variants/${variant.id}`"
         class="w-36 shrink-0 snap-start rounded-2xl border border-base-200 bg-base-100 p-3 text-left shadow-sm transition-colors hover:bg-base-200/50"
-        @click="isOpen = true"
       >
         <!-- Image + Score -->
         <div class="mb-2 flex items-start justify-between gap-1">
@@ -76,7 +79,7 @@ const isOpen = ref(false)
         <p v-if="variant.orgs?.nodes?.length" class="mt-0.5 line-clamp-1 text-[10px] opacity-50">
           {{ variant.orgs.nodes.map((o) => o.org.name).join(', ') }}
         </p>
-      </button>
+      </NuxtLink>
     </div>
   </div>
 
@@ -84,7 +87,9 @@ const isOpen = ref(false)
   <Drawer v-model:open="isOpen">
     <DrawerContent class="flex max-h-[85vh] flex-col">
       <DrawerHeader>
-        <DrawerTitle>Variants</DrawerTitle>
+        <DrawerTitle>
+          <T ns="frontend" key-name="variants.title" />
+        </DrawerTitle>
       </DrawerHeader>
       <div class="flex-1 overflow-y-auto px-4 pb-8">
         <NuxtLink
@@ -94,13 +99,12 @@ const isOpen = ref(false)
           class="flex items-center gap-3 rounded-lg py-2 active:bg-base-200"
           @click="isOpen = false"
         >
-          <span
-            v-if="!variant.imageURL"
-            class="flex size-12 shrink-0 items-center justify-center rounded-md border border-base-300 bg-base-200"
-          >
-            <TagsIcon :size="18" class="opacity-30" />
-          </span>
-          <UiImage v-else class="size-12 shrink-0 rounded-md" :src="variant.imageURL" />
+          <div class="size-12 shrink-0 overflow-hidden rounded-md bg-base-200">
+            <UiImage v-if="variant.imageURL" :src="variant.imageURL" fit="cover" alt="" />
+            <div v-else class="flex h-full items-center justify-center">
+              <TagsIcon :size="18" class="opacity-30" />
+            </div>
+          </div>
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-semibold">{{ variant.name }}</p>
             <p v-if="variant.orgs?.nodes?.length" class="truncate text-xs opacity-60">

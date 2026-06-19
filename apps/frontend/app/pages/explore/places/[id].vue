@@ -12,11 +12,19 @@
 
       <li v-else>There are no items to show</li>
     </ul>
+    <div v-if="vars.id" class="mt-4 flex justify-center">
+      <FeedbackVoteButtons
+        :entity-name="FeedbackEntityName.Place"
+        :entity-id="vars.id"
+        :related-ids="{ placeId: vars.id }"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { graphql } from '~/gql'
+import { FeedbackEntityName } from '~/gql/types.generated'
 
 const route = useRoute()
 const placeQuery = graphql(`

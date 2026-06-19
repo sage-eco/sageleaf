@@ -3,6 +3,7 @@ import { CircleHelp as CircleHelpIcon, Frown } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import { useFragment, type FragmentType } from '~/gql/fragment-masking'
+import { FeedbackEntityName } from '~/gql/types.generated'
 
 const VariantRecycleStreamsFragment = graphql(`
   fragment VariantRecycleStreams on VariantComponentsConnection {
@@ -60,6 +61,8 @@ const VariantRecycleStreamsFragment = graphql(`
 const props = defineProps<{
   components?: FragmentType<typeof VariantRecycleStreamsFragment> | null
   loading?: boolean
+  variantId?: string
+  entityName?: FeedbackEntityName
 }>()
 
 const componentsData = computed(() =>
@@ -114,8 +117,21 @@ const componentsData = computed(() =>
           <div class="text-xs opacity-60">No recycling data available for this component.</div>
         </div>
       </div>
+      <div class="mt-3 flex justify-end border-t border-base-300/50 pt-2">
+        <FeedbackVoteButtons
+          :entity-name="FeedbackEntityName.Component"
+          :entity-id="vc.component.id"
+          :related-ids="{ componentId: vc.component.id, ...(variantId ? { variantId } : {}) }"
+        />
+      </div>
     </div>
   </div>
+  <FeedbackEmptyDataFeedback
+    v-else-if="variantId"
+    :entity-name="entityName ?? FeedbackEntityName.Variant"
+    :entity-id="variantId"
+    :related-ids="{ variantId }"
+  />
   <div v-else class="text-md flex flex-col items-center gap-2 px-4 py-4 text-center opacity-60">
     <Frown :size="48" />
     <p>Recycling instructions are currently not available.</p>

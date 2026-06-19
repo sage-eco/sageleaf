@@ -26,17 +26,24 @@
               >
                 <NuxtLink :to="recentLink(item.__typename, item.id)">
                   <div class="p-1">
-                    <Card class="min-h-32">
+                    <Card class="relative min-h-32">
+                      <Badge
+                        :variant="recentBadgeVariant(item.__typename)"
+                        class="absolute top-0 right-0 z-1 rounded-l-none rounded-r-xl rounded-bl-none px-2 py-0.5 text-[10px] tracking-wide uppercase"
+                      >
+                        {{ formatRecentType(item.__typename) }}
+                      </Badge>
                       <CardHeader class="p-4 pb-2">
                         <div class="flex flex-col items-start gap-2">
-                          <UiImage
-                            v-if="item.imageURL"
-                            class="size-10 rounded-xl"
-                            :src="item.imageURL"
-                          />
-                          <Badge :variant="recentBadgeVariant(item.__typename)" class="mb-0.5">
-                            {{ formatRecentType(item.__typename) }}
-                          </Badge>
+                          <div class="size-10 shrink-0 overflow-hidden rounded-xl bg-base-200">
+                            <UiImage
+                              v-if="item.imageURL"
+                              class="size-full"
+                              :src="item.imageURL"
+                              fit="cover"
+                              alt=""
+                            />
+                          </div>
                           <CardTitle class="line-clamp-2 text-sm">{{ item.name }}</CardTitle>
                         </div>
                       </CardHeader>
@@ -77,7 +84,15 @@
                   <Card class="min-h-32">
                     <CardHeader class="p-4 pb-2">
                       <div class="flex flex-col items-start gap-2">
-                        <UiImage class="size-10 rounded-xl" :src="item.imageURL" />
+                        <div class="size-10 shrink-0 overflow-hidden rounded-xl bg-base-200">
+                          <UiImage
+                            v-if="item.imageURL"
+                            class="size-full"
+                            :src="item.imageURL"
+                            fit="cover"
+                            alt=""
+                          />
+                        </div>
                         <CardTitle class="line-clamp-2 text-sm">{{ item.name }}</CardTitle>
                       </div>
                     </CardHeader>
@@ -154,7 +169,15 @@
                   <Card class="min-h-32">
                     <CardHeader class="p-4 pb-2">
                       <div class="flex flex-col items-start gap-2">
-                        <UiImage class="size-10 rounded-xl" :src="category.imageURL" />
+                        <div class="size-10 shrink-0 overflow-hidden rounded-xl bg-base-200">
+                          <UiImage
+                            v-if="category.imageURL"
+                            class="size-full"
+                            :src="category.imageURL"
+                            fit="cover"
+                            alt=""
+                          />
+                        </div>
                         <CardTitle>{{ category.name }}</CardTitle>
                       </div>
                     </CardHeader>

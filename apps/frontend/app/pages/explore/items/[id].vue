@@ -43,10 +43,17 @@
             </div>
 
             <!-- Bottom Row: Title Area -->
-            <div class="mt-4 space-y-1">
+            <div class="mt-4 space-y-2">
               <h1 class="line-clamp-2 text-base leading-tight font-bold">
                 {{ data?.item?.name }}
               </h1>
+              <div v-if="vars.id" class="-ml-1">
+                <FeedbackVoteButtons
+                  :entity-name="FeedbackEntityName.Item"
+                  :entity-id="vars.id"
+                  :related-ids="{ itemId: vars.id }"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -63,6 +70,11 @@
 
       <!-- Content Area -->
       <div class="relative z-0 bg-base-100 pb-4">
+        <ItemVariantsDrawer
+          :loading="loadingVariants"
+          :variants="variantsResult?.item?.variants?.nodes"
+        />
+
         <!-- Description (optional) -->
         <div v-if="data?.item?.desc" class="px-4 pb-4">
           <p class="text-sm text-base-content/70">
@@ -74,10 +86,10 @@
         <div>
           <!-- Reuse -->
           <div v-if="activeTab === 'reuse'">
-            <ComponentReuseStreams />
-            <ItemVariantsDrawer
-              :loading="loadingVariants"
-              :variants="variantsResult?.item?.variants?.nodes"
+            <ComponentReuseStreams
+              :entity-name="FeedbackEntityName.Item"
+              :entity-id="vars.id"
+              :related-ids="{ itemId: vars.id }"
             />
           </div>
           <!-- Recycle -->
@@ -85,10 +97,8 @@
             <ItemRecycleStreams
               :loading="loadingRecycling"
               :recycle="recyclingResult?.item?.recycle"
-            />
-            <ItemVariantsDrawer
-              :loading="loadingVariants"
-              :variants="variantsResult?.item?.variants?.nodes"
+              :entity-id="vars.id"
+              :related-ids="{ itemId: vars.id }"
             />
           </div>
         </div>
@@ -106,8 +116,11 @@ import {
 } from '@lucide/vue'
 
 import { graphql } from '~/gql'
+import { FeedbackEntityName } from '~/gql/types.generated'
 
 const route = useRoute()
+
+useTopbar(null)
 
 const activeTab = ref<'reuse' | 'recycle'>('recycle')
 const tabs = [

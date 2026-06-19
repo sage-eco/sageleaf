@@ -162,11 +162,17 @@ const somethingQuery = graphql(`
 
 ## Internationalization
 
-Translation files live in `i18n/`. **Do not edit files in `i18n/` directly** — they are synced from Tolgee. To update translations, run:
+Translation files live in `i18n/{namespace}/{language}.json`.
+
+**English (`en.json`) is the source of truth and may be edited directly.** When you add or change a user-facing string, update the matching key in `i18n/frontend/en.json` (or `i18n/common/en.json` for shared strings) in the same diff. Other language files (`sv.json`, etc.) are managed by Tolgee — translators fill them in via the Tolgee dashboard, so don't hand-edit non-English locale files.
+
+To sync with Tolgee — push the English keys upstream and pull translated values back into the per-language files:
 
 ```bash
 nx i18n frontend
 ```
+
+The `tolgee` CLI in this project reads `en.json` and pushes those keys to Tolgee, then pulls translated values back into the per-language files. It also scans source patterns (`./app/**/*.{ts,vue}`) to verify keys are actually referenced, so `<T>` / `t.value()` calls in components are still required.
 
 The namespace must always be co-located with the key — never set at the `useTranslate()` call site.
 
@@ -177,6 +183,12 @@ The namespace must always be co-located with the key — never set at the `useTr
 <T ns="common" key-name="other.key" />
 ```
 
+`T` is a script-setup binding from `@tolgee/vue`, not a global auto-import — import it in `<script setup>` for the template to see it:
+
+```ts
+import { T, useTranslate } from '@tolgee/vue'
+```
+
 **In scripts — use `useTranslate()` with no namespace arg, pass `{ ns }` inline:**
 
 ```ts
@@ -185,3 +197,5 @@ const label = computed(() => t.value('some.key', { ns: 'frontend' }))
 ```
 
 Never do `useTranslate('namespace')` — it hides the namespace from the Tolgee CLI extractor when multiple `useTranslate` calls exist in the same file.
+
+**Template vs. script auto-unwrap:** `t` is a ref-like function that Vue auto-unwraps in templates but not in `<script setup>`. In a template expression use `t('key', { ns })`; in script use `t.value('key', { ns })`. Writing `t.value(...)` in a template is a `vue-tsc` error (`Property 'value' does not exist on type 'TFnType<...>'`).
