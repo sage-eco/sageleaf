@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { Frown } from '@lucide/vue'
-
 import { graphql } from '~/gql'
 import { useFragment, type FragmentType } from '~/gql/fragment-masking'
+import { FeedbackEntityName } from '~/gql/types.generated'
 
 const ItemRecycleStreamsFragment = graphql(`
   fragment ItemRecycleStreams on ItemRecycle {
@@ -41,6 +40,8 @@ const ItemRecycleStreamsFragment = graphql(`
 const props = defineProps<{
   recycle?: FragmentType<typeof ItemRecycleStreamsFragment>[] | null
   loading?: boolean
+  entityId?: string
+  relatedIds?: Record<string, string>
 }>()
 
 const recycleEntries = computed(() =>
@@ -59,8 +60,13 @@ const recycleEntries = computed(() =>
       <RecycleContainer :recycle="entry" />
     </template>
   </div>
+  <FeedbackEmptyDataFeedback
+    v-else-if="entityId"
+    :entity-name="FeedbackEntityName.Item"
+    :entity-id="entityId"
+    :related-ids="relatedIds"
+  />
   <div v-else class="text-md flex flex-col items-center gap-2 px-4 py-4 text-center opacity-60">
-    <Frown :size="48" />
     <p>Recycling instructions are currently not available.</p>
   </div>
 </template>

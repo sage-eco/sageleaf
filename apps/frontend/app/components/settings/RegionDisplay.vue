@@ -26,11 +26,7 @@
 <script setup lang="ts">
 import { MinusIcon, PlusIcon } from '@lucide/vue'
 import maplibregl, { Map } from 'maplibre-gl'
-import { Protocol } from 'pmtiles'
 import type { ShallowRef } from 'vue'
-
-const protocol = new Protocol()
-maplibregl.addProtocol('pmtiles', protocol.tile)
 
 const props = defineProps<{
   name: string

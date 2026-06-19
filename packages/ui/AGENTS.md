@@ -49,7 +49,7 @@ UI components must **never** call `t()` on string props. The namespace must trav
 
 See `apps/frontend/AGENTS.md` for the full translation patterns (`<T />` vs `t()` with inline `{ ns }`).
 
-**Do not edit files in `i18n/` directly** — they are synced from Tolgee. Run `nx i18n ui` to update.
+**English (`en.json`) is the source of truth and may be edited directly** — update the matching key in the same diff. Other language files are managed by Tolgee; translators fill them in via the dashboard, so don't hand-edit them. Run `nx i18n ui` to push English keys upstream and pull translated values back.
 
 ```bash
 nx build ui                       # Build the component library

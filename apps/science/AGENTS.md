@@ -24,7 +24,7 @@ Follows the same patterns as `apps/frontend/` — see `apps/frontend/AGENTS.md`.
 const { t } = useTranslate() t.value('nav.dashboard', { ns: 'science' })
 ```
 
-**Do not edit files in `i18n/` directly** — they are synced from Tolgee. Run `nx i18n science` to update.
+**English (`en.json`) is the source of truth and may be edited directly** — update the matching key in the same diff. Other language files are managed by Tolgee; translators fill them in via the dashboard, so don't hand-edit them. Run `nx i18n science` to push English keys upstream and pull translated values back.
 
 ## Common Commands
 

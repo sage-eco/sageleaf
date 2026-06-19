@@ -36,13 +36,20 @@
             </div>
 
             <!-- Bottom Row: Title Area (Aligned with left side of image) -->
-            <div class="mt-4 space-y-1">
+            <div class="mt-4 space-y-2">
               <h1 class="line-clamp-2 text-base leading-tight font-bold">
                 {{ data?.variant?.name }}
               </h1>
               <p v-if="orgSubtitle" class="line-clamp-1 text-sm opacity-50">
                 {{ orgSubtitle }}
               </p>
+              <div v-if="vars.id" class="-ml-1">
+                <FeedbackVoteButtons
+                  :entity-name="FeedbackEntityName.Variant"
+                  :entity-id="vars.id"
+                  :related-ids="{ variantId: vars.id }"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -70,13 +77,19 @@
         <div>
           <!-- Reuse -->
           <div v-if="activeTab === 'reuse'">
-            <ComponentReuseStreams />
+            <ComponentReuseStreams
+              :entity-name="FeedbackEntityName.Variant"
+              :entity-id="vars.id"
+              :related-ids="{ variantId: vars.id }"
+            />
           </div>
           <!-- Recycle -->
           <div v-if="activeTab === 'recycle'">
             <ComponentRecycleStreams
               :loading="loadingRecycling"
               :components="recyclingResult?.variant?.components"
+              :variant-id="vars.id"
+              :entity-name="FeedbackEntityName.Variant"
             />
           </div>
         </div>
@@ -89,8 +102,11 @@
 import { Plus as PlusIcon, RefreshCw as RefreshCwIcon, Recycle as RecycleIcon } from '@lucide/vue'
 
 import { graphql } from '~/gql'
+import { FeedbackEntityName } from '~/gql/types.generated'
 
 const route = useRoute()
+
+useTopbar(null)
 
 const activeTab = ref<'reuse' | 'recycle'>('recycle')
 const tabs = [

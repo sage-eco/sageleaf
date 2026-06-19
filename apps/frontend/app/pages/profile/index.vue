@@ -87,11 +87,78 @@
               <div class="text-accent">
                 <SettingsIcon class="size-5" />
               </div>
-              <div class="flex-1 font-medium">App Settings</div>
+              <div class="flex-1 font-medium">Preferences</div>
               <ChevronRightIcon class="size-4 opacity-40" />
             </CardContent>
           </Card>
         </NuxtLink>
+
+        <!-- Support -->
+        <div class="mt-3 flex flex-col gap-2">
+          <span class="px-1 pb-1 text-sm font-bold tracking-widest uppercase opacity-60">
+            <T ns="frontend" key-name="profile.support.title" />
+          </span>
+          <a
+            href="https://sageleaf.eco/help"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block"
+          >
+            <Card class="bg-base-200">
+              <CardContent
+                class="flex items-center gap-4 px-5 py-4 transition-colors active:bg-base-300"
+              >
+                <div class="text-accent">
+                  <HelpCircleIcon class="size-5" />
+                </div>
+                <div class="flex-1 font-medium">
+                  <T ns="frontend" key-name="profile.support.help" />
+                </div>
+                <ChevronRightIcon class="size-4 opacity-40" />
+              </CardContent>
+            </Card>
+          </a>
+          <a
+            href="https://sageleaf.eco/guides"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block"
+          >
+            <Card class="bg-base-200">
+              <CardContent
+                class="flex items-center gap-4 px-5 py-4 transition-colors active:bg-base-300"
+              >
+                <div class="text-accent">
+                  <BookOpenIcon class="size-5" />
+                </div>
+                <div class="flex-1 font-medium">
+                  <T ns="frontend" key-name="profile.support.guides" />
+                </div>
+                <ChevronRightIcon class="size-4 opacity-40" />
+              </CardContent>
+            </Card>
+          </a>
+          <a
+            href="https://sageleaf.eco/feedback"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block"
+          >
+            <Card class="bg-base-200">
+              <CardContent
+                class="flex items-center gap-4 px-5 py-4 transition-colors active:bg-base-300"
+              >
+                <div class="text-accent">
+                  <MessageSquareIcon class="size-5" />
+                </div>
+                <div class="flex-1 font-medium">
+                  <T ns="frontend" key-name="profile.support.leaveFeedback" />
+                </div>
+                <ChevronRightIcon class="size-4 opacity-40" />
+              </CardContent>
+            </Card>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -99,13 +166,17 @@
 
 <script setup lang="ts">
 import {
+  BookOpen as BookOpenIcon,
   ChevronRight as ChevronRightIcon,
+  HelpCircle as HelpCircleIcon,
   LogInIcon,
   LogOutIcon,
   Map as MapIcon,
+  MessageSquare as MessageSquareIcon,
   Settings as SettingsIcon,
   UserIcon,
 } from '@lucide/vue'
+import { T } from '@tolgee/vue'
 
 import { graphql } from '~/gql'
 

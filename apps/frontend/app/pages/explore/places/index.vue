@@ -29,7 +29,7 @@
           <Button class="w-full">View Details</Button>
         </NuxtLink>
         <a
-          :href="`https://maps.google.com/?q=${selectedPlace?.location?.latitude},${selectedPlace?.location?.longitude}`"
+          :href="selectedPlace?.location ? mapsLink(selectedPlace.location) : '#'"
           target="_blank"
           rel="noopener noreferrer"
           class="px-4"
@@ -60,6 +60,8 @@ import { graphql } from '~/gql'
 import type { Place } from '~/gql/types.generated'
 
 useTopbar(null)
+
+const mapsLink = useMapsLink()
 
 const searchInput = ref('')
 const openDetails = ref(false)
