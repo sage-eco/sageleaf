@@ -1,0 +1,47 @@
+packages/ui/app/gql/graphql.ts
+  s_980dc540eb7e75::t_49e1d195a94335 1810-1811,1820-1825
+apps/api/schema/schema.gql
+  s_980dc540eb7e75::t_1bcd900fbbba33 1231-1233
+apps/science/app/gql/graphql.ts
+  s_980dc540eb7e75::t_0b3bb6ac406de0 1810-1811,1820-1825
+apps/api/src/geo/place.resolver.ts
+  s_980dc540eb7e75::t_68c02977aaaeb5 13,23
+  s_980dc540eb7e75::t_659362fe0aa433 87-93
+apps/api/src/process/process.model.ts
+  s_980dc540eb7e75::t_c35e0117d13566 145
+apps/api/src/geo/place.resolver.spec.ts
+  s_980dc540eb7e75::t_cdd647eed23090 168-245
+apps/frontend/app/gql/graphql.ts
+  s_980dc540eb7e75::t_49e1d195a94335 1810-1811,1820-1825
+apps/api/test/gql/graphql.ts
+  s_980dc540eb7e75::t_d55a18bffe9324 4574-4594,6911-6913
+  s_980dc540eb7e75::t_218819c44679d2 1810-1811,1820-1825
+apps/api/src/geo/place.model.ts
+  s_980dc540eb7e75::t_ba5dbc0543baf9 12
+  s_980dc540eb7e75::t_9468b1ababe175 87,91
+  s_980dc540eb7e75::t_3eacc387f0d14e 88
+  s_980dc540eb7e75::t_1b1d4ae7852691 122-125
+  s_980dc540eb7e75::t_68443b48618700 15
+  s_980dc540eb7e75::t_652346c5f50952 89-90
+apps/api/src/geo/place.service.ts
+  s_980dc540eb7e75::t_023eabb0623107 16
+  s_980dc540eb7e75::t_9e4e5f8f7b545f 98-107
+apps/api/test/gql/gql.ts
+  s_980dc540eb7e75::t_d55a18bffe9324 148-150,574-576,1409-1420
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "d3650307f5c332d800a7951f7c75d58620dc6397",
+  "prompts": {},
+  "sessions": {
+    "s_980dc540eb7e75": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11a518ee5ffeA3q3yPMfajYLaL",
+        "model": "minimax-m3"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
