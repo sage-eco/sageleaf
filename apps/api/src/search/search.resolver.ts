@@ -3,6 +3,7 @@ import { Args, Query, Resolver } from '@nestjs/graphql'
 import { OptionalAuth } from '@src/auth/decorators'
 import { BadRequestErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
+import { DEFAULT_PAGE_SIZE } from '@src/graphql/paginated'
 import { SearchArgs, SearchArgsSchema, SearchResultConnection } from '@src/search/search.model'
 import { SearchService } from '@src/search/search.service'
 
@@ -20,12 +21,14 @@ export class SearchResolver {
     if (!result.success) {
       throw BadRequestErr('Invalid search arguments')
     }
+    const limit = args.limit ?? DEFAULT_PAGE_SIZE
+    const offset = args.offset ?? 0
     const cursor = await this.searchService.searchAll(
       args.query,
       args.types,
       args.latlong,
-      args.limit,
-      args.offset,
+      limit,
+      offset,
     )
     if (!cursor) {
       return {
@@ -38,6 +41,13 @@ export class SearchResolver {
         },
       }
     }
-    return this.transformService.objectsToPaginated(SearchResultConnection, cursor)
+    // searchAll over-fetches by one to support end-of-results detection;
+    // trim before handing to the offset transform so hasNextPage is accurate.
+    const items = cursor.items.slice(0, limit)
+    return this.transformService.objectsToOffsetPaginated(
+      SearchResultConnection,
+      { items, count: cursor.count },
+      { limit, offset },
+    )
   }
 }
