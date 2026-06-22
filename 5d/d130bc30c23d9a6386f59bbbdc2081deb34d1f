@@ -1,0 +1,53 @@
+apps/frontend/i18n/frontend/en.json
+  s_53da6ed3b0a4b9::t_dde2334572bd48 45,51
+  s_53da6ed3b0a4b9::t_4791600d29243e 36-41,43-44,46-50,52
+  s_53da6ed3b0a4b9::t_ef42f7435fdc66 42
+apps/frontend/app/components/search/TypeFilterDrawer.vue
+  s_53da6ed3b0a4b9::t_987e9d7575dfea 72,79,87
+  s_53da6ed3b0a4b9::t_b2049c7f29abd8 1,3-4,8-9,11-12,14-18,20-35,37-40,46-71,73-78,80-86,88-89,111-112,134-142
+  s_53da6ed3b0a4b9::t_d919fbf536d3c6 2,5
+  s_53da6ed3b0a4b9::t_cbdcd9f740a5b2 41-45,90-109,113-132
+  s_53da6ed3b0a4b9::t_c0cb0924f6cd33 6-7
+  s_53da6ed3b0a4b9::t_a463a511748fc5 110,133
+  s_53da6ed3b0a4b9::t_21d5005cb95f4f 36
+  s_53da6ed3b0a4b9::t_b4932e963742bc 10,13,19
+apps/frontend/app/gql/graphql.ts
+  s_53da6ed3b0a4b9::t_53d7a0bfadb898 3947-3948,3961
+apps/frontend/app/pages/search/index.vue
+  s_53da6ed3b0a4b9::t_1fd753a1c65483 54,60-61,99-102
+  s_53da6ed3b0a4b9::t_d919fbf536d3c6 106,112
+  s_53da6ed3b0a4b9::t_8d64f83d06aabf 141,277,303,310-312,320-327,335-337,339-344
+  s_53da6ed3b0a4b9::t_64f5563371f5c2 288-292,297-298
+  s_53da6ed3b0a4b9::t_97c3f2d4d1841f 34-36,38,40,42
+  s_53da6ed3b0a4b9::t_5cbc01965b59a5 265-270,272-273,278,281-284
+  s_53da6ed3b0a4b9::t_1b7643c5e08730 48-51,119
+  s_53da6ed3b0a4b9::t_8cbee0a71cfed8 44-45,107-111,113-117,121
+  s_53da6ed3b0a4b9::t_e546f8d385cbfe 138
+  s_53da6ed3b0a4b9::t_95d59888468902 152-153,202-205,232-242,245,247,251,263-264,271,274-276,285-287,299-302,304-305,307-309,328-334,338
+  s_53da6ed3b0a4b9::t_2fd8d2c1133bd2 140,144-145,155-156,211-212,253-258,279-280,293-296,306,313-319
+  s_53da6ed3b0a4b9::t_aee99a44876f65 29
+  s_53da6ed3b0a4b9::t_41498ad971fe85 37,39,41
+  s_53da6ed3b0a4b9::t_460107906da85d 209-210
+  s_53da6ed3b0a4b9::t_3a409f4cef959e 262
+apps/frontend/app/components/search/TypeFilterPill.vue
+  s_53da6ed3b0a4b9::t_d919fbf536d3c6 15
+  s_53da6ed3b0a4b9::t_bacecfd08acb08 1-14,16-29
+apps/api/src/search/search.resolver.ts
+  s_53da6ed3b0a4b9::t_bbf695bc5e9510 6,24-25,30-31,44-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.10",
+  "base_commit_sha": "5dd130bc30c23d9a6386f59bbbdc2081deb34d1f",
+  "prompts": {},
+  "sessions": {
+    "s_53da6ed3b0a4b9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_118f1efa8ffebCfQqfTzqy9oC3",
+        "model": "deepseek-v4-pro"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
