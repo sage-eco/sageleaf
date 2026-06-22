@@ -1,0 +1,48 @@
+apps/frontend/app/pages/profile/index.vue
+  s_53da6ed3b0a4b9::t_43a07036ae0efc 101-104
+  s_53da6ed3b0a4b9::t_0de685ddd4c739 119-123,138-142,157
+  s_53da6ed3b0a4b9::t_1210bcd9cca3b7 183
+apps/frontend/app/composables/useOpenUrl.ts
+  s_53da6ed3b0a4b9::t_9540a12ef6d96c 1-6,8-20
+apps/frontend/app/pages/contribute/index.vue
+  s_53da6ed3b0a4b9::t_6a56e1eadba8b4 169
+apps/frontend/app/pages/explore/variants/[id].vue
+  s_53da6ed3b0a4b9::t_b5f12c804183df 10
+  s_53da6ed3b0a4b9::t_9cd0ccdedc1d92 3-4,6-7
+apps/frontend/app/app.vue
+  s_53da6ed3b0a4b9::t_a720a6b2637e8f 66,69,71,80,84,92,96,106,110,118,122
+apps/frontend/app/components/nav/Topbar.vue
+  s_53da6ed3b0a4b9::t_b9a58e021247fe 18,25
+apps/frontend/app/pages/explore/places/index.vue
+  s_53da6ed3b0a4b9::t_ce54fc75f0e59c 31-33,35,46
+  s_53da6ed3b0a4b9::t_c43dc9aed2403f 65
+apps/frontend/app/pages/explore/items/[id].vue
+  s_53da6ed3b0a4b9::t_b10f70a78c99fe 3,7
+  s_53da6ed3b0a4b9::t_a5b9c9a4849119 4,6
+  s_53da6ed3b0a4b9::t_19cd7116a04fa9 10
+apps/frontend/app/pages/explore/places/[id].vue
+  s_53da6ed3b0a4b9::t_03978d67d04c88 37,39,41,47
+  s_53da6ed3b0a4b9::t_433d876b2b784a 8
+  s_53da6ed3b0a4b9::t_bb2666e501822d 176
+  s_53da6ed3b0a4b9::t_b9834c96827392 3-5
+apps/frontend/app/composables/useMapsLink.ts
+  s_53da6ed3b0a4b9::t_8b9cf2ccf473ff 4-8,10
+apps/frontend/src-tauri/tauri.conf.json
+  s_53da6ed3b0a4b9::t_4a3fb7a6b78869 23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.10",
+  "base_commit_sha": "f0670763840088ea83288f76a421b7cbd889b869",
+  "prompts": {},
+  "sessions": {
+    "s_53da6ed3b0a4b9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_118f1efa8ffebCfQqfTzqy9oC3",
+        "model": "deepseek-v4-pro"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
