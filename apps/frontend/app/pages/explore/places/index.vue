@@ -1,18 +1,26 @@
 <template>
   <div>
-    <div
-      class="fixed top-[env(safe-area-inset-top)] z-10 m-4 flex w-[calc(100vw-70px)] max-w-2xl rounded-full bg-white text-black shadow-md focus-visible:outline-hidden"
-    >
-      <span class="flex items-center justify-center px-2">
-        <Search class="mx-2 text-neutral-700" />
-      </span>
-      <input
-        id="search"
-        v-model="searchInput"
-        type="text"
-        placeholder="Search..."
-        class="w-full p-2"
-      />
+    <div class="fixed top-[env(safe-area-inset-top)] z-10 m-4 flex gap-2">
+      <button
+        type="button"
+        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-base-200 text-base-content shadow-md focus-visible:outline-hidden"
+        aria-label="Back"
+        @click="goBack"
+      >
+        <ChevronLeft :size="20" />
+      </button>
+      <div class="relative w-full max-w-2xl flex-1">
+        <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center px-3">
+          <Search class="size-4 text-base-content/50" />
+        </span>
+        <FormInput
+          id="search"
+          v-model="searchInput"
+          type="text"
+          placeholder="Search..."
+          class="pl-9"
+        />
+      </div>
     </div>
     <div class="map-wrap">
       <div ref="mapContainer" class="map" />
@@ -50,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { Search } from '@lucide/vue'
+import { ChevronLeft, Search } from '@lucide/vue'
 import { watchDebounced } from '@vueuse/core'
 import maplibregl, { Map, NavigationControl, type LngLatLike } from 'maplibre-gl'
 import type { ShallowRef } from 'vue'
@@ -63,10 +71,17 @@ useTopbar(null)
 
 const mapsLink = useMapsLink()
 const { openUrl } = useOpenUrl()
+const router = useRouter()
 
 const searchInput = ref('')
 const openDetails = ref(false)
 const selectedPlace = ref<Place | null>(null)
+
+const goBack = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(router.options as any).is_back = true
+  router.back()
+}
 
 const regionStore = useRegionStore()
 await regionStore.load()
@@ -190,6 +205,8 @@ watchDebounced(mapBounds, refreshBounds, {
   debounce: 300,
 })
 
+const { control: locateControl, stop: stopLocate } = useLocateControl()
+
 onMounted(() => {
   if (!mapContainer.value) {
     return
@@ -207,6 +224,7 @@ onMounted(() => {
     attributionControl: false,
   })
   map.value.addControl(new NavigationControl(), 'top-right')
+  map.value.addControl(locateControl, 'top-right')
   map.value.addControl(new maplibregl.AttributionControl(), 'bottom-left')
   if (bbox && bbox[0] === bbox[2]) {
     map.value.setCenter(center)
@@ -238,6 +256,7 @@ onMounted(() => {
 })
 
 onBeforeRouteLeave(() => {
+  stopLocate()
   if (map.value) {
     map.value.remove()
     map.value = null
@@ -245,6 +264,7 @@ onBeforeRouteLeave(() => {
 })
 
 onUnmounted(() => {
+  stopLocate()
   if (map.value) {
     map.value.remove()
   }
