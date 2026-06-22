@@ -1,0 +1,49 @@
+apps/frontend/app/pages/explore/places/index.vue
+  s_53da6ed3b0a4b9::t_1f668c540eb60b 61,74,80,83-84
+  s_53da6ed3b0a4b9::t_0409d8f237b810 209
+  s_53da6ed3b0a4b9::t_4779988dfe1685 3-23
+  s_53da6ed3b0a4b9::t_6a728cef7d0268 227
+  s_53da6ed3b0a4b9::t_d241fde8cb1170 208
+  s_53da6ed3b0a4b9::t_15f8cd2fed594f 259,267
+  s_53da6ed3b0a4b9::t_c2be4e8cefd6af 81-82
+apps/frontend/app/composables/useLocateControl.ts
+  s_53da6ed3b0a4b9::t_4579778950afc7 69-72
+  s_53da6ed3b0a4b9::t_ac418588765f09 159,161-162,173,186,196-198
+  s_53da6ed3b0a4b9::t_e3c5af379c386e 142,157,215
+  s_53da6ed3b0a4b9::t_456d6e4dd56f83 2,50-57,129-132,136,143-145,147,149,218,220-222
+  s_53da6ed3b0a4b9::t_60802bd859881a 10
+  s_53da6ed3b0a4b9::t_3b92b3370e8854 18-33,38-44
+  s_53da6ed3b0a4b9::t_85b24c3e9ead1d 137,160,166,168-169,202-205,210,219
+  s_53da6ed3b0a4b9::t_3e5bac0c29b795 1,3-9,11-14,16-17,34-37,45-49,123-128,133-135,138,140-141,153-155,163-164,171-172,174-176,179-180,184-185,188-191,193-194,201,217,223-224,226
+  s_53da6ed3b0a4b9::t_673b9633c0f7d7 139,156,187
+  s_53da6ed3b0a4b9::t_502684b295f775 146,148,150-152
+  s_53da6ed3b0a4b9::t_f751ceb90368b2 206-209
+  s_53da6ed3b0a4b9::t_09ca5b1f4ebe91 58-68,86-122,199-200,211-214,216,225
+  s_53da6ed3b0a4b9::t_61299e3d3bc999 73-85
+  s_53da6ed3b0a4b9::t_ab7bcd51cfe445 15
+  s_53da6ed3b0a4b9::t_690d1f2ac20c76 158,167,177,181-183,192,195
+  s_53da6ed3b0a4b9::t_e20931da6214f0 165,170,178
+apps/frontend/app/assets/css/main.css
+  s_53da6ed3b0a4b9::t_56369d8f993ad3 147-148,160-194
+  s_53da6ed3b0a4b9::t_4a829928c78579 157-159
+  s_53da6ed3b0a4b9::t_01734b233a6e09 149
+  s_53da6ed3b0a4b9::t_4740d98e7d176a 150-156
+apps/frontend/i18n/frontend/en.json
+  s_53da6ed3b0a4b9::t_88584c0c57a5f4 18-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.10",
+  "base_commit_sha": "d7a4a861a38f8bdbfadf7861c42c0dee2789e135",
+  "prompts": {},
+  "sessions": {
+    "s_53da6ed3b0a4b9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_118f1efa8ffebCfQqfTzqy9oC3",
+        "model": "deepseek-v4-pro"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
