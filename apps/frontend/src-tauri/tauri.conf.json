@@ -20,7 +20,7 @@
       }
     ],
     "security": {
-      "csp": "default-src blob: data: filesystem: ws: wss: http: https: tauri: 'unsafe-eval' 'unsafe-inline' 'self' img-src: 'self'; connect-src ipc: http://ipc.localhost http://tauri.localhost https://*.sageleaf.app https://sage-leaf-sources.fra1.digitaloceanspaces.com https://eu.i.posthog.com https://api.iconify.design; worker-src blob: 'self'",
+      "csp": "default-src blob: data: filesystem: ws: wss: http: https: tauri: 'unsafe-eval' 'unsafe-inline' 'self' img-src: 'self'; connect-src ipc: http://ipc.localhost http://tauri.localhost https://*.sageleaf.app https://sage-leaf-sources.fra1.digitaloceanspaces.com https://eu.i.posthog.com https://t.sageleaf.eco https://api.iconify.design; worker-src blob: 'self'",
       "pattern": {
         "use": "isolation",
         "options": {

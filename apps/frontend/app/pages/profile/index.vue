@@ -98,11 +98,10 @@
           <span class="px-1 pb-1 text-sm font-bold tracking-widest uppercase opacity-60">
             <T ns="frontend" key-name="profile.support.title" />
           </span>
-          <a
-            href="https://sageleaf.eco/help"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block"
+          <button
+            type="button"
+            class="block text-left"
+            @click="openUrl('https://sageleaf.eco/help')"
           >
             <Card class="bg-base-200">
               <CardContent
@@ -117,12 +116,11 @@
                 <ChevronRightIcon class="size-4 opacity-40" />
               </CardContent>
             </Card>
-          </a>
-          <a
-            href="https://sageleaf.eco/guides"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block"
+          </button>
+          <button
+            type="button"
+            class="block text-left"
+            @click="openUrl('https://sageleaf.eco/guides')"
           >
             <Card class="bg-base-200">
               <CardContent
@@ -137,12 +135,11 @@
                 <ChevronRightIcon class="size-4 opacity-40" />
               </CardContent>
             </Card>
-          </a>
-          <a
-            href="https://sageleaf.eco/feedback"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block"
+          </button>
+          <button
+            type="button"
+            class="block text-left"
+            @click="openUrl('https://sageleaf.eco/feedback')"
           >
             <Card class="bg-base-200">
               <CardContent
@@ -157,7 +154,7 @@
                 <ChevronRightIcon class="size-4 opacity-40" />
               </CardContent>
             </Card>
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -183,6 +180,7 @@ import { graphql } from '~/gql'
 useTopbar(null)
 
 const { client: auth, sessionData, status, isAuthenticated } = useAuth()
+const { openUrl } = useOpenUrl()
 const regionStore = useRegionStore()
 regionStore.load()
 

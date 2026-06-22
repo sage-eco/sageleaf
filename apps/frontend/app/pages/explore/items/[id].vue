@@ -1,16 +1,13 @@
 <template>
   <div class="relative min-h-screen bg-base-100">
-    <!-- Fixed Top Bar -->
-    <div class="fixed inset-x-0 top-0 z-50 flex flex-col bg-base-100/80 backdrop-blur-md">
-      <div class="relative flex h-16 items-center px-4">
-        <NavBackBubble class="static!" />
+    <NavIntentTopBar>
+      <NavBackBubble class="static!" />
 
-        <TabsIntentSelector v-model="activeTab" :tabs="tabs" />
-      </div>
-    </div>
+      <TabsIntentSelector v-model="activeTab" :tabs="tabs" />
+    </NavIntentTopBar>
 
     <!-- Scrollable Content -->
-    <div class="pt-20">
+    <div class="pt-4">
       <!-- Hero Card -->
       <div class="no-scrollbar flex w-full snap-x snap-mandatory overflow-x-auto pt-2 pb-6">
         <div class="w-[75%] shrink-0 snap-center pr-2 pl-4">

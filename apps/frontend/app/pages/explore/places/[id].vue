@@ -1,14 +1,11 @@
 <template>
   <div class="relative min-h-screen bg-base-100">
-    <!-- Fixed Top Bar -->
-    <div class="fixed inset-x-0 top-0 z-50 flex flex-col bg-base-100/80 backdrop-blur-md">
-      <div class="relative flex h-16 items-center px-4">
-        <NavBackBubble class="static!" />
-      </div>
-    </div>
+    <NavIntentTopBar>
+      <NavBackBubble class="static!" />
+    </NavIntentTopBar>
 
     <!-- Scrollable Content -->
-    <div class="pt-20">
+    <div class="pt-4">
       <!-- Hero Card -->
       <div class="px-4 pt-2 pb-6">
         <div
@@ -37,18 +34,17 @@
 
           <!-- Bottom Row: Open in Maps button + feedback -->
           <div class="mt-4 space-y-2">
-            <a
+            <button
               v-if="data?.place?.location"
-              :href="mapsLink(data.place.location)"
-              target="_blank"
-              rel="noopener noreferrer"
+              type="button"
               class="block w-full"
+              @click="openUrl(mapsLink(data.place.location))"
             >
               <Button class="w-full" variant="default">
                 <T ns="frontend" key-name="place.openInMaps" />
                 <ExternalLinkIcon :size="14" />
               </Button>
-            </a>
+            </button>
             <div v-if="vars.id" class="-ml-1">
               <FeedbackVoteButtons
                 :entity-name="FeedbackEntityName.Place"
@@ -177,6 +173,7 @@ const route = useRoute()
 useTopbar(null)
 
 const mapsLink = useMapsLink()
+const { openUrl } = useOpenUrl()
 
 const placeQuery = graphql(`
   query GetPlace($id: ID!) {

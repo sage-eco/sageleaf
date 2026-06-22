@@ -28,11 +28,11 @@
         <NuxtLink :to="`/explore/places/${selectedPlace?.id}`" class="p-4">
           <Button class="w-full">View Details</Button>
         </NuxtLink>
-        <a
-          :href="selectedPlace?.location ? mapsLink(selectedPlace.location) : '#'"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          v-if="selectedPlace?.location"
+          type="button"
           class="px-4"
+          @click="openUrl(mapsLink(selectedPlace.location))"
         >
           <Button class="w-full" variant="outline"
             >Open in Maps
@@ -43,7 +43,7 @@
               />
             </svg>
           </Button>
-        </a>
+        </button>
       </DrawerContent>
     </Drawer>
   </div>
@@ -62,6 +62,7 @@ import type { Place } from '~/gql/types.generated'
 useTopbar(null)
 
 const mapsLink = useMapsLink()
+const { openUrl } = useOpenUrl()
 
 const searchInput = ref('')
 const openDetails = ref(false)
