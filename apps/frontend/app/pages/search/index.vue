@@ -103,7 +103,10 @@
           <li v-if="error" class="list-row text-xs text-error">
             {{ error.graphQLErrors?.[0]?.message || error.networkError?.message || error.message }}
           </li>
-          <li v-if="!loading && allResults.length === 0 && searchInput.length > 0" class="list-row">
+          <li
+            v-if="!loading && allResults.length === 0 && searchInput.length >= 2"
+            class="list-row"
+          >
             <div class="flex flex-col gap-1">
               <span>No results found for "{{ searchInput }}"</span>
               <button
