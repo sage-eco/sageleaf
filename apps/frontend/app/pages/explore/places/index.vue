@@ -24,6 +24,13 @@
     </div>
     <div class="map-wrap">
       <div ref="mapContainer" class="map" />
+      <div
+        v-if="mapError"
+        class="absolute right-2 bottom-2 left-2 z-10 rounded-md bg-base-100/90 px-3 py-2 text-xs text-error shadow-md backdrop-blur-sm"
+        role="alert"
+      >
+        {{ mapError }}
+      </div>
     </div>
     <Drawer v-model:open="openDetails" :set-background-color-on-scale="false">
       <DrawerContent class="min-h-[50vh] p-3">
@@ -60,7 +67,7 @@
 <script setup lang="ts">
 import { ChevronLeft, Search } from '@lucide/vue'
 import { watchDebounced } from '@vueuse/core'
-import maplibregl, { Map, NavigationControl, type LngLatLike } from 'maplibre-gl'
+import maplibregl, { Map, NavigationControl, type ErrorEvent, type LngLatLike } from 'maplibre-gl'
 import type { ShallowRef } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
@@ -76,6 +83,18 @@ const router = useRouter()
 const searchInput = ref('')
 const openDetails = ref(false)
 const selectedPlace = ref<Place | null>(null)
+const mapError = ref<string | null>(null)
+const posthog = usePostHog()
+
+function handleMapError(e: ErrorEvent) {
+  const err = e.error as { message?: string; status?: number; url?: string }
+  const sourceId = (e as { data?: { sourceId?: string } }).data?.sourceId
+  posthog?.captureException(new Error(err.message ?? 'MapLibre error'), {
+    tags: { feature: 'map' },
+    properties: { status: err.status, url: err.url, source_id: sourceId },
+  })
+  mapError.value = "Couldn't load the map"
+}
 
 const goBack = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -253,6 +272,10 @@ onMounted(() => {
   }
   getBounds()
   map.value.on('moveend', getBounds)
+  map.value.on('error', handleMapError)
+  map.value.on('idle', () => {
+    mapError.value = null
+  })
 })
 
 onBeforeRouteLeave(() => {

@@ -20,7 +20,7 @@ async function getPosition(): Promise<{ lng: number; lat: number } | { error: st
     }
     try {
       const pos = await getCurrentPosition({
-        enableHighAccuracy: false,
+        enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 60000,
       })
@@ -42,7 +42,7 @@ async function getPosition(): Promise<{ lng: number; lat: number } | { error: st
           resolve({ error: 'Could not determine location' })
         }
       },
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     )
   })
 }
@@ -131,6 +131,7 @@ function setupDisengageListeners(map: Map, onUserInteraction: () => void): () =>
  * must not invoke the geolocation plugin; the permission prompt is only
  * ever shown in response to the click.
  */
+// oxlint-disable-next-line max-lines-per-function
 export function useLocateControl() {
   let watchUnlisten: (() => void) | null = null
   let userMarker: maplibregl.Marker | null = null
@@ -152,6 +153,45 @@ export function useLocateControl() {
       .addTo(map)
   }
 
+  function startTauriWatch(onUpdate: (lng: number, lat: number) => void, offDisengage: () => void) {
+    import('@tauri-apps/plugin-geolocation').then(({ watchPosition, clearWatch }) => {
+      if (disposed) {
+        offDisengage()
+        return
+      }
+      const channelIdP = watchPosition(
+        { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 },
+        (pos, error) => {
+          if (error) {
+            // oxlint-disable-next-line no-console
+            console.warn('[MapLibre] geolocation watch error:', error)
+            return
+          }
+          if (pos) onUpdate(pos.coords.longitude, pos.coords.latitude)
+        },
+      )
+      watchUnlisten = () => {
+        offDisengage()
+        void channelIdP.then((id) => clearWatch(id)).catch(() => {})
+      }
+    })
+  }
+
+  function startWebWatch(onUpdate: (lng: number, lat: number) => void, offDisengage: () => void) {
+    const id = navigator.geolocation.watchPosition(
+      (pos) => onUpdate(pos.coords.longitude, pos.coords.latitude),
+      (err) => {
+        // oxlint-disable-next-line no-console
+        console.warn('[MapLibre] geolocation watch error:', err.message)
+      },
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 },
+    )
+    watchUnlisten = () => {
+      navigator.geolocation.clearWatch(id)
+      offDisengage()
+    }
+  }
+
   function startWatching(map: Map) {
     stopWatching()
     control.setTracking(true)
@@ -162,56 +202,35 @@ export function useLocateControl() {
       map.setCenter([lng, lat])
     }
     if (isTauri()) {
-      import('@tauri-apps/plugin-geolocation').then(({ watchPosition, clearWatch }) => {
-        if (disposed) {
-          offDisengage()
-          return
-        }
-        const channelIdP = watchPosition(
-          { enableHighAccuracy: false, timeout: 30000, maximumAge: 30000 },
-          (pos) => {
-            if (pos) onUpdate(pos.coords.longitude, pos.coords.latitude)
-          },
-        )
-        watchUnlisten = () => {
-          offDisengage()
-          void channelIdP.then((id) => clearWatch(id)).catch(() => {})
-        }
-      })
+      startTauriWatch(onUpdate, offDisengage)
       // Synchronous fallback: if dispose runs before the import resolves,
       // this clears the disengage listeners.
       watchUnlisten = offDisengage
     } else if (navigator.geolocation) {
-      const id = navigator.geolocation.watchPosition(
-        (pos) => onUpdate(pos.coords.longitude, pos.coords.latitude),
-        () => stopWatching(),
-        { enableHighAccuracy: false, timeout: 30000, maximumAge: 30000 },
-      )
-      watchUnlisten = () => {
-        navigator.geolocation.clearWatch(id)
-        offDisengage()
-      }
+      startWebWatch(onUpdate, offDisengage)
     } else {
       offDisengage()
     }
   }
 
+  async function handleClick(map: Map) {
+    const pos = await getPosition()
+    if (!pos) {
+      control.setError('Location unavailable')
+      return
+    }
+    if ('error' in pos) {
+      control.setError(pos.error)
+      return
+    }
+    control.setError(null)
+    ensureUserMarker(map, pos)
+    map.flyTo({ center: [pos.lng, pos.lat], zoom: 15 })
+    startWatching(map)
+  }
+
   const control = new LocateControl({
-    onClick: async (map) => {
-      const pos = await getPosition()
-      if (!pos) {
-        control.setError('Location unavailable')
-        return
-      }
-      if ('error' in pos) {
-        control.setError(pos.error)
-        return
-      }
-      control.setError(null)
-      ensureUserMarker(map, pos)
-      map.flyTo({ center: [pos.lng, pos.lat], zoom: 15 })
-      startWatching(map)
-    },
+    onClick: handleClick,
     onRemove: () => stopWatching(),
   })
 

@@ -9,8 +9,15 @@
 
       <!-- Static map -->
       <div class="map-wrap">
-        <div ref="mapContainer" class="map" />
-        <div class="zoom-controls">
+        <div v-if="!mapError" ref="mapContainer" class="map" />
+        <div
+          v-else
+          class="absolute inset-0 z-10 flex items-center justify-center bg-base-200/50 px-3 text-center text-xs text-error"
+          role="alert"
+        >
+          {{ mapError }}
+        </div>
+        <div v-if="!mapError" class="zoom-controls">
           <button class="zoom-btn" :disabled="!map" @click="map?.zoomIn()">
             <PlusIcon class="size-3.5" />
           </button>
@@ -25,7 +32,7 @@
 
 <script setup lang="ts">
 import { MinusIcon, PlusIcon } from '@lucide/vue'
-import maplibregl, { Map } from 'maplibre-gl'
+import maplibregl, { Map, type ErrorEvent } from 'maplibre-gl'
 import type { ShallowRef } from 'vue'
 
 const props = defineProps<{
@@ -37,6 +44,18 @@ const props = defineProps<{
 
 const mapContainer: ShallowRef<HTMLElement | null> = shallowRef(null)
 const map: ShallowRef<Map | null> = shallowRef(null)
+const mapError = ref<string | null>(null)
+const posthog = usePostHog()
+
+function handleMapError(e: ErrorEvent) {
+  const err = e.error as { message?: string; status?: number; url?: string }
+  const sourceId = (e as { data?: { sourceId?: string } }).data?.sourceId
+  posthog?.captureException(new Error(err.message ?? 'MapLibre error'), {
+    tags: { feature: 'map' },
+    properties: { status: err.status, url: err.url, source_id: sourceId },
+  })
+  mapError.value = "Couldn't load the map"
+}
 
 const initMap = (bbox: number[]) => {
   if (!mapContainer.value) return
@@ -67,6 +86,10 @@ const initMap = (bbox: number[]) => {
     }
   })
   map.value = m
+  m.on('error', handleMapError)
+  m.on('idle', () => {
+    mapError.value = null
+  })
 }
 
 watch(
