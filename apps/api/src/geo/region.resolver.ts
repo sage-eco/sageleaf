@@ -1,6 +1,7 @@
 import { Args, ID, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 
 import { OptionalAuth } from '@src/auth/decorators'
+import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { LocationService } from '@src/geo/location.service'
@@ -33,6 +34,7 @@ export class RegionResolver {
 
   @Query(() => Region, { name: 'region', nullable: true })
   @OptionalAuth()
+  @TrackEntityView('region')
   async region(@Args('id', { type: () => ID }) id: string) {
     const region = await this.regionService.findOneByID(id)
     if (!region) {

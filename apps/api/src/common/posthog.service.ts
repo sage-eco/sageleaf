@@ -29,6 +29,24 @@ export class PosthogService implements OnModuleDestroy {
     }
   }
 
+  capture(event: string, properties: Record<string, unknown>) {
+    if (!this.client) return
+    const session = this.cls.get<UserSession | null>('session')
+    const distinctId = session?.user?.id ?? 'anonymous'
+    this.client.capture({ distinctId, event, properties })
+  }
+
+  captureEntityView(entityType: string, entityId: string) {
+    const rawLocation = this.cls.get<string | undefined>('x-location')
+    const isRegionId = rawLocation?.startsWith('wof_')
+    this.capture('view_entity', {
+      entity_type: entityType,
+      entity_id: entityId,
+      region_id: isRegionId ? rawLocation : undefined,
+      coordinates: !isRegionId ? rawLocation : undefined,
+    })
+  }
+
   captureException(exception: unknown) {
     if (!this.client) return
 

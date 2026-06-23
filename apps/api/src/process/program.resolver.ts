@@ -4,6 +4,7 @@ import { AuthUser, type ReqUser } from '@src/auth/auth.guard'
 import { OptionalAuth } from '@src/auth/decorators'
 import { Change } from '@src/changes/change.model'
 import { EditService } from '@src/changes/edit.service'
+import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { ModelEditSchema } from '@src/graphql/base.model'
@@ -47,6 +48,7 @@ export class ProgramResolver {
 
   @Query(() => Program, { name: 'program', nullable: true })
   @OptionalAuth()
+  @TrackEntityView('program')
   async program(@Args('id', { type: () => ID }) id: string): Promise<Program> {
     const program = await this.programService.findOneByID(id)
     if (!program) {

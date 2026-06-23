@@ -6,6 +6,7 @@ import { OptionalAuth } from '@src/auth/decorators'
 import { DeleteInput } from '@src/changes/change-ext.model'
 import { Change } from '@src/changes/change.model'
 import { EditService } from '@src/changes/edit.service'
+import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { DeleteOutput, ModelEditSchema } from '@src/graphql/base.model'
@@ -50,6 +51,7 @@ export class CategoryResolver {
 
   @Query(() => Category, { name: 'category', nullable: true })
   @OptionalAuth()
+  @TrackEntityView('category')
   async category(@Args('id', { type: () => ID }) id: string): Promise<Category> {
     const category = await this.categoryService.findOneByID(id)
     if (!category) {

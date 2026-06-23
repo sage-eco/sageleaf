@@ -3,6 +3,7 @@ import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nest
 import { AuthUser, type ReqUser } from '@src/auth/auth.guard'
 import { OptionalAuth } from '@src/auth/decorators'
 import { Change } from '@src/changes/change.model'
+import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { Place as PlaceEntity } from '@src/geo/place.entity'
@@ -67,6 +68,7 @@ export class PlaceResolver {
 
   @Query(() => Place, { name: 'place', nullable: true })
   @OptionalAuth()
+  @TrackEntityView('place')
   async place(@Args('id', { type: () => ID }) id: string): Promise<Place> {
     const place = await this.placeService.findOneByID(id)
     if (!place) {

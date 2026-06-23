@@ -6,6 +6,7 @@ import { OptionalAuth } from '@src/auth/decorators'
 import { DeleteInput } from '@src/changes/change-ext.model'
 import { Change } from '@src/changes/change.model'
 import { EditService } from '@src/changes/edit.service'
+import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { DeleteOutput, ModelEditSchema } from '@src/graphql/base.model'
@@ -67,6 +68,7 @@ export class ItemResolver {
 
   @Query(() => Item, { name: 'item', nullable: true })
   @OptionalAuth()
+  @TrackEntityView('item')
   async item(@Args('id', { type: () => ID }) id: string): Promise<Item> {
     const item = await this.itemService.findOneByID(id)
     if (!item) {
