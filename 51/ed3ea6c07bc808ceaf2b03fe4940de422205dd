@@ -1,0 +1,50 @@
+apps/api/src/product/category.resolver.ts
+  s_06d61f820aa790::t_78d7db53c65cba 54
+apps/api/src/product/variant.resolver.ts
+  s_06d61f820aa790::t_070592871b2bd8 78
+apps/api/src/common/entity-view.interceptor.ts
+  s_06d61f820aa790::t_4dbd119a1724b6 1-29
+apps/api/src/common/common.module.ts
+  s_06d61f820aa790::t_c0d0beace33f14 49,60
+  s_06d61f820aa790::t_4e8f1d47ad0b02 11
+apps/api/src/product/item.resolver.ts
+  s_06d61f820aa790::t_c635a016c58765 71
+apps/api/src/common/posthog.service.ts
+  s_06d61f820aa790::t_111db2033a50c0 32-49
+apps/api/src/geo/place.resolver.ts
+  s_06d61f820aa790::t_214430f490c7aa 71
+apps/api/src/process/process.resolver.ts
+  s_06d61f820aa790::t_97dcefd69f019f 69
+apps/api/src/process/program.resolver.ts
+  s_06d61f820aa790::t_89c9a8ab80eba3 51
+apps/api/src/common/entity-view.decorator.ts
+  s_06d61f820aa790::t_03da7c45eebc48 1-10
+apps/api/src/process/component.resolver.ts
+  s_06d61f820aa790::t_7dd3312afcef0f 75
+apps/api/src/geo/region.resolver.ts
+  s_06d61f820aa790::t_fb4c4c52ad4071 4
+  s_06d61f820aa790::t_63d2e6be351cda 37
+apps/api/src/process/material.resolver.ts
+  s_06d61f820aa790::t_c428fe6001fbfa 40
+  s_06d61f820aa790::t_e965989807d4d2 4
+apps/api/src/users/org.resolver.ts
+  s_06d61f820aa790::t_709bae2975a053 69
+apps/api/src/users/users.resolver.ts
+  s_06d61f820aa790::t_d845f9722c5a52 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.10",
+  "base_commit_sha": "51ed3ea6c07bc808ceaf2b03fe4940de422205dd",
+  "prompts": {},
+  "sessions": {
+    "s_06d61f820aa790": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5d7255d0-2601-41f4-9ef1-768b19187069",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
