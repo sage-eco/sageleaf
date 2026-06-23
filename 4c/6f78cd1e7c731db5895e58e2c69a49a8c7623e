@@ -1,0 +1,42 @@
+apps/frontend/app/composables/useLocateControl.ts
+  s_dcd21cc7c283be::t_5839d237c3554c 23,45
+  s_dcd21cc7c283be::t_3b2d1b95e9b59e 156-194,219-231,233
+  s_dcd21cc7c283be::t_c0eea692b95fb5 205
+  s_dcd21cc7c283be::t_8b793d3789310e 134
+  s_dcd21cc7c283be::t_e6d662e48a70aa 216
+apps/frontend/src-tauri/capabilities/mobile.json
+  s_dcd21cc7c283be::t_424d8ab756405b 12-14
+apps/frontend/app/pages/explore/places/index.vue
+  s_dcd21cc7c283be::t_a6c96c9acc88f7 27-33
+  s_dcd21cc7c283be::t_66cf678229f0ec 275-278
+  s_dcd21cc7c283be::t_ed5731b9e340a8 70
+  s_dcd21cc7c283be::t_7c93bc5571ba26 87,95-96
+  s_dcd21cc7c283be::t_d90e7bdf6fe08f 90-94
+  s_dcd21cc7c283be::t_fccb0b9552f087 86,88-89,97
+apps/frontend/app/components/settings/RegionDisplay.vue
+  s_dcd21cc7c283be::t_ab8fd0ffcf1159 51-55
+  s_dcd21cc7c283be::t_59cb8507c2f76e 89-92
+  s_dcd21cc7c283be::t_175241ee3cf270 35
+  s_dcd21cc7c283be::t_770e37c6f8b218 12-20
+  s_dcd21cc7c283be::t_da77e24efd977a 47,49-50,58
+  s_dcd21cc7c283be::t_f3ff1f19b76fe4 48,56-57
+apps/frontend/src-tauri/Info.ios.plist
+  s_dcd21cc7c283be::t_cd951cacf1919d 6
+  s_dcd21cc7c283be::t_e6f699f0ad85bd 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.10",
+  "base_commit_sha": "4c6f78cd1e7c731db5895e58e2c69a49a8c7623e",
+  "prompts": {},
+  "sessions": {
+    "s_dcd21cc7c283be": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_10e41f34bffeQ8eQNupk0gEUwB",
+        "model": "minimax-m3"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
