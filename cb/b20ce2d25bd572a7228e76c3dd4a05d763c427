@@ -1,0 +1,19 @@
+apps/frontend/app/pages/search/index.vue
+  s_dcd21cc7c283be::t_e82e58350e6a94 106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.10",
+  "base_commit_sha": "cbb20ce2d25bd572a7228e76c3dd4a05d763c427",
+  "prompts": {},
+  "sessions": {
+    "s_dcd21cc7c283be": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_10e41f34bffeQ8eQNupk0gEUwB",
+        "model": "minimax-m3"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
