@@ -26,24 +26,39 @@
             v-model="searchInput"
             type="text"
             placeholder="Search..."
-            class="pl-10"
+            class="pr-10 pl-10"
           />
           <span class="absolute inset-y-0 inset-s-0 flex items-center justify-center px-2">
             <SearchIcon :size="20" class="mr-1 ml-2" />
           </span>
+          <button
+            v-if="searchInput"
+            type="button"
+            class="absolute inset-y-0 end-0 flex items-center justify-center px-3 text-base-content/70 transition-colors hover:bg-base-300/50 hover:text-base-content"
+            aria-label="Clear search"
+            @click="clearSearch"
+          >
+            <XIcon :size="20" />
+          </button>
+        </div>
+        <div class="mt-3 flex items-center gap-2">
+          <SearchTypeFilterPill v-model:open="typeFilterOpen" v-model:count="selectedTypes.size" />
         </div>
         <ul class="list mt-4 mb-6 rounded-box bg-base-200 shadow-md">
-          <li v-if="result?.search.totalCount" class="px-4 py-2 text-xs tracking-wide opacity-60">
+          <li
+            v-if="allResults.length > 0 && result?.search.totalCount"
+            class="px-4 py-2 text-xs tracking-wide opacity-60"
+          >
             About {{ result?.search.totalCount || 0 }} results
           </li>
-          <li v-if="loading" class="list-row">
+          <li v-if="loading && allResults.length === 0" class="list-row">
             <div class="h-4 w-28 skeleton" />
             <div class="h-4 w-full skeleton" />
             <div class="h-4 w-full skeleton" />
           </li>
 
-          <div v-if="result && !loading">
-            <li v-for="res in result.search.nodes" :key="res.id">
+          <div v-if="allResults.length > 0">
+            <li v-for="res in allResults" :key="res.id">
               <NuxtLink :to="exploreLink(res.__typename, res.id)">
                 <div v-if="res.id" class="list-row flex items-center gap-2 pt-2 pb-3">
                   <UiImage
@@ -81,14 +96,32 @@
             </li>
           </div>
 
+          <li v-if="hasMore" ref="loadMoreTarget" class="flex justify-center py-4">
+            <span class="loading loading-sm loading-spinner opacity-40" />
+          </li>
+
           <li v-if="error" class="list-row text-xs text-error">
             {{ error.graphQLErrors?.[0]?.message || error.networkError?.message || error.message }}
           </li>
-          <li v-if="result?.search.nodes.length === 0 && searchInput.length > 0" class="list-row">
-            No results found for "{{ searchInput }}"
+          <li
+            v-if="!loading && allResults.length === 0 && searchInput.length >= 2"
+            class="list-row"
+          >
+            <div class="flex flex-col gap-1">
+              <span>No results found for "{{ searchInput }}"</span>
+              <button
+                v-if="selectedTypes.size > 0"
+                type="button"
+                class="link self-start text-sm link-secondary"
+                @click="clearTypeFilter"
+              >
+                <T ns="frontend" key-name="search.empty.clearFilter" />
+              </button>
+            </div>
           </li>
-          <SearchRecentlyViewed v-if="!result && searchInput.length === 0" />
+          <SearchRecentlyViewed v-if="allResults.length === 0 && searchInput.length === 0" />
         </ul>
+        <SearchTypeFilterDrawer v-model:open="typeFilterOpen" v-model:selected="selectedTypes" />
       </div>
     </div>
   </div>
@@ -105,9 +138,13 @@ import {
   ScanBarcodeIcon,
   SearchIcon,
   TagsIcon,
+  XIcon,
 } from '@lucide/vue'
-import { useIntersectionObserver, watchDebounced } from '@vueuse/core'
+import { T } from '@tolgee/vue'
+import { useInfiniteScroll, useIntersectionObserver, watchDebounced } from '@vueuse/core'
 import type { Component } from 'vue'
+
+import type { SearchType } from '~/gql/graphql'
 
 useTopbar(null)
 
@@ -115,9 +152,11 @@ onMounted(() => {
   ;(document.querySelector('#search') as HTMLElement)?.focus()
 })
 
+const PAGE_SIZE = 20
+
 const searchQuery = gql`
-  query Search($query: String!) {
-    search(query: $query) {
+  query Search($query: String!, $types: [SearchType!], $limit: Int, $offset: Int) {
+    search(query: $query, types: $types, limit: $limit, offset: $offset) {
       nodes {
         __typename
         ... on Category {
@@ -163,11 +202,17 @@ const searchQuery = gql`
         }
       }
       totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 `
-const searchInput = shallowRef('')
-const debouncedSearch = shallowRef('')
+const searchInput = useState<string>('search-input', () => '')
+const debouncedSearch = useState<string>('search-debounced', () => '')
+const selectedTypes = useState<Set<SearchType>>('search-selected-types', () => new Set())
+const typeFilterOpen = ref(false)
 
 // Blur the keyboard when the search bar is scrolled out of view
 const searchBar = useTemplateRef('searchBar')
@@ -187,26 +232,118 @@ watchDebounced(
   { debounce: 300 },
 )
 
+type SearchNode = {
+  id: string
+  name: string
+  name_null: string
+  descShort: string
+  desc: string
+  imageURL: string
+  __typename: string
+  orgs?: { nodes: { org: { name: string } }[] }
+}
+
 type SearchResult = {
   search: {
-    nodes: {
-      id: string
-      name: string
-      name_null: string
-      descShort: string
-      desc: string
-      imageURL: string
-      __typename: string
-      orgs?: { nodes: { org: { name: string } }[] }
-    }[]
+    nodes: SearchNode[]
     totalCount: number
+    pageInfo: { hasNextPage: boolean; endCursor: string | null }
   }
 }
 
-const { result, loading, error } = useQuery<SearchResult>(
+const { result, loading, error, fetchMore } = useQuery<SearchResult>(
   searchQuery,
-  () => ({ query: debouncedSearch.value }),
+  () => ({
+    query: debouncedSearch.value,
+    types: selectedTypes.value.size > 0 ? Array.from(selectedTypes.value) : undefined,
+    limit: PAGE_SIZE,
+    offset: 0,
+  }),
   () => ({ enabled: debouncedSearch.value.length >= 2 }),
+)
+
+const allResults = useState<SearchNode[]>('search-all-results', () => [])
+const loadingMore = ref(false)
+
+// Apollo returns the same object reference from cache when re-executing with
+// identical variables, so watching `result` alone misses the re-run after
+// clear → re-type. Bumping `resultVersion` on each new search forces the
+// watcher to re-evaluate and re-populate `allResults`.
+const resultVersion = ref(0)
+
+watch(
+  [result, resultVersion],
+  ([val]) => {
+    if (val) allResults.value = [...val.search.nodes]
+  },
+  { immediate: true },
+)
+
+watch([debouncedSearch, selectedTypes], async ([newQ, newT], [oldQ, oldT]) => {
+  if ((newQ !== oldQ || newT !== oldT) && newQ.length >= 2) {
+    await nextTick()
+    resultVersion.value++
+  }
+})
+
+const hasMore = computed(() => result.value?.search.pageInfo.hasNextPage ?? false)
+
+function clearSearch() {
+  searchInput.value = ''
+  debouncedSearch.value = ''
+  allResults.value = []
+  ;(document.querySelector('#search') as HTMLElement | null)?.focus()
+}
+
+function clearTypeFilter() {
+  selectedTypes.value = new Set()
+}
+
+const loadMore = async () => {
+  if (!hasMore.value || loadingMore.value) return
+  loadingMore.value = true
+  try {
+    await fetchMore({
+      variables: {
+        query: debouncedSearch.value,
+        types: selectedTypes.value.size > 0 ? Array.from(selectedTypes.value) : undefined,
+        limit: PAGE_SIZE,
+        offset: allResults.value.length,
+      },
+      updateQuery(prev, { fetchMoreResult, variables }) {
+        // Drop the merge if the user typed a new query during the fetch —
+        // Apollo's default replace-merge would otherwise corrupt the new search.
+        if (
+          variables.query !== debouncedSearch.value ||
+          JSON.stringify([...(variables.types ?? [])].sort()) !==
+            JSON.stringify(Array.from(selectedTypes.value).sort())
+        ) {
+          return prev
+        }
+        if (!fetchMoreResult) return prev
+        return {
+          search: {
+            ...fetchMoreResult.search,
+            nodes: [...prev.search.nodes, ...fetchMoreResult.search.nodes],
+          },
+        }
+      },
+    })
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+const loadMoreTarget = useTemplateRef('loadMoreTarget')
+useInfiniteScroll(
+  loadMoreTarget,
+  () => {
+    void loadMore()
+  },
+  {
+    distance: 200,
+    canLoadMore: () => hasMore.value && !loadingMore.value,
+  },
 )
 
 const typeBadgeVariant = (type: string) => {

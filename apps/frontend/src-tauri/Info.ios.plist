@@ -3,6 +3,8 @@
 <plist version="1.0">
   <dict>
     <key>NSCameraUsageDescription</key>
-    <string>Read product barcodes</string>
+    <string>Scan barcodes, read text, and identify products and objects.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Show your location on the map and find local products and recycling info near you.</string>
   </dict>
 </plist>

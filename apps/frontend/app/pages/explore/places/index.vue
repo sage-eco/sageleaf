@@ -1,21 +1,36 @@
 <template>
   <div>
-    <div
-      class="fixed top-[env(safe-area-inset-top)] z-10 m-4 flex w-[calc(100vw-70px)] max-w-2xl rounded-full bg-white text-black shadow-md focus-visible:outline-hidden"
-    >
-      <span class="flex items-center justify-center px-2">
-        <Search class="mx-2 text-neutral-700" />
-      </span>
-      <input
-        id="search"
-        v-model="searchInput"
-        type="text"
-        placeholder="Search..."
-        class="w-full p-2"
-      />
+    <div class="fixed top-[env(safe-area-inset-top)] z-10 m-4 flex gap-2">
+      <button
+        type="button"
+        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-base-200 text-base-content shadow-md focus-visible:outline-hidden"
+        aria-label="Back"
+        @click="goBack"
+      >
+        <ChevronLeft :size="20" />
+      </button>
+      <div class="relative w-full max-w-2xl flex-1">
+        <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center px-3">
+          <Search class="size-4 text-base-content/50" />
+        </span>
+        <FormInput
+          id="search"
+          v-model="searchInput"
+          type="text"
+          placeholder="Search..."
+          class="pl-9"
+        />
+      </div>
     </div>
     <div class="map-wrap">
       <div ref="mapContainer" class="map" />
+      <div
+        v-if="mapError"
+        class="absolute right-2 bottom-2 left-2 z-10 rounded-md bg-base-100/90 px-3 py-2 text-xs text-error shadow-md backdrop-blur-sm"
+        role="alert"
+      >
+        {{ mapError }}
+      </div>
     </div>
     <Drawer v-model:open="openDetails" :set-background-color-on-scale="false">
       <DrawerContent class="min-h-[50vh] p-3">
@@ -28,11 +43,11 @@
         <NuxtLink :to="`/explore/places/${selectedPlace?.id}`" class="p-4">
           <Button class="w-full">View Details</Button>
         </NuxtLink>
-        <a
-          :href="selectedPlace?.location ? mapsLink(selectedPlace.location) : '#'"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          v-if="selectedPlace?.location"
+          type="button"
           class="px-4"
+          @click="openUrl(mapsLink(selectedPlace.location))"
         >
           <Button class="w-full" variant="outline"
             >Open in Maps
@@ -43,16 +58,16 @@
               />
             </svg>
           </Button>
-        </a>
+        </button>
       </DrawerContent>
     </Drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Search } from '@lucide/vue'
+import { ChevronLeft, Search } from '@lucide/vue'
 import { watchDebounced } from '@vueuse/core'
-import maplibregl, { Map, NavigationControl, type LngLatLike } from 'maplibre-gl'
+import maplibregl, { Map, NavigationControl, type ErrorEvent, type LngLatLike } from 'maplibre-gl'
 import type { ShallowRef } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
@@ -62,10 +77,30 @@ import type { Place } from '~/gql/types.generated'
 useTopbar(null)
 
 const mapsLink = useMapsLink()
+const { openUrl } = useOpenUrl()
+const router = useRouter()
 
 const searchInput = ref('')
 const openDetails = ref(false)
 const selectedPlace = ref<Place | null>(null)
+const mapError = ref<string | null>(null)
+const posthog = usePostHog()
+
+function handleMapError(e: ErrorEvent) {
+  const err = e.error as { message?: string; status?: number; url?: string }
+  const sourceId = (e as { data?: { sourceId?: string } }).data?.sourceId
+  posthog?.captureException(new Error(err.message ?? 'MapLibre error'), {
+    tags: { feature: 'map' },
+    properties: { status: err.status, url: err.url, source_id: sourceId },
+  })
+  mapError.value = "Couldn't load the map"
+}
+
+const goBack = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(router.options as any).is_back = true
+  router.back()
+}
 
 const regionStore = useRegionStore()
 await regionStore.load()
@@ -189,6 +224,8 @@ watchDebounced(mapBounds, refreshBounds, {
   debounce: 300,
 })
 
+const { control: locateControl, stop: stopLocate } = useLocateControl()
+
 onMounted(() => {
   if (!mapContainer.value) {
     return
@@ -206,6 +243,7 @@ onMounted(() => {
     attributionControl: false,
   })
   map.value.addControl(new NavigationControl(), 'top-right')
+  map.value.addControl(locateControl, 'top-right')
   map.value.addControl(new maplibregl.AttributionControl(), 'bottom-left')
   if (bbox && bbox[0] === bbox[2]) {
     map.value.setCenter(center)
@@ -234,9 +272,14 @@ onMounted(() => {
   }
   getBounds()
   map.value.on('moveend', getBounds)
+  map.value.on('error', handleMapError)
+  map.value.on('idle', () => {
+    mapError.value = null
+  })
 })
 
 onBeforeRouteLeave(() => {
+  stopLocate()
   if (map.value) {
     map.value.remove()
     map.value = null
@@ -244,6 +287,7 @@ onBeforeRouteLeave(() => {
 })
 
 onUnmounted(() => {
+  stopLocate()
   if (map.value) {
     map.value.remove()
   }

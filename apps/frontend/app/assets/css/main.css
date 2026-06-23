@@ -144,3 +144,51 @@
 .array-list-item-content.expanded {
   display: block;
 }
+
+/* ─── User location marker (MapLibre) ────────────────────────────── */
+.maplibregl-ctrl-group button.maplibregl-ctrl-locate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.maplibregl-ctrl-locate.is-tracking {
+  color: var(--color-primary);
+}
+.maplibregl-ctrl-locate.is-error {
+  color: var(--color-error);
+}
+.user-location-marker {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+.user-location-marker__pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--color-primary) 25%, transparent);
+  animation: user-location-pulse 2.4s ease-out infinite;
+}
+.user-location-marker__dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  border: 2px solid var(--color-primary-content);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+@keyframes user-location-pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}

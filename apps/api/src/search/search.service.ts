@@ -5,6 +5,7 @@ import { I18nService } from '@src/common/i18n.service'
 import { MetaService } from '@src/common/meta.service'
 import { Place } from '@src/geo/place.entity'
 import { Region } from '@src/geo/region.entity'
+import { DEFAULT_PAGE_SIZE } from '@src/graphql/paginated'
 import { Component } from '@src/process/component.entity'
 import { Material } from '@src/process/material.entity'
 import { Category } from '@src/product/category.entity'
@@ -267,7 +268,7 @@ export class SearchService {
     }
 
     const words = textQuery.trim().split(/\s+/)
-    const fetchLimit = (limit ? limit + 1 : 11) + (offset ?? 0)
+    const fetchLimit = (limit ? limit + 1 : DEFAULT_PAGE_SIZE + 1) + (offset ?? 0)
     let vector: SearchBackendVectorQuery | undefined
     const indexesWithSupport = await Promise.all(
       searchableIndexes.map(async (idx) => ({

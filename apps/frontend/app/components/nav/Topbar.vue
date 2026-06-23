@@ -15,14 +15,14 @@
         </template>
         <template v-else>
           <h2
-            class="m-3 line-clamp-1 text-xl font-light text-base-content"
+            class="m-3 line-clamp-1 h-5 text-xl leading-5 font-light text-base-content"
             :class="{ 'my-1': !!subtitle }"
           >
             {{ title }}
           </h2>
           <h4
             v-if="subtitle"
-            class="mx-3 line-clamp-1 text-xs text-base-content"
+            class="mx-3 line-clamp-1 h-3 text-xs leading-3 text-base-content"
             :class="{ 'mb-1': !!subtitle }"
           >
             {{ subtitle }}

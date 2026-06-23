@@ -157,8 +157,6 @@ import {
   MessageSquare,
   Pencil,
 } from '@lucide/vue'
-import { isTauri } from '@tauri-apps/api/core'
-import { openUrl as tauriOpenUrl } from '@tauri-apps/plugin-opener'
 import { T, useTranslate } from '@tolgee/vue'
 
 import { graphql } from '~/gql'
@@ -168,14 +166,7 @@ const { t } = useTranslate()
 
 useTopbar({ title: computed(() => t.value('contribute.title', { ns: 'frontend' })) })
 
-// Opens a URL in the system browser on native; falls back to window.open on web
-async function openUrl(url: string) {
-  if (isTauri()) {
-    await tauriOpenUrl(url)
-  } else {
-    window.open(url, '_blank', 'noopener,noreferrer')
-  }
-}
+const { openUrl } = useOpenUrl()
 
 const projectFeedQuery = graphql(`
   query ContributeProjectFeed($format: FeedFormat) {
