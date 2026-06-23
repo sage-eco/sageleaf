@@ -3,6 +3,7 @@ import { Args, ID, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql
 import { AuthUser, type ReqUser } from '@src/auth/auth.guard'
 import { OptionalAuth } from '@src/auth/decorators'
 import { Change, ChangesConnection } from '@src/changes/change.model'
+import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { Org, OrgsConnection } from '@src/users/org.model'
@@ -18,6 +19,7 @@ export class UsersResolver {
 
   @Query(() => User, { name: 'user', nullable: true })
   @OptionalAuth()
+  @TrackEntityView('user')
   async user(@Args('id', { type: () => ID }) id: string) {
     const user = await this.usersService.findOneByID(id)
     if (!user) {

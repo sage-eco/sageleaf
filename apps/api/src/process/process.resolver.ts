@@ -6,6 +6,7 @@ import { OptionalAuth } from '@src/auth/decorators'
 import { DeleteInput } from '@src/changes/change-ext.model'
 import { Change } from '@src/changes/change.model'
 import { EditService } from '@src/changes/edit.service'
+import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { Place } from '@src/geo/place.model'
@@ -65,6 +66,7 @@ export class ProcessResolver {
 
   @Query(() => Process, { name: 'process', nullable: true })
   @OptionalAuth()
+  @TrackEntityView('process')
   async process(@Args('id', { type: () => ID }) id: string): Promise<Process> {
     const process = await this.processService.findOneByID(id)
     if (!process) {

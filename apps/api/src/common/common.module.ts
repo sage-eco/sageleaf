@@ -8,6 +8,7 @@ import { AcceptLanguageResolver, HeaderResolver, I18nModule, QueryResolver } fro
 
 import { BaseSchemaService } from '@src/common/base.schema'
 import { isProd } from '@src/common/common.utils'
+import { EntityViewInterceptor } from '@src/common/entity-view.interceptor'
 import { I18nService } from '@src/common/i18n.service'
 import { MetaService } from '@src/common/meta.service'
 import { PosthogService } from '@src/common/posthog.service'
@@ -45,6 +46,7 @@ import { ZService } from '@src/common/z.service'
     PosthogService,
     RedisService,
     StorageService,
+    EntityViewInterceptor,
   ],
   exports: [
     TransformService,
@@ -55,6 +57,7 @@ import { ZService } from '@src/common/z.service'
     PosthogService,
     RedisService,
     StorageService,
+    EntityViewInterceptor,
   ],
 })
 export class CommonModule {}

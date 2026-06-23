@@ -6,6 +6,7 @@ import { OptionalAuth } from '@src/auth/decorators'
 import { DeleteInput } from '@src/changes/change-ext.model'
 import { Change } from '@src/changes/change.model'
 import { EditService } from '@src/changes/edit.service'
+import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { Region } from '@src/geo/region.model'
@@ -71,6 +72,7 @@ export class ComponentResolver {
 
   @Query(() => Component, { name: 'component', nullable: true })
   @OptionalAuth()
+  @TrackEntityView('component')
   async component(@Args('id', { type: () => ID }) id: string): Promise<Component> {
     const component = await this.componentService.findOneByID(id)
     if (!component) {

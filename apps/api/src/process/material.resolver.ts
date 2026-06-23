@@ -1,6 +1,7 @@
 import { Args, ID, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 
 import { OptionalAuth } from '@src/auth/decorators'
+import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { Component, ComponentsConnection } from '@src/process/component.model'
@@ -36,6 +37,7 @@ export class MaterialResolver {
 
   @Query(() => Material, { name: 'material', nullable: true })
   @OptionalAuth()
+  @TrackEntityView('material')
   async material(@Args('id', { type: () => ID }) id: string): Promise<Material> {
     const material = await this.materialService.findOneByID(id)
     if (!material) {
