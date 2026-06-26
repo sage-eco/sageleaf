@@ -8,12 +8,14 @@ import { Region } from '@src/geo/region.entity'
 import { DEFAULT_PAGE_SIZE } from '@src/graphql/paginated'
 import { Component } from '@src/process/component.entity'
 import { Material } from '@src/process/material.entity'
+import { Tag } from '@src/process/tag.entity'
 import { Category } from '@src/product/category.entity'
 import { Item } from '@src/product/item.entity'
 import { Variant } from '@src/product/variant.entity'
 import { DEFAULT_RELATED_LIMIT, RelatedArgs, RelatedArgsSchema } from '@src/search/related.model'
 import {
   SEARCH_BACKEND,
+  SearchBackendFacetResult,
   SearchBackendFilter,
   SearchBackendGeoFilter,
   SearchBackendHit,
@@ -27,6 +29,13 @@ import { Org } from '@src/users/org.entity'
 
 @Injectable()
 export class SearchService {
+  private static readonly FACET_LABEL_ENTITIES: Record<string, any> = {
+    tags: Tag,
+    categories: Category,
+    components: Component,
+    items: Item,
+  }
+
   constructor(
     @Inject(SEARCH_BACKEND) private readonly searchBackend: SearchBackend,
     private readonly i18n: I18nService,
@@ -246,6 +255,7 @@ export class SearchService {
     latLong?: number[],
     limit?: number,
     offset?: number,
+    filters?: { field: string; values: string[] }[],
   ) {
     const idxs =
       types?.map((t) => this.mapTypeToIndex(t)) ||
@@ -293,6 +303,7 @@ export class SearchService {
         options: {
           lang,
           ...(filtersByIndex.get(idx)?.length ? { filters: filtersByIndex.get(idx) } : {}),
+          ...(filters?.length ? { facetFilters: filters } : {}),
           geo,
           vector: supports ? vector : undefined,
           limit: fetchLimit,
@@ -304,9 +315,16 @@ export class SearchService {
     const combinedHits: SearchBackendHit[] = []
     const seen = new Set<string>()
     let count = 0
+    const allFacets: { facets: SearchBackendFacetResult[]; searchType?: SearchType }[] = []
 
-    for (const result of results) {
+    for (const [i, result] of results.entries()) {
       count += result.found
+      if (result.facets?.length) {
+        allFacets.push({
+          facets: result.facets,
+          searchType: this.mapIndexToSearchType(indexesWithSupport[i].idx),
+        })
+      }
       for (const hit of result.hits) {
         const key = this.buildSearchKey(hit)
         if (seen.has(key)) {
@@ -326,7 +344,80 @@ export class SearchService {
     return {
       items,
       count,
+      facets: await this.resolveFacetLabels(this.mergeFacets(allFacets)),
     }
+  }
+
+  private mapIndexToSearchType(idx: SearchIndex): SearchType | undefined {
+    const entry = (Object.entries(this.typeIndexMap) as [SearchType, SearchIndex][]).find(
+      ([, index]) => index === idx,
+    )
+    return entry?.[0]
+  }
+
+  private mergeFacets(
+    perIndexFacets: { facets: SearchBackendFacetResult[]; searchType?: SearchType }[],
+  ): SearchBackendFacetResult[] {
+    const isSingle = perIndexFacets.length === 1
+    const byField = new Map<
+      string,
+      { entries: Map<string, { count: number; type?: string }>; totalValues?: number }
+    >()
+
+    for (const { facets, searchType } of perIndexFacets) {
+      for (const facet of facets) {
+        if (!byField.has(facet.field)) {
+          byField.set(facet.field, {
+            entries: new Map(),
+            totalValues: isSingle ? facet.totalValues : undefined,
+          })
+        }
+        const entry = byField.get(facet.field)!
+        for (const { value, count } of facet.counts) {
+          if (facet.field === 'tags' && searchType !== undefined) {
+            const key = `${searchType}\0${value}`
+            const existing = entry.entries.get(key)
+            entry.entries.set(key, { count: (existing?.count ?? 0) + count, type: searchType })
+          } else {
+            const existing = entry.entries.get(value)
+            entry.entries.set(value, { count: (existing?.count ?? 0) + count })
+          }
+        }
+      }
+    }
+
+    return [...byField.entries()].map(([field, { entries, totalValues }]) => ({
+      field,
+      counts: [...entries.entries()]
+        .map(([key, { count, type }]) => {
+          const value = type !== undefined ? key.split('\0')[1] : key
+          return { value, count, label: value, ...(type !== undefined ? { type } : {}) }
+        })
+        .sort((a, b) => b.count - a.count),
+      ...(totalValues !== undefined ? { totalValues } : {}),
+    }))
+  }
+
+  private async resolveFacetLabels(
+    facets: SearchBackendFacetResult[],
+  ): Promise<SearchBackendFacetResult[]> {
+    for (const facet of facets) {
+      const EntityClass = SearchService.FACET_LABEL_ENTITIES[facet.field]
+      if (!EntityClass) continue
+      const svcResult = this.metaService.findEntityService(EntityClass)
+      if (!svcResult) continue
+      const [, service] = svcResult
+      const ids = [...new Set(facet.counts.map((c) => c.value))]
+      const entities = await service.findManyByID(ids)
+      const entityById = new Map(entities.map((e: any) => [e.id, e]))
+      for (const count of facet.counts) {
+        const entity = entityById.get(count.value)
+        if (entity) {
+          count.label = this.i18n.tr(entity.name) ?? count.value
+        }
+      }
+    }
+    return facets
   }
 
   async searchRelated(

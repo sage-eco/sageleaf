@@ -2,6 +2,7 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { ClsService } from 'nestjs-cls'
 import { PostHog } from 'posthog-node'
+import { uuidv7 } from 'uuidv7'
 
 import type { UserSession } from '@src/auth/auth.guard'
 
@@ -32,7 +33,7 @@ export class PosthogService implements OnModuleDestroy {
   capture(event: string, properties: Record<string, unknown>) {
     if (!this.client) return
     const session = this.cls.get<UserSession | null>('session')
-    const distinctId = session?.user?.id ?? 'anonymous'
+    const distinctId = session?.user?.id ?? uuidv7()
     this.client.capture({ distinctId, event, properties })
   }
 
@@ -52,7 +53,7 @@ export class PosthogService implements OnModuleDestroy {
 
     const err = exception instanceof Error ? exception : new Error(String(exception))
     const session = this.cls.get<UserSession | null>('session')
-    const distinctId = session?.user?.id
+    const distinctId = session?.user?.id ?? uuidv7()
     this.client.captureException(err, distinctId)
   }
 

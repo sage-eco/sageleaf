@@ -387,4 +387,225 @@ describe('SearchResolver (integration)', () => {
     expect(res.data?.search).toBeTruthy()
     expect(Array.isArray(res.data?.search.nodes)).toBe(true)
   })
+
+  test('returns facets from search results', async () => {
+    searchMock.mockImplementation(() => ({
+      hits: [],
+      found: 0,
+      facets: [
+        {
+          field: 'tags',
+          counts: [
+            { value: 'ceramic', count: 5 },
+            { value: 'glass', count: 2 },
+          ],
+        },
+        { field: 'categories', counts: [{ value: 'bottles', count: 7 }] },
+      ],
+    }))
+
+    const res = await gql.send(
+      graphql(`
+        query SearchResolverFacets($query: String!, $types: [SearchType!]) {
+          search(query: $query, types: $types) {
+            facets {
+              field
+              counts {
+                value
+                count
+              }
+            }
+          }
+        }
+      `),
+      { query: 'ceramic', types: [SearchType.Item] },
+    )
+
+    const facets = res.data?.search.facets as any[]
+    expect(facets).toBeTruthy()
+    const tagFacet = facets.find((f: any) => f.field === 'tags')
+    expect(tagFacet?.counts).toEqual([
+      { value: 'ceramic', count: 5 },
+      { value: 'glass', count: 2 },
+    ])
+    const categoryFacet = facets.find((f: any) => f.field === 'categories')
+    expect(categoryFacet?.counts).toEqual([{ value: 'bottles', count: 7 }])
+  })
+
+  test('facets(limit) caps returned values per facet', async () => {
+    searchMock.mockImplementation(() => ({
+      hits: [],
+      found: 0,
+      facets: [
+        {
+          field: 'tags',
+          counts: Array.from({ length: 15 }, (_, i) => ({ value: `tag-${i}`, count: 15 - i })),
+        },
+      ],
+    }))
+
+    const res = await gql.send(
+      graphql(`
+        query SearchResolverFacetsLimit($query: String!) {
+          search(query: $query) {
+            facets(limit: 3) {
+              field
+              counts {
+                value
+                count
+              }
+            }
+          }
+        }
+      `),
+      { query: 'test' },
+    )
+
+    const facets = res.data?.search.facets as any[]
+    expect(facets[0].counts).toHaveLength(3)
+    expect(facets[0].counts[0].value).toBe('tag-0')
+  })
+
+  test('facets limit is capped at 20', async () => {
+    searchMock.mockImplementation(() => ({
+      hits: [],
+      found: 0,
+      facets: [
+        {
+          field: 'tags',
+          counts: Array.from({ length: 20 }, (_, i) => ({ value: `tag-${i}`, count: 20 - i })),
+        },
+      ],
+    }))
+
+    const res = await gql.send(
+      graphql(`
+        query SearchResolverFacetsCapLimit($query: String!) {
+          search(query: $query) {
+            facets(limit: 99) {
+              field
+              counts {
+                value
+              }
+            }
+          }
+        }
+      `),
+      { query: 'test' },
+    )
+
+    const facets = res.data?.search.facets as any[]
+    expect(facets[0].counts).toHaveLength(20)
+  })
+
+  test('returns empty facets array when search returns no results', async () => {
+    const res = await gql.send(
+      graphql(`
+        query SearchResolverFacetsEmpty($query: String!) {
+          search(query: $query) {
+            facets {
+              field
+            }
+          }
+        }
+      `),
+      { query: 'nonexistent-xyz' },
+    )
+
+    expect(res.data?.search.facets).toEqual([])
+  })
+
+  test('facets label falls back to value when entity is not found', async () => {
+    searchMock.mockImplementation(() => ({
+      hits: [],
+      found: 0,
+      facets: [{ field: 'tags', counts: [{ value: 'unknown-tag-id', count: 3 }] }],
+    }))
+
+    const res = await gql.send(
+      graphql(`
+        query SearchResolverFacetsLabelFallback($query: String!) {
+          search(query: $query) {
+            facets {
+              field
+              counts {
+                value
+                label
+              }
+            }
+          }
+        }
+      `),
+      { query: 'test' },
+    )
+
+    const facets = res.data?.search.facets as any[]
+    const tagFacet = facets.find((f: any) => f.field === 'tags')
+    expect(tagFacet?.counts[0]).toEqual({ value: 'unknown-tag-id', label: 'unknown-tag-id' })
+  })
+
+  test('facets label is resolved from the entity name for categories', async () => {
+    searchMock.mockImplementation(() => ({
+      hits: [],
+      found: 0,
+      facets: [{ field: 'categories', counts: [{ value: CATEGORY_IDS[0], count: 5 }] }],
+    }))
+
+    const res = await gql.send(
+      graphql(`
+        query SearchResolverFacetsLabelResolved($query: String!, $types: [SearchType!]) {
+          search(query: $query, types: $types) {
+            facets {
+              field
+              counts {
+                value
+                label
+              }
+            }
+          }
+        }
+      `),
+      { query: 'packaging', types: [SearchType.Category] },
+    )
+
+    const facets = res.data?.search.facets as any[]
+    const catFacet = facets.find((f: any) => f.field === 'categories')
+    expect(catFacet?.counts[0]).toMatchObject({ value: CATEGORY_IDS[0], label: 'Packaging' })
+  })
+
+  test('filters arg is passed through to the backend multiSearch options', async () => {
+    await gql.send(
+      graphql(`
+        query SearchResolverFacetFilters(
+          $query: String!
+          $types: [SearchType!]
+          $filters: [SearchFacetFilterInput!]
+        ) {
+          search(query: $query, types: $types, filters: $filters) {
+            nodes {
+              __typename
+            }
+            totalCount
+          }
+        }
+      `),
+      {
+        query: 'ceramic',
+        types: [SearchType.Item],
+        filters: [{ field: 'tags', values: ['ceramic'] }],
+      } as any,
+    )
+
+    expect(multiSearchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        searches: expect.arrayContaining([
+          expect.objectContaining({
+            options: expect.objectContaining({
+              facetFilters: [{ field: 'tags', values: ['ceramic'] }],
+            }),
+          }),
+        ]),
+      }),
+    )
+  })
 })

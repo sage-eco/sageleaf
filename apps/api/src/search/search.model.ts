@@ -2,6 +2,7 @@ import {
   ArgsType,
   createUnionType,
   Field,
+  InputType,
   Int,
   ObjectType,
   registerEnumType,
@@ -16,6 +17,7 @@ import { Material } from '@src/process/material.model'
 import { Category } from '@src/product/category.model'
 import { Item } from '@src/product/item.model'
 import { Variant } from '@src/product/variant.model'
+import type { SearchBackendFacetResult } from '@src/search/search.backend'
 import { Org } from '@src/users/org.model'
 
 export enum SearchType {
@@ -47,6 +49,33 @@ class SearchResultItemEdge {
 }
 
 @ObjectType()
+export class SearchFacetCount {
+  @Field(() => String)
+  value: string = ''
+
+  @Field(() => Int)
+  count: number = 0
+
+  @Field(() => String)
+  label: string = ''
+
+  @Field(() => SearchType, { nullable: true })
+  type?: SearchType | null
+}
+
+@ObjectType()
+export class SearchFacetResult {
+  @Field(() => String)
+  field: string = ''
+
+  @Field(() => [SearchFacetCount])
+  counts: SearchFacetCount[] = []
+
+  @Field(() => Int, { nullable: true })
+  totalValues?: number
+}
+
+@ObjectType()
 export class SearchResultConnection implements IPaginatedType<typeof SearchResultItem> {
   @Field(() => [SearchResultItemEdge])
   edges: SearchResultItemEdge[] = []
@@ -59,6 +88,8 @@ export class SearchResultConnection implements IPaginatedType<typeof SearchResul
 
   @Field(() => PageInfo)
   pageInfo: PageInfo = { hasNextPage: false, hasPreviousPage: false }
+
+  _facets?: SearchBackendFacetResult[]
 }
 
 registerEnumType(SearchType, {
@@ -66,12 +97,22 @@ registerEnumType(SearchType, {
   description: 'The item type to search',
 })
 
+@InputType()
+export class SearchFacetFilterInput {
+  @Field(() => String)
+  field!: string
+
+  @Field(() => [String])
+  values!: string[]
+}
+
 export const SearchArgsSchema = z.object({
   query: z.string(),
   types: z.array(z.enum(SearchType)).optional(),
   latlong: z.array(z.number()).min(2).max(4).optional(),
   limit: z.number().int().positive().optional(),
   offset: z.number().int().min(0).optional(),
+  filters: z.array(z.object({ field: z.string(), values: z.array(z.string()).min(1) })).optional(),
 })
 
 @ArgsType()
@@ -92,4 +133,7 @@ export class SearchArgs {
 
   @Field(() => Int, { nullable: true })
   offset?: number
+
+  @Field(() => [SearchFacetFilterInput], { nullable: true })
+  filters?: SearchFacetFilterInput[]
 }

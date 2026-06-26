@@ -1,10 +1,11 @@
-import { EntityManager } from '@mikro-orm/postgresql'
+import { EntityManager, Loaded } from '@mikro-orm/postgresql'
 import { Injectable } from '@nestjs/common'
 import { type JSONSchemaType } from 'ajv/dist/2020'
 
 import { I18nService } from '@src/common/i18n.service'
 import { CursorOptions } from '@src/common/transform'
 import { AjvTemplateSchema, JSONObject } from '@src/common/z.schema'
+import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
 import { Tag, TagMetaTemplateSchema } from '@src/process/tag.entity'
 import { CreateTagDefinitionInput, UpdateTagDefinitionInput } from '@src/process/tag.model'
 
@@ -14,11 +15,24 @@ export interface TagInput {
 }
 
 @Injectable()
-export class TagService {
+@IsEntityService(Tag)
+export class TagService implements IEntityService<Tag> {
   constructor(
     private readonly em: EntityManager,
     private readonly i18n: I18nService,
   ) {}
+
+  queryFields(): Record<string, QueryField> {
+    return {}
+  }
+
+  async findOneByID(id: string): Promise<Loaded<Tag> | null> {
+    return await this.em.findOne(Tag, { id })
+  }
+
+  async findManyByID(ids: string[]): Promise<Loaded<Tag>[]> {
+    return this.em.find(Tag, { id: { $in: ids } })
+  }
 
   async find(opts: CursorOptions<Tag>) {
     const tags = await this.em.find(Tag, opts.where, opts.options)
@@ -27,10 +41,6 @@ export class TagService {
       items: tags,
       count,
     }
-  }
-
-  async findOneByID(id: string) {
-    return await this.em.findOne(Tag, { id })
   }
 
   async create(input: CreateTagDefinitionInput) {

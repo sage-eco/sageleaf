@@ -2319,6 +2319,7 @@ export type QueryRegionsArgs = {
 
 
 export type QuerySearchArgs = {
+  filters?: InputMaybe<Array<SearchFacetFilterInput>>;
   latlong?: InputMaybe<Array<Scalars['Float']['input']>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
@@ -2539,12 +2540,38 @@ export type ReuseStreamProgramsArgs = {
   query?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type SearchFacetCount = {
+  __typename?: 'SearchFacetCount';
+  count: Scalars['Int']['output'];
+  label: Scalars['String']['output'];
+  type?: Maybe<SearchType>;
+  value: Scalars['String']['output'];
+};
+
+export type SearchFacetFilterInput = {
+  field: Scalars['String']['input'];
+  values: Array<Scalars['String']['input']>;
+};
+
+export type SearchFacetResult = {
+  __typename?: 'SearchFacetResult';
+  counts: Array<SearchFacetCount>;
+  field: Scalars['String']['output'];
+  totalValues?: Maybe<Scalars['Int']['output']>;
+};
+
 export type SearchResultConnection = {
   __typename?: 'SearchResultConnection';
   edges: Array<SearchResultItemEdge>;
+  facets: Array<SearchFacetResult>;
   nodes: Array<SearchResultItem>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
+};
+
+
+export type SearchResultConnectionFacetsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type SearchResultItem = Category | Component | Item | Material | Org | Place | Region | Variant;
