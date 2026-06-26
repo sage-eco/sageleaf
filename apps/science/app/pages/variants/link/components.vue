@@ -203,6 +203,38 @@
               </div>
             </div>
 
+            <div
+              v-if="searchResults.length > 0 && searchTotalCount > 0"
+              class="flex items-center justify-between text-xs"
+            >
+              <span class="opacity-60">
+                {{ searchOffset + 1 }}–{{
+                  Math.min(searchOffset + SEARCH_PAGE_SIZE, searchTotalCount)
+                }}
+                of {{ searchTotalCount }}
+              </span>
+              <div class="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  :disabled="!searchHasPreviousPage"
+                  title="Previous"
+                  @click="prevSearchPage"
+                >
+                  <ChevronLeft :size="16" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  :disabled="!searchHasNextPage"
+                  title="Next"
+                  @click="nextSearchPage"
+                >
+                  <ChevronRight :size="16" />
+                </Button>
+              </div>
+            </div>
+
             <!-- Per-component quantity/unit inputs -->
             <div
               v-if="selectedIds.size > 0"
@@ -254,7 +286,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Box, Link2, Search, X } from '@lucide/vue'
+import { ArrowLeft, Box, ChevronLeft, ChevronRight, Link2, Search, X } from '@lucide/vue'
 import { watchDebounced } from '@vueuse/core'
 
 import { graphql } from '~/gql'
@@ -358,9 +390,17 @@ const debouncedSearch = ref('')
 
 watchDebounced(searchInput, (val) => (debouncedSearch.value = val), { debounce: 300 })
 
+const SEARCH_PAGE_SIZE = 20
+const searchOffset = ref(0)
+
+watch(debouncedSearch, () => {
+  searchOffset.value = 0
+})
+
 const searchQuery = graphql(`
-  query LinkComponentsSearch($query: String!) {
-    search(query: $query, types: [COMPONENT]) {
+  query LinkComponentsSearch($query: String!, $limit: Int, $offset: Int) {
+    search(query: $query, types: [COMPONENT], limit: $limit, offset: $offset) {
+      totalCount
       nodes {
         __typename
         ... on Component {
@@ -383,7 +423,11 @@ type SearchNode = {
 
 const { result: searchData, loading: searchLoading } = useQuery(
   searchQuery,
-  () => ({ query: debouncedSearch.value }),
+  () => ({
+    query: debouncedSearch.value,
+    limit: SEARCH_PAGE_SIZE,
+    offset: searchOffset.value,
+  }),
   () => ({ enabled: debouncedSearch.value.length >= 2 }),
 )
 
@@ -400,6 +444,20 @@ const searchResults = computed<SearchNode[]>(() => {
 const searchResultsMap = computed<Record<string, SearchNode>>(() => {
   return Object.fromEntries(searchResults.value.map((r) => [r.id, r]))
 })
+
+const searchTotalCount = computed(() => searchData.value?.search?.totalCount ?? 0)
+const searchHasNextPage = computed(
+  () => searchOffset.value + SEARCH_PAGE_SIZE < searchTotalCount.value,
+)
+const searchHasPreviousPage = computed(() => searchOffset.value > 0)
+
+const nextSearchPage = () => {
+  if (searchHasNextPage.value) searchOffset.value += SEARCH_PAGE_SIZE
+}
+
+const prevSearchPage = () => {
+  if (searchHasPreviousPage.value) searchOffset.value -= SEARCH_PAGE_SIZE
+}
 
 // ── Selection ──────────────────────────────────────────────────────────────────
 

@@ -14,6 +14,7 @@ const createEmptyStyles = (): Styles => ({
   dialog: {},
   oneOf: {},
   categorization: {},
+  translatedField: {},
 })
 
 export interface Styles {
@@ -84,6 +85,31 @@ export interface Styles {
     stepperFooter?: string
     stepperButtonBack?: string
     stepperButtonNext?: string
+  }
+  translatedField: {
+    root?: string
+    labelRow?: string
+    label?: string
+    required?: string
+    asterisk?: string
+    tabBar?: string
+    tab?: string
+    tabActive?: string
+    addButton?: string
+    addButtonContent?: string
+    dropdown?: string
+    dropdownSearch?: string
+    dropdownList?: string
+    dropdownSectionHeader?: string
+    dropdownItem?: string
+    dropdownItemActive?: string
+    dropdownItemLabel?: string
+    dropdownItemCode?: string
+    fieldRow?: string
+    field?: string
+    checkbox?: string
+    checkboxLabel?: string
+    empty?: string
   }
 }
 

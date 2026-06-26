@@ -548,6 +548,14 @@
         "vue/no-required-prop-with-default": "warn"
       },
       "plugins": ["vue"]
+    },
+    {
+      "files": ["app/utils/iso639.ts"],
+      "rules": {
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "@typescript-eslint/no-explicit-any": "off"
+      }
     }
   ]
 }
