@@ -60,6 +60,7 @@ export interface SearchBackendSearchOptions {
   limit?: number
   offset?: number
   filters?: SearchBackendFilter[]
+  facetFilters?: { field: string; values: string[] }[]
   geo?: SearchBackendGeoFilter
   lang?: string
   vector?: SearchBackendVectorQuery
@@ -81,9 +82,23 @@ export interface SearchBackendHit {
   }
 }
 
+export interface SearchBackendFacetCount {
+  value: string
+  count: number
+  label?: string
+  type?: string
+}
+
+export interface SearchBackendFacetResult {
+  field: string
+  counts: SearchBackendFacetCount[]
+  totalValues?: number
+}
+
 export interface SearchBackendSearchResult {
   hits: SearchBackendHit[]
   found: number
+  facets?: SearchBackendFacetResult[]
 }
 
 export interface SearchBackendMultiSearchRequest {

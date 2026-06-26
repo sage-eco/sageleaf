@@ -311,6 +311,172 @@ describe('TypesenseSearchService', () => {
     )
   })
 
+  test('adds facet_by and max_facet_values when schema has facet fields', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'items',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+          { name: 'categories', type: 'string[]', facet: true },
+        ],
+      },
+    ])
+
+    await service.search({ collection: 'items', query: 'ceramic' })
+
+    expect(mockMultiSearch).toHaveBeenCalledWith(
+      {
+        searches: [
+          expect.objectContaining({
+            facet_by: 'tags,categories',
+            max_facet_values: 20,
+          }),
+        ],
+      },
+      {},
+    )
+  })
+
+  test('omits facet_by when schema has no facet fields', async () => {
+    const { service, mockMultiSearch } = makeTypesenseSearchService()
+
+    await service.search({ collection: 'items', query: 'ceramic' })
+
+    const call = mockMultiSearch.mock.calls[0][0] as any
+    expect(call.searches[0]).not.toHaveProperty('facet_by')
+    expect(call.searches[0]).not.toHaveProperty('max_facet_values')
+  })
+
+  test('normalizes facet_counts from Typesense response', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'items',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+        ],
+      },
+    ])
+    mockMultiSearch.mockResolvedValueOnce({
+      results: [
+        {
+          found: 2,
+          hits: [],
+          facet_counts: [
+            {
+              field_name: 'tags',
+              counts: [
+                { value: 'ceramic', count: 5, highlighted: '<mark>ceramic</mark>' },
+                { value: 'glass', count: 2, highlighted: '<mark>glass</mark>' },
+              ],
+              stats: { total_values: 2 },
+            },
+          ],
+        },
+      ],
+    })
+
+    const result = await service.search({ collection: 'items', query: 'ceramic' })
+
+    expect(result.facets).toEqual([
+      {
+        field: 'tags',
+        counts: [
+          { value: 'ceramic', count: 5 },
+          { value: 'glass', count: 2 },
+        ],
+        totalValues: 2,
+      },
+    ])
+    // highlighted is present in raw Typesense response but must not leak through
+    expect(result.facets![0].counts[0]).not.toHaveProperty('highlighted')
+  })
+
+  test('omits facets from result when response has no facet_counts', async () => {
+    const { service, mockMultiSearch } = makeTypesenseSearchService()
+    mockMultiSearch.mockResolvedValueOnce({
+      results: [{ found: 0, hits: [] }],
+    })
+
+    const result = await service.search({ collection: 'items', query: 'ceramic' })
+
+    expect(result.facets).toBeUndefined()
+  })
+
+  test('appends joined tag facets for reference fields pointing to collections with tags facet', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'variants',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+          { name: 'components', type: 'string[]', facet: false, reference: 'components.id' },
+        ],
+      },
+      {
+        name: 'components',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+        ],
+      },
+    ])
+
+    await service.search({ collection: 'variants', query: 'glass' })
+
+    const call = mockMultiSearch.mock.calls[0][0] as any
+    expect(call.searches[0].facet_by).toBe('tags,$components(tags)')
+  })
+
+  test('normalizes $Collection(field) facet field names to the inner field name', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'variants',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'components', type: 'string[]', reference: 'components.id' },
+        ],
+      },
+      {
+        name: 'components',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+        ],
+      },
+    ])
+    mockMultiSearch.mockResolvedValueOnce({
+      results: [
+        {
+          found: 0,
+          hits: [],
+          facet_counts: [
+            {
+              field_name: '$components(tags)',
+              counts: [{ value: 'recycled', count: 3 }],
+              stats: { total_values: 1 },
+            },
+          ],
+        },
+      ],
+    })
+
+    const result = await service.search({ collection: 'variants', query: 'glass' })
+
+    expect(result.facets).toEqual([
+      {
+        field: 'tags',
+        counts: [{ value: 'recycled', count: 3 }],
+        totalValues: 1,
+      },
+    ])
+  })
+
   test('includes document-id vector_query when a source document is provided', async () => {
     const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
     mockCollectionsRetrieve.mockResolvedValue([
@@ -344,5 +510,166 @@ describe('TypesenseSearchService', () => {
       },
       {},
     )
+  })
+
+  test('facetFilters: direct field match emits field:=[values]', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'items',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+        ],
+      },
+    ])
+
+    await service.search({
+      collection: 'items',
+      query: 'ceramic',
+      options: {
+        facetFilters: [{ field: 'tags', values: ['A', 'B'] }],
+      },
+    })
+
+    const call = mockMultiSearch.mock.calls[0][0] as any
+    expect(call.searches[0].filter_by).toBe('tags:=[`A`,`B`]')
+  })
+
+  test('facetFilters: join-only match emits $refCol(field:=[values])', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'variants',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'components', type: 'string[]', reference: 'components.id' },
+        ],
+      },
+      {
+        name: 'components',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+        ],
+      },
+    ])
+
+    await service.search({
+      collection: 'variants',
+      query: 'glass',
+      options: {
+        facetFilters: [{ field: 'tags', values: ['recycled'] }],
+      },
+    })
+
+    const call = mockMultiSearch.mock.calls[0][0] as any
+    expect(call.searches[0].filter_by).toBe('$components(tags:=[`recycled`])')
+  })
+
+  test('facetFilters: primary + join emits OR clause', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'variants',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+          { name: 'components', type: 'string[]', reference: 'components.id' },
+        ],
+      },
+      {
+        name: 'components',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+        ],
+      },
+    ])
+
+    await service.search({
+      collection: 'variants',
+      query: 'glass',
+      options: {
+        facetFilters: [{ field: 'tags', values: ['A'] }],
+      },
+    })
+
+    const call = mockMultiSearch.mock.calls[0][0] as any
+    expect(call.searches[0].filter_by).toBe('tags:=[`A`] || $components(tags:=[`A`])')
+  })
+
+  test('facetFilters: multiple filters are ANDed together', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'items',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+          { name: 'categories', type: 'string[]', facet: true },
+        ],
+      },
+    ])
+
+    await service.search({
+      collection: 'items',
+      query: 'bottle',
+      options: {
+        facetFilters: [
+          { field: 'tags', values: ['A'] },
+          { field: 'categories', values: ['C'] },
+        ],
+      },
+    })
+
+    const call = mockMultiSearch.mock.calls[0][0] as any
+    expect(call.searches[0].filter_by).toBe('tags:=[`A`] && categories:=[`C`]')
+  })
+
+  test('facetFilters: combined with existing filter_by via &&', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'items',
+        fields: [
+          { name: 'name_en', type: 'string' },
+          { name: 'tags', type: 'string[]', facet: true },
+        ],
+      },
+    ])
+
+    await service.search({
+      collection: 'items',
+      query: 'bottle',
+      options: {
+        filters: [{ type: 'field', field: 'active', operator: '=', value: true }],
+        facetFilters: [{ field: 'tags', values: ['eco'] }],
+      },
+    })
+
+    const call = mockMultiSearch.mock.calls[0][0] as any
+    expect(call.searches[0].filter_by).toBe('active:=true && tags:=[`eco`]')
+  })
+
+  test('facetFilters: unknown field on primary with no matching refs returns no filter', async () => {
+    const { service, mockCollectionsRetrieve, mockMultiSearch } = makeTypesenseSearchService()
+    mockCollectionsRetrieve.mockResolvedValue([
+      {
+        name: 'items',
+        fields: [{ name: 'name_en', type: 'string' }],
+      },
+    ])
+
+    await service.search({
+      collection: 'items',
+      query: 'bottle',
+      options: {
+        facetFilters: [{ field: 'nonexistent', values: ['x'] }],
+      },
+    })
+
+    const call = mockMultiSearch.mock.calls[0][0] as any
+    expect(call.searches[0]).not.toHaveProperty('filter_by')
   })
 })

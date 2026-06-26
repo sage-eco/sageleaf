@@ -1504,7 +1504,7 @@ type Query {
   programs(after: String, before: String, first: Int, last: Int): ProgramsConnection!
   region(id: ID!): Region
   regions(after: String, before: String, first: Int, last: Int): RegionsConnection!
-  search(latlong: [Float!], limit: Int, offset: Int, query: String!, types: [SearchType!]): SearchResultConnection!
+  search(filters: [SearchFacetFilterInput!], latlong: [Float!], limit: Int, offset: Int, query: String!, types: [SearchType!]): SearchResultConnection!
   searchRegionsByPoint(after: String, before: String, first: Int, last: Int, latlong: [Float!]!): RegionsConnection!
   source(id: ID!): Source
   sources(after: String, before: String, first: Int, last: Int, type: SourceType): SourcesConnection!
@@ -1648,8 +1648,27 @@ type ReuseStream {
   scores: [StreamScore!]
 }
 
+type SearchFacetCount {
+  count: Int!
+  label: String!
+  type: SearchType
+  value: String!
+}
+
+input SearchFacetFilterInput {
+  field: String!
+  values: [String!]!
+}
+
+type SearchFacetResult {
+  counts: [SearchFacetCount!]!
+  field: String!
+  totalValues: Int
+}
+
 type SearchResultConnection {
   edges: [SearchResultItemEdge!]!
+  facets(limit: Int): [SearchFacetResult!]!
   nodes: [SearchResultItem!]!
   pageInfo: PageInfo!
   totalCount: Int!

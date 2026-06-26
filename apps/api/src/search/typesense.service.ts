@@ -4,6 +4,7 @@ import Typesense, { Client as TypesenseClient } from 'typesense'
 
 import {
   SearchBackend,
+  SearchBackendFacetResult,
   SearchBackendFilter,
   SearchBackendGeoFilter,
   SearchBackendHit,
@@ -24,15 +25,25 @@ type TypesenseSearchHit = {
   text_match: number
 }
 
+type TypesenseFacetCount = { count: number; value: string; highlighted?: string }
+type TypesenseFacetResult = {
+  field_name: string
+  counts: TypesenseFacetCount[]
+  stats: { total_values?: number }
+}
+
 type TypesenseSearchResponse = {
   found: number
   hits?: TypesenseSearchHit[]
+  facet_counts?: TypesenseFacetResult[]
 }
 
 type TypesenseCollectionField = {
   name: string
   type: string
   index?: boolean
+  facet?: boolean
+  reference?: string
 }
 
 type TypesenseCollection = {
@@ -128,10 +139,40 @@ export class TypesenseSearchService implements SearchBackend, OnModuleInit {
       ),
     )
     const schemaByCollection = new Map<string, TypesenseCollection>(schemaEntries)
+
+    const refCollectionNames = new Set<string>()
+    for (const schema of schemaByCollection.values()) {
+      for (const field of schema.fields) {
+        if (field.reference) {
+          const refCol = field.reference.split('.')[0]
+          if (!schemaByCollection.has(refCol)) {
+            refCollectionNames.add(refCol)
+          }
+        }
+      }
+    }
+    const refSchemaEntries = await Promise.all(
+      [...refCollectionNames].map(
+        async (collection): Promise<[string, TypesenseCollection]> => [
+          collection,
+          await this.getCollectionSchema(collection),
+        ],
+      ),
+    )
+    const allSchemas = new Map<string, TypesenseCollection>([
+      ...schemaByCollection,
+      ...refSchemaEntries,
+    ])
+
     const result = await this.requireClient().multiSearch.perform(
       {
         searches: request.searches.map((search) =>
-          this.buildSearchParams(search, schemaByCollection.get(search.collection)!, true),
+          this.buildSearchParams(
+            search,
+            schemaByCollection.get(search.collection)!,
+            allSchemas,
+            true,
+          ),
         ),
       },
       {},
@@ -257,11 +298,32 @@ export class TypesenseSearchService implements SearchBackend, OnModuleInit {
   private buildSearchParams(
     request: SearchBackendSearchRequest,
     schema: TypesenseCollection,
+    allSchemas: Map<string, TypesenseCollection>,
     includeCollection = false,
   ) {
     const filterBy = this.buildFilterBy(request.options?.filters, request.options?.geo)
     const hasVectorField = schema.fields.some((f) => f.name === 'embedding')
     const vectorQuery = this.buildVectorQuery(request.options?.vector, hasVectorField)
+    const facetFields = schema.fields.filter((f) => f.facet).map((f) => f.name)
+
+    const joinFacetFields: string[] = []
+    for (const field of schema.fields) {
+      if (!field.reference) continue
+      const refColName = field.reference.split('.')[0]
+      const refSchema = allSchemas.get(refColName)
+      if (refSchema?.fields.some((f) => f.name === 'tags' && f.facet)) {
+        joinFacetFields.push(`$${refColName}(tags)`)
+      }
+    }
+
+    const allFacetFields = [...facetFields, ...joinFacetFields]
+
+    const facetClauses = (request.options?.facetFilters ?? [])
+      .map(({ field, values }) => this.buildFacetFilterClause(field, values, schema, allSchemas))
+      .filter((c): c is string => c !== undefined)
+
+    const allFilterClauses = [filterBy, ...facetClauses].filter(Boolean)
+    const combinedFilterBy = allFilterClauses.length ? allFilterClauses.join(' && ') : undefined
 
     return {
       ...(includeCollection ? { collection: request.collection } : {}),
@@ -271,9 +333,41 @@ export class TypesenseSearchService implements SearchBackend, OnModuleInit {
       highlight_fields: 'none',
       ...(request.options?.limit !== undefined ? { limit: request.options.limit } : {}),
       ...(request.options?.offset !== undefined ? { offset: request.options.offset } : {}),
-      ...(filterBy ? { filter_by: filterBy } : {}),
+      ...(combinedFilterBy ? { filter_by: combinedFilterBy } : {}),
       ...(vectorQuery ? { vector_query: vectorQuery } : {}),
+      ...(allFacetFields.length
+        ? { facet_by: allFacetFields.join(','), max_facet_values: 20 }
+        : {}),
     }
+  }
+
+  private buildFacetFilterClause(
+    field: string,
+    values: string[],
+    schema: TypesenseCollection,
+    allSchemas: Map<string, TypesenseCollection>,
+  ): string | undefined {
+    const escape = (v: string) => `\`${v.replaceAll('`', '\\`')}\``
+    const valueList = values.map(escape).join(',')
+    const clauses: string[] = []
+
+    if (schema.fields.some((f) => f.name === field)) {
+      clauses.push(`${field}:=[${valueList}]`)
+    }
+
+    const seenRefCols = new Set<string>()
+    for (const f of schema.fields) {
+      if (!f.reference) continue
+      const refColName = f.reference.split('.')[0]
+      if (seenRefCols.has(refColName)) continue
+      seenRefCols.add(refColName)
+      const refSchema = allSchemas.get(refColName)
+      if (refSchema?.fields.some((rf) => rf.name === field)) {
+        clauses.push(`$${refColName}(${field}:=[${valueList}])`)
+      }
+    }
+
+    return clauses.length ? clauses.join(' || ') : undefined
   }
 
   private buildVectorQuery(vector: SearchBackendVectorQuery | undefined, hasVectorField: boolean) {
@@ -360,13 +454,28 @@ export class TypesenseSearchService implements SearchBackend, OnModuleInit {
     return `${filter.field}:=${value}`
   }
 
+  private normalizeJoinFacetFieldName(name: string): string {
+    const match = /^\$[^(]+\((.+)\)$/.exec(name)
+    return match ? match[1] : name
+  }
+
   private normalizeSearchResponse(
     result: TypesenseSearchResponse,
     sourceCollection: string,
   ): SearchBackendSearchResult {
+    const facets: SearchBackendFacetResult[] = (result.facet_counts ?? []).map((fc) => ({
+      field: this.normalizeJoinFacetFieldName(fc.field_name),
+      counts: fc.counts.map((c) => ({
+        value: c.value,
+        count: c.count,
+      })),
+      totalValues: fc.stats?.total_values,
+    }))
+
     return {
       hits: (result.hits || []).map((hit) => this.normalizeHit(hit, sourceCollection)),
       found: result.found || 0,
+      ...(facets.length ? { facets } : {}),
     }
   }
 
