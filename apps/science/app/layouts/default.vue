@@ -16,7 +16,7 @@
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton as-child class="h-12 px-4">
+                  <SidebarMenuButton as-child class="h-auto! overflow-visible! px-4">
                     <SidebarChangeSelector />
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -94,6 +94,10 @@
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent v-if="session?.data?.user" side="top" class="w-48">
+                  <DropdownMenuItem @click="navigateTo('/settings')">
+                    <Settings :size="16" />
+                    <span>{{ t('nav.settings', { ns: 'science' }) }}</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem @click="signOut">
                     <span>Sign out</span>
                   </DropdownMenuItem>
@@ -145,21 +149,32 @@ import {
   Building2,
   ChevronsUpDown,
   ChevronDown,
-  Database,
+  ClipboardList,
   GitMerge,
   Layers,
   LayoutDashboard,
   LayoutGrid,
   List,
   MapPin,
+  Settings,
   Shapes,
   User,
   Workflow,
 } from '@lucide/vue'
+import { provideDisplayLanguages } from '@sageleaf/ui/app/composables/useDisplayLanguages'
 import { useTranslate } from '@tolgee/vue'
+
+import { usePreferencesStore } from '~/stores/preferences_store'
 
 const sidebarOpen = ref(true)
 const showSignIn = useShowSignIn()
+
+const preferencesStore = usePreferencesStore()
+provideDisplayLanguages({
+  languages: computed(() => preferencesStore.displayLanguages),
+  addLanguage: (code) => preferencesStore.addDisplayLanguage(code),
+  removeLanguage: (code) => preferencesStore.removeDisplayLanguage(code),
+})
 
 const { t } = useTranslate()
 
@@ -223,12 +238,6 @@ const menuItems = computed(() => [
     ],
   },
   {
-    title: t.value('nav.sources', { ns: 'science' }),
-    url: '/sources',
-    icon: Database,
-    subItems: [{ title: t.value('nav.sources.index', { ns: 'science' }), url: '/sources' }],
-  },
-  {
     title: t.value('nav.orgs', { ns: 'science' }),
     url: '/orgs',
     icon: Building2,
@@ -241,10 +250,19 @@ const menuItems = computed(() => [
     subItems: [{ title: t.value('nav.places.index', { ns: 'science' }), url: '/places' }],
   },
   {
+    title: t.value('nav.programs', { ns: 'science' }),
+    url: '/programs',
+    icon: ClipboardList,
+    subItems: [{ title: t.value('nav.programs.index', { ns: 'science' }), url: '/programs' }],
+  },
+  {
     title: t.value('nav.changes', { ns: 'science' }),
     url: '/changes',
     icon: GitMerge,
-    subItems: [{ title: t.value('nav.changes.index', { ns: 'science' }), url: '/changes' }],
+    subItems: [
+      { title: t.value('nav.changes.index', { ns: 'science' }), url: '/changes' },
+      { title: t.value('nav.sources', { ns: 'science' }), url: '/sources' },
+    ],
   },
 ])
 

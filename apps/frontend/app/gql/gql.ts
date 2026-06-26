@@ -82,6 +82,7 @@ type Documents = {
     "\n  fragment ListOrgFragment on Org {\n    id\n    name_req: name\n    desc\n    avatarURL\n  }\n": typeof types.ListOrgFragmentFragmentDoc,
     "\n  fragment ListPlaceFragment on Place {\n    id\n    name\n    desc\n  }\n": typeof types.ListPlaceFragmentFragmentDoc,
     "\n  fragment ListProcessFragment on Process {\n    id\n    name\n    desc\n  }\n": typeof types.ListProcessFragmentFragmentDoc,
+    "\n  fragment ListProgramFragment on Program {\n    id\n    name\n    desc\n    status\n  }\n": typeof types.ListProgramFragmentFragmentDoc,
     "\n  fragment ListRegionFragment on Region {\n    id\n    name\n  }\n": typeof types.ListRegionFragmentFragmentDoc,
     "\n  fragment ListVariantFragment on Variant {\n    id\n    name\n    desc\n    imageURL\n  }\n": typeof types.ListVariantFragmentFragmentDoc,
     "\n      query RefSearchQuery($input: String!, $type: SearchType!) {\n        search(query: $input, types: [$type]) {\n          totalCount\n          nodes {\n            ...ListCategoryFragment\n            ...ListItemFragment\n            ...ListVariantFragment\n            ...ListComponentFragment\n            ...ListOrgFragment\n            ...ListRegionFragment\n            ...ListPlaceFragment\n            ...ListMaterialFragment\n          }\n        }\n      }\n    ": typeof types.RefSearchQueryDocument,
@@ -155,6 +156,7 @@ const documents: Documents = {
     "\n  fragment ListOrgFragment on Org {\n    id\n    name_req: name\n    desc\n    avatarURL\n  }\n": types.ListOrgFragmentFragmentDoc,
     "\n  fragment ListPlaceFragment on Place {\n    id\n    name\n    desc\n  }\n": types.ListPlaceFragmentFragmentDoc,
     "\n  fragment ListProcessFragment on Process {\n    id\n    name\n    desc\n  }\n": types.ListProcessFragmentFragmentDoc,
+    "\n  fragment ListProgramFragment on Program {\n    id\n    name\n    desc\n    status\n  }\n": types.ListProgramFragmentFragmentDoc,
     "\n  fragment ListRegionFragment on Region {\n    id\n    name\n  }\n": types.ListRegionFragmentFragmentDoc,
     "\n  fragment ListVariantFragment on Variant {\n    id\n    name\n    desc\n    imageURL\n  }\n": types.ListVariantFragmentFragmentDoc,
     "\n      query RefSearchQuery($input: String!, $type: SearchType!) {\n        search(query: $input, types: [$type]) {\n          totalCount\n          nodes {\n            ...ListCategoryFragment\n            ...ListItemFragment\n            ...ListVariantFragment\n            ...ListComponentFragment\n            ...ListOrgFragment\n            ...ListRegionFragment\n            ...ListPlaceFragment\n            ...ListMaterialFragment\n          }\n        }\n      }\n    ": types.RefSearchQueryDocument,
@@ -446,6 +448,10 @@ export function graphql(source: "\n  fragment ListPlaceFragment on Place {\n    
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  fragment ListProcessFragment on Process {\n    id\n    name\n    desc\n  }\n"): (typeof documents)["\n  fragment ListProcessFragment on Process {\n    id\n    name\n    desc\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment ListProgramFragment on Program {\n    id\n    name\n    desc\n    status\n  }\n"): (typeof documents)["\n  fragment ListProgramFragment on Program {\n    id\n    name\n    desc\n    status\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
