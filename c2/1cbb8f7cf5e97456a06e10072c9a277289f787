@@ -1,0 +1,177 @@
+apps/science/app/components/sidebar/ChangeSelector.vue
+  s_f88bbdd472b6dd::t_8c3d4d780de693 161-162
+  s_f88bbdd472b6dd::t_3bf3604ac50060 86-87,90
+  s_f88bbdd472b6dd::t_e9a64fe40b7f61 16
+  s_f88bbdd472b6dd::t_f59e841f3baad6 2-15,17-22,24-26,33-39,46-53,74-75,77-79,95-105,108,114,119,164-178,181-198,201-218,222-223,225,230-231,239,245-247,252-253,255-256,258-273,275
+  s_f88bbdd472b6dd::t_114dcfedd42517 73,76
+  s_f88bbdd472b6dd::t_2f83dbee30298c 40-45,82-83
+  s_f88bbdd472b6dd::t_eed2faf03db71a 27-32
+  s_f88bbdd472b6dd::t_e49b42a856ce19 55-59,61-72,81,84-85,88-89,113,124,129-140,142-148,150-155,163,220,224,226,232-234,236-237,240,248-251,254,257
+  s_f88bbdd472b6dd::t_19039c9d21f3c9 126-127
+  s_9d9a19d311e8e6::t_01f40bc22847c1 180,219,221,235,238,274,276
+apps/science/app/pages/programs/index.vue
+  s_f88bbdd472b6dd::t_96ebd7bc05390f 1-180
+apps/science/app/composables/useEditDiff.ts
+  s_f88bbdd472b6dd::t_102d86b9575d73 24,31
+  s_f88bbdd472b6dd::t_348c06e208e3eb 1-22,26-30,32-34,36-110
+  s_f88bbdd472b6dd::t_0e55a1e00fcbd2 23,25,35
+apps/science/app/composables/useChangeStatusDisplay.ts
+  s_f88bbdd472b6dd::t_a8020e03b49760 1-61
+packages/ui/app/utils/iso639-helpers.ts
+  s_f88bbdd472b6dd::t_0dde1d4a68ee12 1-32
+apps/science/app/pages/settings/index.vue
+  s_f88bbdd472b6dd::t_31987030cc0c91 4,8,12,20,28,52,57,67,72-75,79,81-84
+  s_f88bbdd472b6dd::t_76873ef575eaa5 18
+  s_f88bbdd472b6dd::t_9f458fb14d15d8 132-134
+  s_f88bbdd472b6dd::t_4c827a4c3fa0bb 1-3,5-7,9-11,13-17,19,21-27,29-51,53-56,58-66,68-71,76-78,80,85-96,98-101,103-131,135-143
+  s_f88bbdd472b6dd::t_0fa68153e67730 102
+  s_f88bbdd472b6dd::t_85ca0f57c04a75 97
+apps/science/app/stores/preferences_store.ts
+  s_f88bbdd472b6dd::t_27fd98779aea2e 1-29,33-57
+  s_f88bbdd472b6dd::t_81cb65e149c9fe 30-32
+packages/ui/app/forms/styles/defaultStyles.ts
+  s_f88bbdd472b6dd::t_af9fc7d37dfad9 72-73,78-85,91-92,95-98
+  s_f88bbdd472b6dd::t_1a1bd1d4c23402 90
+  s_f88bbdd472b6dd::t_0fbdfb6e8b960c 86-89
+  s_f88bbdd472b6dd::t_436f3419aaa153 74-77,93-94
+packages/ui/app/composables/useDisplayLanguages.ts
+  s_f88bbdd472b6dd::t_b0f4077c63b48e 2
+  s_f88bbdd472b6dd::t_88f706708541a0 4
+  s_f88bbdd472b6dd::t_3f3e39d78d0436 6-10,12-13,29-39,41-51,53,55-66
+  s_f88bbdd472b6dd::t_5273ef69ed82f3 14,52,54,67-78
+  s_f88bbdd472b6dd::t_3ad96f03296b52 1,3,5,11,15-28,40,79
+packages/ui/app/utils/iso639.ts
+  s_9d9a19d311e8e6::t_01f40bc22847c1 1-1017
+apps/science/app/components/sidebar/ChangeNewDialog.vue
+  s_f88bbdd472b6dd::t_f7c942f562e464 1-20
+packages/ui/app/components/model/list/Program.vue
+  s_f88bbdd472b6dd::t_cb4831bee4b984 1-62
+apps/science/i18n/science/sv.json
+  s_f88bbdd472b6dd::t_df55c1cfa7d609 10
+apps/science/app/pages/categories/link/items.vue
+  s_f88bbdd472b6dd::t_d9b45571a2bf2a 196-227
+  s_f88bbdd472b6dd::t_e6a3a982c41b0b 254,355-361,363-365,388-392,403-415
+  s_9d9a19d311e8e6::t_ce200e7a2be3be 416
+packages/ui/app/components/form/JsonSchema.vue
+  s_9d9a19d311e8e6::t_01f40bc22847c1 85
+  s_f88bbdd472b6dd::t_07435adff8292a 2-4,6-40,46,50,73-76,78,81-84
+  s_f88bbdd472b6dd::t_66f93a9b5af85e 5,47
+packages/ui/.oxlintrc.json
+  s_f88bbdd472b6dd::t_f4c3980cb53082 551-558
+apps/science/i18n/science/en.json
+  s_f88bbdd472b6dd::t_d5c91b5fb5e996 21-22
+  s_f88bbdd472b6dd::t_e2b19df007a378 25
+apps/science/app/pages/items/link/variants.vue
+  s_f88bbdd472b6dd::t_77bf481a41f81f 198-229
+  s_f88bbdd472b6dd::t_061a91d5234650 256,354-360,362-364,387-391,404-416
+  s_9d9a19d311e8e6::t_25458ec39cdddf 417
+apps/science/app/components/sidebar/ChangeDeleteDialog.vue
+  s_f88bbdd472b6dd::t_c36bae63726c96 28
+  s_f88bbdd472b6dd::t_a77fadfa126ba4 21
+  s_f88bbdd472b6dd::t_91e0263953d913 1-5,8-20,22-27,29-37
+  s_f88bbdd472b6dd::t_2f83dbee30298c 6-7
+packages/ui/app/forms/complex/index.ts
+  s_f88bbdd472b6dd::t_6774cecdf68576 5,11,18
+apps/science/app/components/sidebar/ChangeSummaryDialog.vue
+  s_f88bbdd472b6dd::t_d30560feab51d1 227-229
+  s_f88bbdd472b6dd::t_1298cefdd61f90 1-2,15,18,20-28,31,33,36,38,40,42,44-49,51-52,55,57-71,73,113,115-116,118,120-130,132,134-158,161-193,196-208,217,222,230-239,241-244
+  s_f88bbdd472b6dd::t_d08cd28b376331 19,30,32,34-35,37,39,41,43,50,53,56,131,133
+  s_f88bbdd472b6dd::t_49654821f14a5b 210,216
+  s_f88bbdd472b6dd::t_ccb23ec4de2c74 3
+  s_f88bbdd472b6dd::t_b29ea706e7f6a4 5,16
+  s_f88bbdd472b6dd::t_0780a758a90591 86,94,100,211-215
+  s_f88bbdd472b6dd::t_072e98b47af63f 159-160
+  s_f88bbdd472b6dd::t_527c0b09cc2626 195
+  s_f88bbdd472b6dd::t_806fe45a8b4046 209
+  s_f88bbdd472b6dd::t_98210ac02ce1f8 218-221,223-226,240
+  s_f88bbdd472b6dd::t_7316d4d0afe07a 194
+  s_f88bbdd472b6dd::t_4d9e5100ee09ca 54,72,74-85,87-93,95-99,101-111,119
+  s_f88bbdd472b6dd::t_1529989c8c5a97 4,6-14
+  s_f88bbdd472b6dd::t_eed2faf03db71a 29
+  s_f88bbdd472b6dd::t_75fbab76e21a43 112,114,117
+  s_f88bbdd472b6dd::t_2f83dbee30298c 17
+apps/science/app/pages/variants/link/components.vue
+  s_f88bbdd472b6dd::t_7d1386ec7677bc 289,393-399,401-403,426-430,448-460
+  s_f88bbdd472b6dd::t_5fd61c4c66108b 206-237
+  s_9d9a19d311e8e6::t_c7a9d77798cc67 461
+apps/science/app/components/sidebar/ChangeSelectionDialog.vue
+  s_f88bbdd472b6dd::t_4a3763c8e18899 1-38,41-66
+  s_f88bbdd472b6dd::t_5452d80ebbb347 39
+  s_f88bbdd472b6dd::t_216488e7928a0c 40
+apps/science/app/components/sidebar/ChangeEditDialog.vue
+  s_f88bbdd472b6dd::t_a58b93e44a7032 1-48,50-58
+  s_f88bbdd472b6dd::t_872b67b3928788 49
+packages/ui/app/forms/complex/TranslatedFieldRenderer.vue
+  s_f88bbdd472b6dd::t_1474c635f323c7 29-31,174-177,183,456-459
+  s_f88bbdd472b6dd::t_e66ff6c25283b7 3-14,80,94,132,134,139,141,143,147,151-152,155,205,207-208,360-362,382,394,436
+  s_f88bbdd472b6dd::t_140355b4946a20 131,135-136,144-145,150,153-154
+  s_f88bbdd472b6dd::t_b156dcc36fe427 222-224,363
+  s_f88bbdd472b6dd::t_6dc4baeff5312a 1-2,15-16,27-28,32,34-36,75-79,82-93,95-105,108-109,111-113,118-122,124-130,133,137-138,140,142,146,148-149,156,158-167,170,172-173,184-188,227,338-339,341-344,449-455,460-461
+  s_f88bbdd472b6dd::t_00bfcc1cca9d4b 442-446
+  s_f88bbdd472b6dd::t_ff03b7a843a198 367-376
+  s_f88bbdd472b6dd::t_0fbdfb6e8b960c 178-182,357-359
+  s_f88bbdd472b6dd::t_96f1b897d4302d 38-74,106-107,110,123,229-238,240,243-244,247,340,349,364,366,381,383-385,413-414,433,437-439
+  s_f88bbdd472b6dd::t_0bd21b9cf8b95b 169
+  s_f88bbdd472b6dd::t_e62ca831d54efa 253
+  s_f88bbdd472b6dd::t_83022c1f9051ba 377-380
+  s_f88bbdd472b6dd::t_33a4ecbf37100a 239
+  s_f88bbdd472b6dd::t_aa85e06c95eb53 427-429
+  s_f88bbdd472b6dd::t_899cf9aa6fab28 19
+  s_f88bbdd472b6dd::t_604f6a1d110d61 37
+  s_f88bbdd472b6dd::t_9ea7baa5d25de2 328-335
+  s_f88bbdd472b6dd::t_21636e83d6cf5b 365
+  s_f88bbdd472b6dd::t_db6ac6e93f245e 412,415-416
+  s_f88bbdd472b6dd::t_a5245300dc2bf2 228,241-242,245-246,248-249
+  s_f88bbdd472b6dd::t_0f43855cba0343 189-204,206,209-215,409-411,417-421
+  s_f88bbdd472b6dd::t_b86d8f1d82f3a2 259-286,293-296,303-327,336-337
+  s_f88bbdd472b6dd::t_4a629215d657f5 287-292,297-302
+  s_f88bbdd472b6dd::t_3b052ec388fa5c 17-18,20-26
+  s_f88bbdd472b6dd::t_2e3e6cda351e36 168,216-221,225-226,350-351
+  s_f88bbdd472b6dd::t_bce718ff76a67c 386-387
+  s_f88bbdd472b6dd::t_bb1c6a234a6111 250-252,254-258
+  s_f88bbdd472b6dd::t_e4020c7f9f5f09 171
+  s_f88bbdd472b6dd::t_42f7f251b0c06f 33,81,114-117,157,345-348,352-356,388-393,395-396,408,422-426,430-432,434-435,440-441,447-448
+  s_f88bbdd472b6dd::t_c3318f78094ae1 397-407
+packages/ui/app/forms/styles/styles.ts
+  s_f88bbdd472b6dd::t_46f87056fa1f08 89-90,95-102,104,106-107,109-113
+  s_f88bbdd472b6dd::t_aecf40d480c122 105
+  s_f88bbdd472b6dd::t_480e03de4484db 17
+  s_f88bbdd472b6dd::t_6c419714a58f88 91-94,103,108
+apps/science/app/pages/programs/[id].vue
+  s_f88bbdd472b6dd::t_a5967bf5eb8764 159
+  s_f88bbdd472b6dd::t_dff45c9d7e37b5 158
+  s_f88bbdd472b6dd::t_5a06cd90bce0f9 1-9,13-42,44-90,94-157,160-227
+  s_f88bbdd472b6dd::t_fecba5f3d00a2f 10-12,43,91-93
+apps/science/app/layouts/default.vue
+  s_f88bbdd472b6dd::t_515df0ccf500f6 99
+  s_f88bbdd472b6dd::t_8e7faa38609f9d 159,164,167-168,172-177
+  s_f88bbdd472b6dd::t_fe53474140ef41 97-98,100
+  s_f88bbdd472b6dd::t_e517bbde504e32 252-257,262-265
+  s_f88bbdd472b6dd::t_dad615abd6308d 19
+  s_f88bbdd472b6dd::t_2431064588a997 152
+  s_9d9a19d311e8e6::t_71e52b9eba7062 178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "c21cbb8f7cf5e97456a06e10072c9a277289f787",
+  "prompts": {},
+  "sessions": {
+    "s_9d9a19d311e8e6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0fe7cd278ffeZIWGRGFdtyP5ut",
+        "model": "minimax-m3"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_f88bbdd472b6dd": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11dcb8ce2ffeVJA626ZER6khrC",
+        "model": "minimax-m3"
+      },
+      "human_author": null
+    }
+  }
+}
