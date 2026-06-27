@@ -1,6 +1,10 @@
 <template>
-  <li class="list-row relative" :class="{ 'cursor-pointer hover:bg-base-200': !!href }">
+  <li
+    class="list-row relative"
+    :class="{ 'cursor-pointer hover:bg-base-200': !!href || !!onRowClick }"
+  >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
+    <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
     <div></div>
     <div>
       <div class="text-bold">{{ process.name }}</div>
@@ -33,6 +37,7 @@ const props = defineProps<{
   process: FragmentType<typeof ListProcessFragment>
   buttons?: ('select' | 'edit' | 'delete')[]
   href?: string
+  onRowClick?: () => void
 }>()
 
 const emits = defineEmits<{

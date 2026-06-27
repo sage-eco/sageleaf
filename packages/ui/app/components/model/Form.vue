@@ -16,7 +16,10 @@
         :readonly="readOnly"
         @change="onChange"
       />
-      <Button v-if="!autoSave || !changeId" class="sticky bottom-0 btn-block" @click="saveForm"
+      <Button
+        v-if="(!autoSave || !changeId) && !hideSubmit"
+        class="sticky bottom-0 btn-block"
+        @click="saveForm"
         >Save</Button
       >
     </div>
@@ -70,6 +73,7 @@ const {
   createModelKey: string
   autoSave?: boolean
   initialData?: Record<string, unknown>
+  hideSubmit?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -242,7 +246,6 @@ if (changeId && autoSave && modelId === 'new') {
           id: string
         } | null
         if (modelReturned?.id) {
-          // Emit the created event with the new model ID
           emits('created', modelReturned.id)
           emits('saved', modelReturned.id)
         }
@@ -295,7 +298,6 @@ const saveForm = async () => {
           id: string
         } | null
         if (modelReturned?.id) {
-          // Emit the created event with the new model ID
           emits('created', modelReturned.id)
           emits('saved', modelReturned.id)
         }
@@ -321,4 +323,6 @@ const saveForm = async () => {
       })
   }
 }
+
+defineExpose({ submit: saveForm })
 </script>

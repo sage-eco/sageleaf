@@ -23,7 +23,9 @@
           <div v-for="(change, i) in changes" :key="i" class="list-item">
             <ModelListChange
               :change="change"
-              :href="`/changes/${(change as ListChangeFragmentFragment).id}`"
+              :on-row-click="
+                () => panelStore.openPanel('change', (change as ListChangeFragmentFragment).id)
+              "
               :buttons="visibleButtons(change as ListChangeFragmentFragment)"
               @button="selectChange"
             />
@@ -49,10 +51,11 @@ import { Plus } from '@lucide/vue'
 import { graphql } from '~/gql'
 import type { ListChangeFragmentFragment } from '~/gql/graphql'
 import { ChangeStatus } from '~/gql/types.generated'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
 
 const { setChange } = useChangeStore()
-
 const { requireAuth } = useRequireAuth()
+const panelStore = useDetailPanelStore()
 
 const deleteChangeMutation = graphql(`
   mutation DeleteChangeFromList($id: ID!) {

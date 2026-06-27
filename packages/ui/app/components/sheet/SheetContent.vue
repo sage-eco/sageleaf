@@ -17,6 +17,8 @@ import SheetOverlay from './SheetOverlay.vue'
 interface SheetContentProps extends DialogContentProps {
   class?: HTMLAttributes['class']
   side?: 'top' | 'right' | 'bottom' | 'left'
+  overlay?: boolean
+  hideClose?: boolean
 }
 
 defineOptions({
@@ -28,19 +30,19 @@ const props = withDefaults(defineProps<SheetContentProps>(), {
 })
 const emits = defineEmits<DialogContentEmits>()
 
-const delegatedProps = reactiveOmit(props, 'class', 'side')
+const delegatedProps = reactiveOmit(props, 'class', 'side', 'overlay', 'hideClose')
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
   <DialogPortal>
-    <SheetOverlay />
+    <SheetOverlay v-if="overlay !== false" />
     <DialogContent
       data-slot="sheet-content"
       :class="
         cn(
-          'bg-background fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500',
+          'fixed z-50 flex flex-col gap-4 bg-base-100 shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500',
           side === 'right' &&
             'inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm',
           side === 'left' &&
@@ -57,6 +59,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       <slot />
 
       <DialogClose
+        v-if="!hideClose"
         class="ring-offset-background focus:ring-ring absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary"
       >
         <X class="size-4" />

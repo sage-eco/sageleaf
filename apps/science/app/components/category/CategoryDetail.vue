@@ -1,9 +1,26 @@
 <template>
   <div>
     <div class="flex items-start gap-3 p-3">
-      <Button variant="ghost" @click="router.back()">
+      <Button v-if="mode === 'page'" variant="ghost" @click="emit('close')">
         <ArrowLeft class="size-4" />
       </Button>
+      <template v-else>
+        <Button variant="ghost" size="icon" @click="emit('close')">
+          <X class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="
+            () => {
+              emit('close')
+              navigateTo(`/categories/${id}`)
+            }
+          "
+        >
+          <Maximize2 class="size-4" />
+        </Button>
+      </template>
       <div class="flex-1">
         <h1 class="text-xl font-bold">{{ entity?.name ?? id }}</h1>
         <EntityMeta
@@ -13,21 +30,30 @@
           :updated-at="entity.updatedAt"
         />
       </div>
-      <Button :disabled="!isChangeSelected" @click="requireAuth(() => (showEdit = true))">
-        <Pencil class="size-4" />
-        Edit
-      </Button>
-      <Button
-        variant="destructive"
-        :disabled="!isChangeSelected"
-        @click="requireAuth(() => (showDelete = true))"
-      >
-        <Trash2 class="size-4" />
-        Delete
-      </Button>
+      <template v-if="mode === 'page'">
+        <Button
+          :disabled="!isChangeSelected"
+          @click="requireAuth(() => navigateTo(`/categories/${id}/edit`))"
+        >
+          <Pencil class="size-4" />
+          Edit
+        </Button>
+        <Button
+          variant="destructive"
+          :disabled="!isChangeSelected"
+          @click="requireAuth(() => (showDelete = true))"
+        >
+          <Trash2 class="size-4" />
+          Delete
+        </Button>
+      </template>
     </div>
 
-    <div v-if="!isChangeSelected" role="alert" class="mx-3 mb-3 alert alert-warning">
+    <div
+      v-if="mode === 'page' && !isChangeSelected"
+      role="alert"
+      class="mx-3 mb-3 alert alert-warning"
+    >
       <span>Select a change from the sidebar to edit or delete.</span>
     </div>
 
@@ -57,7 +83,10 @@
         <CardContent>
           <ul class="list">
             <div v-for="parent in entity.parents?.nodes ?? []" :key="parent.id">
-              <ModelListCategory :category="parent" :href="`/categories/${parent.id}`" />
+              <ModelListCategory
+                :category="parent"
+                :on-row-click="() => panelStore.openPanel('category', parent.id)"
+              />
             </div>
           </ul>
           <div v-if="!entity.parents?.nodes?.length" class="text-sm opacity-60">None</div>
@@ -71,7 +100,10 @@
         <CardContent>
           <ul class="list">
             <div v-for="child in entity.children?.nodes ?? []" :key="child.id">
-              <ModelListCategory :category="child" :href="`/categories/${child.id}`" />
+              <ModelListCategory
+                :category="child"
+                :on-row-click="() => panelStore.openPanel('category', child.id)"
+              />
             </div>
           </ul>
           <div v-if="!entity.children?.nodes?.length" class="text-sm opacity-60">None</div>
@@ -85,7 +117,10 @@
         <CardContent>
           <ul class="list">
             <div v-for="item in entity.items?.nodes ?? []" :key="item.id">
-              <ModelListItem :item="item" :href="`/items/${item.id}`" />
+              <ModelListItem
+                :item="item"
+                :on-row-click="() => panelStore.openPanel('item', item.id)"
+              />
             </div>
           </ul>
           <div v-if="!entity.items?.nodes?.length" class="text-sm opacity-60">None</div>
@@ -96,21 +131,6 @@
     <div v-else class="flex justify-center p-8">
       <span class="loading loading-lg loading-spinner" />
     </div>
-
-    <Dialog v-model:open="showEdit">
-      <DialogContent class="max-h-[80vh] overflow-auto sm:max-w-[70vw]">
-        <DialogTitle>Edit Category</DialogTitle>
-        <ModelForm
-          :change-id="selectedChange"
-          :model-id="id"
-          :schema-query="categorySchema"
-          :create-mutation="createCategoryMutation"
-          :update-mutation="updateCategoryMutation"
-          :create-model-key="'category'"
-          @saved="showEdit = false"
-        />
-      </DialogContent>
-    </Dialog>
 
     <Dialog v-model:open="showDelete">
       <DialogContent>
@@ -129,16 +149,21 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Pencil, Trash2 } from '@lucide/vue'
+import { ArrowLeft, Maximize2, Pencil, Trash2, X } from '@lucide/vue'
 
 import { graphql } from '~/gql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
 
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id as string
+const props = defineProps<{
+  id: string
+  mode?: 'page' | 'panel'
+}>()
+
+const panelStore = useDetailPanelStore()
+
+const emit = defineEmits<{ close: [] }>()
 
 const { requireAuth } = useRequireAuth()
-
 const changeStore = useChangeStore()
 const { selectedChange, isChangeSelected } = storeToRefs(changeStore)
 
@@ -174,48 +199,11 @@ const detailQuery = graphql(`
   }
 `)
 
-const { result } = useQuery(detailQuery, { id })
+const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.category ?? null)
 
-const categorySchema = graphql(`
-  query CategoryDetailSchema {
-    categorySchema {
-      create {
-        schema
-        uischema
-      }
-      update {
-        schema
-        uischema
-      }
-    }
-  }
-`)
-
-const createCategoryMutation = graphql(`
-  mutation CreateCategoryFromDetail($input: CreateCategoryInput!) {
-    createCategory(input: $input) {
-      category {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const updateCategoryMutation = graphql(`
-  mutation UpdateCategoryFromDetail($input: UpdateCategoryInput!) {
-    updateCategory(input: $input) {
-      category {
-        id
-        name
-      }
-    }
-  }
-`)
-
 const deleteCategoryMutation = graphql(`
-  mutation DeleteCategoryFromDetail($input: DeleteInput!) {
+  mutation DeleteCategory($input: DeleteInput!) {
     deleteCategory(input: $input) {
       success
     }
@@ -223,12 +211,10 @@ const deleteCategoryMutation = graphql(`
 `)
 
 const { mutate: deleteCategory } = useMutation(deleteCategoryMutation)
-
-const showEdit = ref(false)
 const showDelete = ref(false)
 
 const doDelete = async () => {
-  await deleteCategory({ input: { id, changeID: selectedChange.value } })
+  await deleteCategory({ input: { id: props.id, changeID: selectedChange.value } })
   navigateTo('/categories')
 }
 </script>

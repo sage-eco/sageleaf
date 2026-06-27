@@ -1,6 +1,10 @@
 <template>
-  <li class="list-row relative" :class="{ 'cursor-pointer hover:bg-base-200': !!href }">
+  <li
+    class="list-row relative"
+    :class="{ 'cursor-pointer hover:bg-base-200': !!href || !!onRowClick }"
+  >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
+    <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
     <div>
       <span
         class="badge badge-sm"
@@ -48,6 +52,7 @@ const props = defineProps<{
   change: FragmentType<typeof ListChangeFragment>
   buttons?: ('select' | 'edit' | 'delete')[]
   href?: string
+  onRowClick?: () => void
 }>()
 
 const emits = defineEmits<{

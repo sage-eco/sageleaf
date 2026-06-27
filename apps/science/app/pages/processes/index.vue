@@ -1,15 +1,7 @@
 <template>
   <div>
     <div class="flex gap-2 p-3">
-      <Button
-        @click="
-          requireAuth(() => {
-            copyData = undefined
-            editId = 'new'
-            showEdit = true
-          })
-        "
-      >
+      <Button @click="requireAuth(() => navigateTo('/processes/new'))">
         <Plus />
         Add Process
       </Button>
@@ -19,9 +11,8 @@
         @selected="
           (data) => {
             requireAuth(() => {
-              copyData = data
-              editId = 'new'
-              showEdit = true
+              copyStore.setCopyData(data)
+              navigateTo('/processes/new')
             })
           }
         "
@@ -35,9 +26,9 @@
       <template #default="{ node }">
         <ModelListProcess
           :process="node.changes"
-          :href="`/processes/${node.changes.id}`"
+          :on-row-click="() => panelStore.openPanel('process', node.changes.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/processes/${id}/edit`)"
         />
       </template>
     </GridModelChanges>
@@ -45,30 +36,12 @@
       <template #default="{ node }">
         <ModelListProcess
           :process="node"
-          :href="`/processes/${node.id}`"
+          :on-row-click="() => panelStore.openPanel('process', node.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/processes/${id}/edit`)"
         />
       </template>
     </GridModel>
-    <Dialog v-model:open="showEdit">
-      <DialogContent class="max-h-[80vh] overflow-auto sm:max-w-[70vw]">
-        <DialogTitle>
-          <span v-if="editId === 'new'">Create Process</span>
-          <span v-else>Edit Process</span>
-        </DialogTitle>
-        <ModelForm
-          :change-id="selectedChange"
-          :model-id="editId"
-          :schema-query="processSchema"
-          :create-mutation="createProcessMutation"
-          :update-mutation="updateProcessMutation"
-          :create-model-key="'process'"
-          :initial-data="copyData"
-          @saved="onSaved"
-        />
-      </DialogContent>
-    </Dialog>
   </div>
 </template>
 
@@ -77,18 +50,14 @@ import { Plus } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import { EditModelType } from '~/gql/graphql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
+import { useEntityCopyStore } from '~/stores/entity_copy_store'
 
 const changeStore = useChangeStore()
 const { selectedChange } = storeToRefs(changeStore)
-
 const { requireAuth } = useRequireAuth()
-
-const actionButton = (btn: string, id: string) => {
-  if (btn === 'edit') {
-    editId.value = id
-    showEdit.value = true
-  }
-}
+const copyStore = useEntityCopyStore()
+const panelStore = useDetailPanelStore()
 
 const processQuery = graphql(`
   query ProcessesQuery($first: Int, $last: Int, $before: String, $after: String) {
@@ -132,48 +101,4 @@ const processesChangesQuery = graphql(`
     }
   }
 `)
-
-const processSchema = graphql(`
-  query ProcessesSchema {
-    processSchema {
-      create {
-        schema
-        uischema
-      }
-      update {
-        schema
-        uischema
-      }
-    }
-  }
-`)
-const createProcessMutation = graphql(`
-  mutation MainCreateProcess($input: CreateProcessInput!) {
-    createProcess(input: $input) {
-      process {
-        id
-        name
-      }
-    }
-  }
-`)
-const updateProcessMutation = graphql(`
-  mutation UpdateProcess($input: UpdateProcessInput!) {
-    updateProcess(input: $input) {
-      process {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const showEdit = ref(false)
-const editId = ref<string>('new')
-const copyData = ref<Record<string, unknown> | undefined>(undefined)
-const onSaved = () => {
-  showEdit.value = false
-  editId.value = 'new'
-  copyData.value = undefined
-}
 </script>

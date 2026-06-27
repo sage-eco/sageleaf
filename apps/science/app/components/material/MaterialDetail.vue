@@ -1,9 +1,26 @@
 <template>
   <div>
     <div class="flex items-start gap-3 p-3">
-      <Button variant="ghost" @click="router.back()">
+      <Button v-if="mode === 'page'" variant="ghost" @click="emit('close')">
         <ArrowLeft class="size-4" />
       </Button>
+      <template v-else>
+        <Button variant="ghost" size="icon" @click="emit('close')">
+          <X class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="
+            () => {
+              emit('close')
+              navigateTo(`/materials/${id}`)
+            }
+          "
+        >
+          <Maximize2 class="size-4" />
+        </Button>
+      </template>
       <div class="flex-1">
         <h1 class="text-xl font-bold">{{ entity?.name ?? id }}</h1>
         <EntityMeta
@@ -50,11 +67,12 @@
         </CardHeader>
         <CardContent>
           <ul class="list">
-            <li v-for="parent in entity.parents?.nodes ?? []" :key="parent.id">
-              <NuxtLink :to="`/materials/${parent.id}`" class="list-row hover:bg-base-200">
-                <div class="text-sm">{{ parent.name ?? parent.id }}</div>
-              </NuxtLink>
-            </li>
+            <ModelListMaterial
+              v-for="parent in entity.parents?.nodes ?? []"
+              :key="parent.id"
+              :material="parent"
+              :on-row-click="() => navigateTo(`/materials/${parent.id}`)"
+            />
           </ul>
           <div v-if="!entity.parents?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
@@ -66,11 +84,12 @@
         </CardHeader>
         <CardContent>
           <ul class="list">
-            <li v-for="child in entity.children?.nodes ?? []" :key="child.id">
-              <NuxtLink :to="`/materials/${child.id}`" class="list-row hover:bg-base-200">
-                <div class="text-sm">{{ child.name ?? child.id }}</div>
-              </NuxtLink>
-            </li>
+            <ModelListMaterial
+              v-for="child in entity.children?.nodes ?? []"
+              :key="child.id"
+              :material="child"
+              :on-row-click="() => navigateTo(`/materials/${child.id}`)"
+            />
           </ul>
           <div v-if="!entity.children?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
@@ -84,13 +103,16 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft } from '@lucide/vue'
+import { ArrowLeft, Maximize2, X } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 
-const route = useRoute()
-const router = useRouter()
-const id = computed(() => route.params.id as string)
+const props = defineProps<{
+  id: string
+  mode?: 'page' | 'panel'
+}>()
+
+const emit = defineEmits<{ close: [] }>()
 
 const detailQuery = graphql(`
   query MaterialDetail($id: ID!) {
@@ -105,19 +127,19 @@ const detailQuery = graphql(`
       parents(first: 20) {
         nodes {
           id
-          name
+          ...ListMaterialFragment
         }
       }
       children(first: 50) {
         nodes {
           id
-          name
+          ...ListMaterialFragment
         }
       }
     }
   }
 `)
 
-const { result } = useQuery(detailQuery, () => ({ id: id.value }))
-const entity = computed(() => result.value?.material)
+const { result } = useQuery(detailQuery, () => ({ id: props.id }))
+const entity = computed(() => result.value?.material ?? null)
 </script>

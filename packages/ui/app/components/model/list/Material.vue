@@ -1,9 +1,14 @@
 <template>
-  <li class="list-row">
-    <div>
+  <li
+    class="list-row relative flex items-center gap-4 rounded-lg px-4 py-3 transition-colors"
+    :class="{ 'cursor-pointer hover:bg-base-200': !!onRowClick }"
+  >
+    <button v-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
+    <slot name="leading" />
+    <div class="shrink-0">
       <UiImage class="size-10" :src="'icon://lets-icons:materials'"></UiImage>
     </div>
-    <div>
+    <div class="min-w-0 flex-1">
       <div class="text-bold">{{ material.name }}</div>
       <div class="text-xs opacity-70">
         {{ material.desc }}
@@ -33,6 +38,7 @@ const ListMaterialFragment = graphql(`
 const props = defineProps<{
   material: FragmentType<typeof ListMaterialFragment>
   buttons?: ('select' | 'edit' | 'delete')[]
+  onRowClick?: () => void
 }>()
 
 const emits = defineEmits<{

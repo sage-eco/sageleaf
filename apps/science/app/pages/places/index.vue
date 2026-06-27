@@ -1,15 +1,7 @@
 <template>
   <div>
     <div class="flex gap-2 p-3">
-      <Button
-        @click="
-          requireAuth(() => {
-            copyData = undefined
-            editId = 'new'
-            showEdit = true
-          })
-        "
-      >
+      <Button @click="requireAuth(() => navigateTo('/places/new'))">
         <Plus />
         Add Place
       </Button>
@@ -20,9 +12,8 @@
         @selected="
           (data) => {
             requireAuth(() => {
-              copyData = data
-              editId = 'new'
-              showEdit = true
+              copyStore.setCopyData(data)
+              navigateTo('/places/new')
             })
           }
         "
@@ -32,9 +23,9 @@
       <template #default="{ node }">
         <ModelListPlace
           :place="node.changes"
-          :href="`/places/${node.changes.id}`"
+          :on-row-click="() => panelStore.openPanel('place', node.changes.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/places/${id}/edit`)"
         />
       </template>
     </GridModelChanges>
@@ -42,30 +33,12 @@
       <template #default="{ node }">
         <ModelListPlace
           :place="node"
-          :href="`/places/${node.id}`"
+          :on-row-click="() => panelStore.openPanel('place', node.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/places/${id}/edit`)"
         />
       </template>
     </GridModel>
-    <Dialog v-model:open="showEdit">
-      <DialogContent class="max-h-[80vh] overflow-auto sm:max-w-[70vw]">
-        <DialogTitle>
-          <span v-if="editId === 'new'">Create Place</span>
-          <span v-else>Edit Place</span>
-        </DialogTitle>
-        <ModelForm
-          :change-id="selectedChange"
-          :model-id="editId"
-          :schema-query="placeSchema"
-          :create-mutation="createPlaceMutation"
-          :update-mutation="updatePlaceMutation"
-          :create-model-key="'place'"
-          :initial-data="copyData"
-          @saved="onSaved"
-        />
-      </DialogContent>
-    </Dialog>
   </div>
 </template>
 
@@ -74,11 +47,14 @@ import { Plus } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import { EditModelType } from '~/gql/graphql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
+import { useEntityCopyStore } from '~/stores/entity_copy_store'
 
 const changeStore = useChangeStore()
 const { selectedChange } = storeToRefs(changeStore)
-
 const { requireAuth } = useRequireAuth()
+const copyStore = useEntityCopyStore()
+const panelStore = useDetailPanelStore()
 
 const placesQuery = graphql(`
   query PlacesQuery($first: Int, $last: Int, $before: String, $after: String) {
@@ -123,57 +99,4 @@ const placesChangesQuery = graphql(`
     }
   }
 `)
-
-const placeSchema = graphql(`
-  query PlaceSchema {
-    placeSchema {
-      create {
-        schema
-        uischema
-      }
-      update {
-        schema
-        uischema
-      }
-    }
-  }
-`)
-
-const createPlaceMutation = graphql(`
-  mutation CreatePlace($input: CreatePlaceInput!) {
-    createPlace(input: $input) {
-      place {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const updatePlaceMutation = graphql(`
-  mutation UpdatePlace($input: UpdatePlaceInput!) {
-    updatePlace(input: $input) {
-      place {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const actionButton = (btn: string, id: string) => {
-  if (btn === 'edit') {
-    editId.value = id
-    showEdit.value = true
-  }
-}
-
-const showEdit = ref(false)
-const editId = ref<string>('new')
-const copyData = ref<Record<string, unknown> | undefined>(undefined)
-const onSaved = () => {
-  showEdit.value = false
-  editId.value = 'new'
-  copyData.value = undefined
-}
 </script>

@@ -1,9 +1,26 @@
 <template>
   <div>
     <div class="flex items-start gap-3 p-3">
-      <Button variant="ghost" @click="router.back()">
+      <Button v-if="mode === 'page'" variant="ghost" @click="emit('close')">
         <ArrowLeft class="size-4" />
       </Button>
+      <template v-else>
+        <Button variant="ghost" size="icon" @click="emit('close')">
+          <X class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="
+            () => {
+              emit('close')
+              navigateTo(`/processes/${id}`)
+            }
+          "
+        >
+          <Maximize2 class="size-4" />
+        </Button>
+      </template>
       <div class="flex-1">
         <h1 class="text-xl font-bold">{{ entity?.name ?? id }}</h1>
         <EntityMeta
@@ -13,21 +30,30 @@
           :updated-at="entity.updatedAt"
         />
       </div>
-      <Button :disabled="!isChangeSelected" @click="requireAuth(() => (showEdit = true))">
-        <Pencil class="size-4" />
-        Edit
-      </Button>
-      <Button
-        variant="destructive"
-        :disabled="!isChangeSelected"
-        @click="requireAuth(() => (showDelete = true))"
-      >
-        <Trash2 class="size-4" />
-        Delete
-      </Button>
+      <template v-if="mode === 'page'">
+        <Button
+          :disabled="!isChangeSelected"
+          @click="requireAuth(() => navigateTo(`/processes/${id}/edit`))"
+        >
+          <Pencil class="size-4" />
+          Edit
+        </Button>
+        <Button
+          variant="destructive"
+          :disabled="!isChangeSelected"
+          @click="requireAuth(() => (showDelete = true))"
+        >
+          <Trash2 class="size-4" />
+          Delete
+        </Button>
+      </template>
     </div>
 
-    <div v-if="!isChangeSelected" role="alert" class="mx-3 mb-3 alert alert-warning">
+    <div
+      v-if="mode === 'page' && !isChangeSelected"
+      role="alert"
+      class="mx-3 mb-3 alert alert-warning"
+    >
       <span>Select a change from the sidebar to edit or delete.</span>
     </div>
 
@@ -130,21 +156,6 @@
       <span class="loading loading-lg loading-spinner" />
     </div>
 
-    <Dialog v-model:open="showEdit">
-      <DialogContent class="max-h-[80vh] overflow-auto sm:max-w-[70vw]">
-        <DialogTitle>Edit Process</DialogTitle>
-        <ModelForm
-          :change-id="selectedChange"
-          :model-id="id"
-          :schema-query="processSchema"
-          :create-mutation="createProcessMutation"
-          :update-mutation="updateProcessMutation"
-          :create-model-key="'process'"
-          @saved="showEdit = false"
-        />
-      </DialogContent>
-    </Dialog>
-
     <Dialog v-model:open="showDelete">
       <DialogContent>
         <DialogTitle>Delete Process</DialogTitle>
@@ -162,16 +173,18 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Pencil, Trash2 } from '@lucide/vue'
+import { ArrowLeft, Maximize2, Pencil, Trash2, X } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id as string
+const props = defineProps<{
+  id: string
+  mode?: 'page' | 'panel'
+}>()
+
+const emit = defineEmits<{ close: [] }>()
 
 const { requireAuth } = useRequireAuth()
-
 const changeStore = useChangeStore()
 const { selectedChange, isChangeSelected } = storeToRefs(changeStore)
 
@@ -219,48 +232,11 @@ const detailQuery = graphql(`
   }
 `)
 
-const { result } = useQuery(detailQuery, { id })
+const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.process ?? null)
 
-const processSchema = graphql(`
-  query ProcessDetailSchema {
-    processSchema {
-      create {
-        schema
-        uischema
-      }
-      update {
-        schema
-        uischema
-      }
-    }
-  }
-`)
-
-const createProcessMutation = graphql(`
-  mutation CreateProcessFromDetail($input: CreateProcessInput!) {
-    createProcess(input: $input) {
-      process {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const updateProcessMutation = graphql(`
-  mutation UpdateProcessFromDetail($input: UpdateProcessInput!) {
-    updateProcess(input: $input) {
-      process {
-        id
-        name
-      }
-    }
-  }
-`)
-
 const deleteProcessMutation = graphql(`
-  mutation DeleteProcessFromDetail($input: DeleteInput!) {
+  mutation DeleteProcess($input: DeleteInput!) {
     deleteProcess(input: $input) {
       success
     }
@@ -268,12 +244,10 @@ const deleteProcessMutation = graphql(`
 `)
 
 const { mutate: deleteProcess } = useMutation(deleteProcessMutation)
-
-const showEdit = ref(false)
 const showDelete = ref(false)
 
 const doDelete = async () => {
-  await deleteProcess({ input: { id, changeID: selectedChange.value } })
+  await deleteProcess({ input: { id: props.id, changeID: selectedChange.value } })
   navigateTo('/processes')
 }
 </script>

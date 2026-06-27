@@ -1,10 +1,15 @@
 <template>
-  <li class="list-row relative" :class="{ 'cursor-pointer hover:bg-base-200': !!href }">
+  <li
+    class="list-row relative flex items-center gap-4 rounded-lg px-4 py-3 transition-colors"
+    :class="{ 'cursor-pointer hover:bg-base-200': !!href || !!onRowClick }"
+  >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
-    <div>
+    <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
+    <slot name="leading" />
+    <div class="shrink-0">
       <UiImage class="size-10" :src="category.imageURL"></UiImage>
     </div>
-    <div>
+    <div class="min-w-0 flex-1">
       <div class="text-bold">{{ category.name_req }}</div>
       <div class="text-xs opacity-70">
         {{ category.descShort }}
@@ -36,6 +41,7 @@ const props = defineProps<{
   category: FragmentType<typeof ListCategoryFragment>
   buttons?: ('select' | 'edit' | 'delete')[]
   href?: string
+  onRowClick?: () => void
 }>()
 
 const emits = defineEmits<{

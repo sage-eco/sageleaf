@@ -1,9 +1,26 @@
 <template>
   <div>
     <div class="flex items-start gap-3 p-3">
-      <Button variant="ghost" @click="router.back()">
+      <Button v-if="mode === 'page'" variant="ghost" @click="emit('close')">
         <ArrowLeft class="size-4" />
       </Button>
+      <template v-else>
+        <Button variant="ghost" size="icon" @click="emit('close')">
+          <X class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="
+            () => {
+              emit('close')
+              navigateTo(`/programs/${id}`)
+            }
+          "
+        >
+          <Maximize2 class="size-4" />
+        </Button>
+      </template>
       <div class="flex-1">
         <h1 class="flex items-center gap-2 text-xl font-bold">
           <span>{{ entity?.name ?? id }}</span>
@@ -18,13 +35,22 @@
           :updated-at="entity.updatedAt"
         />
       </div>
-      <Button :disabled="!isChangeSelected" @click="requireAuth(() => (showEdit = true))">
-        <Pencil class="size-4" />
-        Edit
-      </Button>
+      <template v-if="mode === 'page'">
+        <Button
+          :disabled="!isChangeSelected"
+          @click="requireAuth(() => navigateTo(`/programs/${id}/edit`))"
+        >
+          <Pencil class="size-4" />
+          Edit
+        </Button>
+      </template>
     </div>
 
-    <div v-if="!isChangeSelected" role="alert" class="mx-3 mb-3 alert alert-warning">
+    <div
+      v-if="mode === 'page' && !isChangeSelected"
+      role="alert"
+      class="mx-3 mb-3 alert alert-warning"
+    >
       <span>Select a change from the sidebar to edit.</span>
     </div>
 
@@ -57,7 +83,7 @@
               v-for="process in entity.processes?.nodes ?? []"
               :key="process.id"
               :process="process"
-              :href="`/processes/${process.id}`"
+              :on-row-click="() => panelStore.openPanel('process', process.id)"
             />
           </ul>
           <div v-if="!entity.processes?.nodes?.length" class="text-sm opacity-60">None</div>
@@ -69,10 +95,13 @@
           <CardTitle>Organizations</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul class="space-y-1">
-            <li v-for="org in entity.orgs?.nodes ?? []" :key="org.id" class="text-sm">
-              {{ org.name }}
-            </li>
+          <ul class="list">
+            <ModelListOrg
+              v-for="org in entity.orgs?.nodes ?? []"
+              :key="org.id"
+              :org="org"
+              :on-row-click="() => panelStore.openPanel('org', org.id)"
+            />
           </ul>
           <div v-if="!entity.orgs?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
@@ -102,37 +131,26 @@
     <div v-else class="flex justify-center p-8">
       <span class="loading loading-lg loading-spinner" />
     </div>
-
-    <Dialog v-model:open="showEdit">
-      <DialogContent class="max-h-[80vh] overflow-auto sm:max-w-[70vw]">
-        <DialogTitle>Edit Program</DialogTitle>
-        <ModelForm
-          :change-id="selectedChange"
-          :model-id="id"
-          :schema-query="programSchema"
-          :create-mutation="createProgramMutation"
-          :update-mutation="updateProgramMutation"
-          :create-model-key="'program'"
-          @saved="showEdit = false"
-        />
-      </DialogContent>
-    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Pencil } from '@lucide/vue'
+import { ArrowLeft, Maximize2, Pencil, X } from '@lucide/vue'
 
 import { graphql } from '~/gql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
 
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id as string
+const props = defineProps<{
+  id: string
+  mode?: 'page' | 'panel'
+}>()
+
+const emit = defineEmits<{ close: [] }>()
 
 const { requireAuth } = useRequireAuth()
-
 const changeStore = useChangeStore()
-const { selectedChange, isChangeSelected } = storeToRefs(changeStore)
+const { isChangeSelected } = storeToRefs(changeStore)
+const panelStore = useDetailPanelStore()
 
 const detailQuery = graphql(`
   query ProgramDetail($id: ID!) {
@@ -150,7 +168,7 @@ const detailQuery = graphql(`
       orgs(first: 10) {
         nodes {
           id
-          name
+          ...ListOrgFragment
         }
       }
       processes(first: 20) {
@@ -170,47 +188,8 @@ const detailQuery = graphql(`
   }
 `)
 
-const { result } = useQuery(detailQuery, { id })
+const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.program ?? null)
-
-const programSchema = graphql(`
-  query ProgramDetailSchema {
-    programSchema {
-      create {
-        schema
-        uischema
-      }
-      update {
-        schema
-        uischema
-      }
-    }
-  }
-`)
-
-const createProgramMutation = graphql(`
-  mutation CreateProgramFromDetail($input: CreateProgramInput!) {
-    createProgram(input: $input) {
-      program {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const updateProgramMutation = graphql(`
-  mutation UpdateProgramFromDetail($input: UpdateProgramInput!) {
-    updateProgram(input: $input) {
-      program {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const showEdit = ref(false)
 
 const statusBadgeClass = computed(() => {
   switch (entity.value?.status) {

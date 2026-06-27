@@ -36,7 +36,7 @@
         </div>
 
         <!-- Results area -->
-        <div class="max-h-[480px] overflow-x-hidden overflow-y-auto" role="listbox">
+        <div class="max-h-[480px] overflow-x-hidden overflow-y-auto">
           <!-- Loading skeleton -->
           <div v-if="loading" class="flex flex-col gap-1 p-3">
             <div v-for="i in 5" :key="i" class="flex items-center gap-4 rounded-lg px-3 py-3">
@@ -56,58 +56,50 @@
             >
               About {{ totalCount }} result{{ totalCount !== 1 ? 's' : '' }}
             </div>
-            <NuxtLink
-              v-for="(item, index) in results"
-              :key="item.id"
-              :to="routeForItem(item.__typename, item.id)"
-              class="group flex items-center gap-4 rounded-lg px-3 py-3 transition-colors hover:bg-base-200 focus:bg-base-200 focus:outline-none"
-              :class="{ 'bg-base-200': focusedIndex === index }"
-              role="option"
-              @click="open = false"
-              @mouseenter="focusedIndex = index"
-            >
-              <!-- Icon / Image -->
-              <div
-                class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-base-content/10 bg-base-200"
-              >
-                <UiImage
-                  v-if="item.imageURL || item.avatarURL"
-                  :src="item.imageURL || item.avatarURL"
-                  :width="11"
-                  :height="11"
-                  class="size-11"
+            <ul class="list" @click="open = false">
+              <template v-for="item in results" :key="item.id">
+                <ModelListCategory
+                  v-if="item.__typename === 'Category'"
+                  :category="item"
+                  :href="`/categories/${item.id}`"
                 />
-                <component
-                  :is="placeholderIcon(item.__typename)"
-                  v-else
-                  :size="20"
-                  class="opacity-35"
+                <ModelListItem
+                  v-else-if="item.__typename === 'Item'"
+                  :item="item"
+                  :href="`/items/${item.id}`"
                 />
-              </div>
-
-              <!-- Text content -->
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2.5">
-                  <Badge :variant="badgeVariant(item.__typename)" class="shrink-0 text-[11px]">
-                    {{ formatType(item.__typename) }}
-                  </Badge>
-                  <span class="truncate text-sm font-semibold text-base-content">
-                    {{ item.name || item.name_null || item.name_req || item.name_place }}
-                  </span>
-                </div>
-                <p
-                  v-if="item.descShort || item.desc"
-                  class="mt-1 truncate text-sm text-base-content/50"
-                >
-                  {{ item.descShort || item.desc }}
-                </p>
-              </div>
-
-              <ChevronRightIcon
-                :size="18"
-                class="shrink-0 opacity-0 transition-opacity group-hover:opacity-30"
-              />
-            </NuxtLink>
+                <ModelListVariant
+                  v-else-if="item.__typename === 'Variant'"
+                  :variant="item"
+                  :href="`/variants/${item.id}`"
+                />
+                <ModelListComponent
+                  v-else-if="item.__typename === 'Component'"
+                  :component="item"
+                  :href="`/components/${item.id}`"
+                />
+                <ModelListOrg
+                  v-else-if="item.__typename === 'Org'"
+                  :org="item"
+                  :href="`/orgs/${item.id}`"
+                />
+                <ModelListPlace
+                  v-else-if="item.__typename === 'Place'"
+                  :place="item"
+                  :href="`/places/${item.id}`"
+                />
+                <ModelListMaterial
+                  v-else-if="item.__typename === 'Material'"
+                  :material="item"
+                  :on-row-click="
+                    () => {
+                      open = false
+                      navigateTo(`/materials/${item.id}`)
+                    }
+                  "
+                />
+              </template>
+            </ul>
           </div>
 
           <!-- No results -->
@@ -133,7 +125,7 @@
 
         <!-- Footer hint -->
         <div
-          v-if="results.length > 0"
+          v-if="debouncedSearch"
           class="flex items-center gap-4 border-t border-base-content/10 px-5 py-2.5 text-xs text-base-content/30"
         >
           <span class="flex items-center gap-1.5">
@@ -148,6 +140,18 @@
             <kbd class="rounded border border-base-content/20 px-1.5 py-0.5 font-mono">esc</kbd>
             close
           </span>
+          <button
+            class="ml-auto flex items-center gap-1 rounded px-2 py-1 transition hover:bg-base-200 hover:text-base-content/60"
+            @click="
+              () => {
+                open = false
+                navigateTo(`/dashboard/search?q=${debouncedSearch}`)
+              }
+            "
+          >
+            Open in Search
+            <ExternalLinkIcon class="ml-1 size-3.5" />
+          </button>
         </div>
       </div>
     </DialogContent>
@@ -155,26 +159,14 @@
 </template>
 
 <script setup lang="ts">
-import {
-  BoxIcon,
-  Building2Icon,
-  ChevronRightIcon,
-  CircleHelpIcon,
-  CpuIcon,
-  MapPinIcon,
-  PackageIcon,
-  SearchIcon,
-  SearchXIcon,
-  TagsIcon,
-  XIcon,
-} from '@lucide/vue'
+import { ExternalLinkIcon, SearchIcon, SearchXIcon, XIcon } from '@lucide/vue'
 import { useEventListener, watchDebounced } from '@vueuse/core'
-import type { Component } from 'vue'
+
+import { graphql } from '~/gql'
 
 const open = ref(false)
 const searchInput = ref('')
 const debouncedSearch = ref('')
-const focusedIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 
 // Open with Cmd+K / Ctrl+K
@@ -190,7 +182,6 @@ watch(open, async (isOpen) => {
   if (isOpen) {
     await nextTick()
     inputRef.value?.focus()
-    focusedIndex.value = 0
   } else {
     searchInput.value = ''
     debouncedSearch.value = ''
@@ -202,77 +193,53 @@ watchDebounced(
   searchInput,
   (val) => {
     debouncedSearch.value = val
-    focusedIndex.value = 0
   },
   { debounce: 300 },
 )
 
-const searchQuery = gql`
+const searchQuery = graphql(`
   query ScienceSearch($query: String!) {
-    search(query: $query, types: [CATEGORY, ITEM, VARIANT, COMPONENT, ORG, PLACE]) {
+    search(query: $query, types: [CATEGORY, ITEM, VARIANT, COMPONENT, ORG, PLACE, MATERIAL]) {
       nodes {
         __typename
         ... on Category {
           id
-          name
-          descShort
-          imageURL
+          ...ListCategoryFragment
         }
         ... on Item {
           id
-          name_null: name
-          desc
-          imageURL
+          ...ListItemFragment
         }
         ... on Variant {
           id
-          name_null: name
-          desc
-          imageURL
+          ...ListVariantFragment
         }
         ... on Component {
           id
-          name_null: name
-          desc
+          ...ListComponentFragment
         }
         ... on Org {
           id
-          name_req: name
-          desc
-          avatarURL
+          ...ListOrgFragment
         }
         ... on Place {
           id
-          name_place: name
-          desc
+          ...ListPlaceFragment
+        }
+        ... on Material {
+          id
+          ...ListMaterialFragment
+        }
+        ... on Region {
+          id
         }
       }
       totalCount
     }
   }
-`
+`)
 
-type SearchNode = {
-  id: string
-  __typename: string
-  name?: string
-  name_null?: string
-  name_req?: string
-  name_place?: string
-  descShort?: string
-  desc?: string
-  imageURL?: string
-  avatarURL?: string
-}
-
-type SearchResult = {
-  search: {
-    nodes: SearchNode[]
-    totalCount: number
-  }
-}
-
-const { result, loading } = useQuery<SearchResult>(
+const { result, loading } = useQuery(
   searchQuery,
   () => ({ query: debouncedSearch.value }),
   () => ({ enabled: debouncedSearch.value.length >= 2 }),
@@ -281,22 +248,14 @@ const { result, loading } = useQuery<SearchResult>(
 const results = computed(() => result.value?.search.nodes ?? [])
 const totalCount = computed(() => result.value?.search.totalCount ?? 0)
 
-// Keyboard navigation through results
+// Enter key navigates to first result
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!open.value || results.value.length === 0) return
-  if (e.key === 'ArrowDown') {
+  if (!open.value || e.key !== 'Enter') return
+  const item = results.value[0]
+  if (item) {
     e.preventDefault()
-    focusedIndex.value = Math.min(focusedIndex.value + 1, results.value.length - 1)
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    focusedIndex.value = Math.max(focusedIndex.value - 1, 0)
-  } else if (e.key === 'Enter') {
-    e.preventDefault()
-    const item = results.value[focusedIndex.value]
-    if (item) {
-      navigateTo(routeForItem(item.__typename, item.id))
-      open.value = false
-    }
+    navigateTo(routeForItem(item.__typename, item.id))
+    open.value = false
   }
 })
 
@@ -314,62 +273,10 @@ function routeForItem(type: string, id: string): string {
       return `/orgs/${id}`
     case 'Place':
       return `/places/${id}`
+    case 'Material':
+      return `/materials/${id}`
     default:
       return '#'
   }
-}
-
-type BadgeVariant =
-  | 'default'
-  | 'outline'
-  | 'destructive'
-  | 'blue'
-  | 'yellow'
-  | 'teal'
-  | 'secondary'
-  | 'red'
-  | 'ghost'
-  | 'gray'
-  | 'plain'
-  | 'purple'
-  | 'orange'
-
-const badgeVariantMap: Record<string, BadgeVariant> = {
-  Category: 'blue',
-  Item: 'yellow',
-  Variant: 'teal',
-  Component: 'purple',
-  Org: 'orange',
-  Place: 'red',
-}
-
-function badgeVariant(type: string): BadgeVariant {
-  return badgeVariantMap[type] ?? 'ghost'
-}
-
-const formatTypeMap: Record<string, string> = {
-  Category: 'Category',
-  Item: 'Item',
-  Variant: 'Variant',
-  Component: 'Component',
-  Org: 'Org',
-  Place: 'Place',
-}
-
-function formatType(type: string): string {
-  return formatTypeMap[type] ?? type
-}
-
-const placeholderIconMap: Record<string, Component> = {
-  Category: BoxIcon,
-  Item: PackageIcon,
-  Variant: TagsIcon,
-  Component: CpuIcon,
-  Org: Building2Icon,
-  Place: MapPinIcon,
-}
-
-function placeholderIcon(type: string): Component {
-  return placeholderIconMap[type] ?? CircleHelpIcon
 }
 </script>
