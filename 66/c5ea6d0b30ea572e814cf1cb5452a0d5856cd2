@@ -1,0 +1,367 @@
+apps/science/app/components/category/CategoryDetail.vue
+  s_d551c988b073d8::t_f9d8dc51f60529 120-123
+  s_60e609c11b1f4d::t_e535a1db27173d 7-13,20-23
+  s_d551c988b073d8::t_640346500289db 155,161-162
+  s_d551c988b073d8::t_7adacd0c44a97b 103-106
+  s_d551c988b073d8::t_9dd742b8fcf84a 1-6,24-85,90-102,107-119,124-151,153-154,156-160,163-220
+  s_d551c988b073d8::t_fff186736ff94c 86-89
+  s_60e609c11b1f4d::t_5fc9d56b5ab81f 152
+  s_60e609c11b1f4d::t_f6641e8a2e5b5d 14-19
+packages/ui/app/components/model/list/Program.vue
+  s_d551c988b073d8::t_49cac94585b13c 2-5,7
+  s_d551c988b073d8::t_6498d6bf1f4dad 46
+apps/science/app/pages/categories/[id]/index.vue
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+apps/science/app/pages/places/[id]/index.vue
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+packages/ui/app/components/sheet/SheetContent.vue
+  s_60e609c11b1f4d::t_6337ef6f8ae398 62
+  s_d551c988b073d8::t_cdda77faf331f7 20
+  s_60e609c11b1f4d::t_60aa8260b6787c 33
+  s_d551c988b073d8::t_7896ee41cdd68d 40
+  s_60e609c11b1f4d::t_7816c4df632321 21
+  s_60e609c11b1f4d::t_51fe66f4aadc6d 45
+apps/science/app/pages/programs/index.vue
+  s_d551c988b073d8::t_e98d25b1633110 61
+  s_d551c988b073d8::t_aaf99e89f3d66c 4,15-16,32,42,55,60
+  s_d551c988b073d8::t_1618899aab9bc9 30
+  s_d551c988b073d8::t_a3a0397aa75a13 40
+  s_d551c988b073d8::t_b3a86146ee45c4 54
+apps/science/app/components/program/ProgramDetail.vue
+  s_466a7f4df5d341::t_ecd8c0521736f0 98-104
+  s_d551c988b073d8::t_a3c1d472c87fd9 1-6,24-85,87-97,105-137,139-140,142-152,154-170,172-206
+  s_466a7f4df5d341::t_38103d4e734f87 171
+  s_60e609c11b1f4d::t_a2ca3727c4ada0 138
+  s_d551c988b073d8::t_72c5b4f85732b7 141,153
+  s_d551c988b073d8::t_2770741bb62a7b 86
+  s_60e609c11b1f4d::t_b36f6e5d14a1d5 7-13,20-23
+  s_60e609c11b1f4d::t_298c0f29e4ed10 14-19
+apps/science/app/pages/processes/index.vue
+  s_d551c988b073d8::t_78a9135becb5fa 29
+  s_d551c988b073d8::t_9632f81d658e23 4,14-15,31,41,54,59
+  s_d551c988b073d8::t_4dcac50970d09b 39
+  s_d551c988b073d8::t_da844618f28039 53
+  s_d551c988b073d8::t_db9e9c58ddcd5a 60
+apps/science/app/pages/items/[id]/index.vue
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+apps/science/app/pages/materials/[id]/index.vue
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+apps/science/app/pages/variants/[id]/index.vue
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+apps/science/app/pages/orgs/[id]/edit.vue
+  s_d551c988b073d8::t_12aaa3e5e86513 1-72
+apps/science/app/stores/detail_panel_store.ts
+  s_d551c988b073d8::t_ebe5b0f84ded6d 1-19
+apps/science/app/pages/categories/new.vue
+  s_d551c988b073d8::t_e1dcb0aa9903aa 1-77
+apps/science/app/pages/programs/[id]/edit.vue
+  s_d551c988b073d8::t_abb288bf10e903 1-77
+packages/ui/app/components/model/list/Org.vue
+  s_d551c988b073d8::t_7ea2f19d6d3548 44
+  s_d551c988b073d8::t_cd73158214feae 2,4-5,7
+  s_60e609c11b1f4d::t_bbafb5bc3df5b7 8
+  s_60e609c11b1f4d::t_19777ddc683def 3,9
+  s_60e609c11b1f4d::t_e152cd439d4959 12
+packages/ui/app/components/model/list/Material.vue
+  s_60e609c11b1f4d::t_55d289fbdcf190 2-5,8
+  s_d551c988b073d8::t_5dfb069ff6f5dc 6
+  s_60e609c11b1f4d::t_755424da5e512c 7
+  s_d551c988b073d8::t_711b0c36996672 41
+  s_60e609c11b1f4d::t_55e592840b6be1 11
+apps/science/app/pages/components/[id]/index.vue
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+apps/science/app/pages/items/index.vue
+  s_d551c988b073d8::t_12c7477ee1ecf7 57
+  s_d551c988b073d8::t_772f848e32c16a 36
+  s_d551c988b073d8::t_c9f2157e0bfcb9 26
+  s_d551c988b073d8::t_beb935a994f258 4,15-16,28,38,51,56
+  s_d551c988b073d8::t_fc0e0767d7eed7 50
+apps/science/app/pages/programs/new.vue
+  s_d551c988b073d8::t_35574ef5ecdea3 1-76
+apps/science/app/pages/places/[id]/edit.vue
+  s_d551c988b073d8::t_6ef8ffce8a865d 56,67
+  s_d551c988b073d8::t_3ec6eaf93d7cc7 1-55,57-66,68-72
+packages/ui/app/components/model/list/Category.vue
+  s_60e609c11b1f4d::t_9b46856a89c3b3 3,9
+  s_d551c988b073d8::t_6fe416646f190a 44
+  s_60e609c11b1f4d::t_5fa8daaba47b7e 8
+  s_d551c988b073d8::t_29f45ed991b94a 2,4-5,7
+  s_60e609c11b1f4d::t_469c6b47a72445 12
+apps/science/app/pages/processes/[id]/index.vue
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+apps/science/app/pages/places/index.vue
+  s_d551c988b073d8::t_3116c5ab3c6f28 57
+  s_d551c988b073d8::t_566bf3d72ebf2c 26
+  s_d551c988b073d8::t_0e5619a1e1c18a 4,15-16,28,38,51,56
+  s_d551c988b073d8::t_46ac16d9ead789 50
+  s_d551c988b073d8::t_20a769286e4c8d 36
+packages/ui/app/components/model/list/Region.vue
+  s_60e609c11b1f4d::t_ac150900a59d7e 3
+  s_60e609c11b1f4d::t_e25577c71c8073 2
+  s_60e609c11b1f4d::t_84238e3c8b7e0f 4
+apps/science/app/stores/entity_copy_store.ts
+  s_d551c988b073d8::t_dac1133721324a 1-17
+apps/science/app/components/process/ProcessDetail.vue
+  s_d551c988b073d8::t_2fa16037117b80 1-6,24-175,177-253
+  s_60e609c11b1f4d::t_81e6a6b9d73f95 7-13,20-23
+  s_60e609c11b1f4d::t_073f6bbdaec9b6 176
+  s_60e609c11b1f4d::t_c7d73a0f692f7e 14-19
+apps/science/app/pages/changes/[id]/index.vue
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+apps/science/app/pages/orgs/[id]/index.vue
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+apps/science/app/pages/dashboard/search.vue
+  s_d551c988b073d8::t_807945d3297af3 245-246,249-250
+  s_60e609c11b1f4d::t_9b52189127f0ff 312,316,320,324,328,332,336,340
+  s_60e609c11b1f4d::t_28e0b7971ef6c7 353
+  s_d55bff51e96628::t_c2a24a7d96a239 2
+  s_d551c988b073d8::t_1eb08b53fdaca4 288-289,291-292,297-298,300-301
+  s_d551c988b073d8::t_20a023bc87d8fc 1,3-4,18-51,53-60,62-66,176,183,188-189,191,194,199-200,202,205,208-239,241-242,251-265,268-269,274-287,290,293-296,299,302-305,307-311,314-315,318-319,322-323,326-327,330-331,334-335,338-339,342-346,348,350-352,354-362,377-379
+  s_d551c988b073d8::t_272ae561869d84 363-376
+  s_d55bff51e96628::t_91627a544717e3 5-17
+  s_60e609c11b1f4d::t_f7c046ee319b0e 67-68,83-90,92,97-104,106,111-118,120,125-132,134,139-146,148,153-160,162,167-174,181-182,243,306,313,317,321,325,329,333,337,341,347,349
+  s_d55bff51e96628::t_059e4ea97de43e 240
+  s_d551c988b073d8::t_b7c036c230c4a4 52
+  s_d55bff51e96628::t_a70db1f4e392c3 247-248,266-267,270-273
+  s_d551c988b073d8::t_689de45251ad1a 61
+  s_60e609c11b1f4d::t_5a8a6ce78e93d5 69-71,80-82
+  s_60e609c11b1f4d::t_d9a8548980b295 91
+  s_60e609c11b1f4d::t_977fbfe7a0ae34 93-96
+  s_60e609c11b1f4d::t_ed005fea1d09e6 105
+  s_60e609c11b1f4d::t_7181f4446f9da3 107-110
+  s_60e609c11b1f4d::t_4d5298c2c55edd 119
+  s_60e609c11b1f4d::t_e1eb98f99a2038 121-124
+  s_60e609c11b1f4d::t_166780374a62b0 133
+  s_60e609c11b1f4d::t_c01442b241003f 135-138
+  s_60e609c11b1f4d::t_c9e1bd5f4d252b 147
+  s_60e609c11b1f4d::t_7748edd4cff49b 149-152
+  s_60e609c11b1f4d::t_3999a3976b524f 161
+  s_60e609c11b1f4d::t_b0178c536c9fc6 163-166
+  s_d551c988b073d8::t_81a6e52112d28c 184-187
+  s_d551c988b073d8::t_0f555acef16012 190
+  s_d551c988b073d8::t_cdfa6f2eb5a021 192-193
+  s_d551c988b073d8::t_ea64297365f0de 195-198
+  s_d551c988b073d8::t_fee4f2f9784df1 201
+  s_d551c988b073d8::t_af9550f8872fbf 203-204
+  s_d551c988b073d8::t_f85d31641c135e 206-207
+apps/science/app/pages/components/new.vue
+  s_d551c988b073d8::t_cd189d8dbc30cb 1-76
+packages/ui/app/components/model/list/Item.vue
+  s_60e609c11b1f4d::t_bf2123ee22d212 3,9
+  s_d551c988b073d8::t_539bf449110909 44
+  s_d551c988b073d8::t_3b6b4359e0b3b3 2,4-5,7
+  s_60e609c11b1f4d::t_711ef216b1c2b0 8
+  s_60e609c11b1f4d::t_d4c46f07a1c9ba 12
+packages/ui/app/components/model/list/Component.vue
+  s_d551c988b073d8::t_e2b48fbf232f3c 2,4-5,7
+  s_d551c988b073d8::t_52bf5ddb3f4f64 68
+  s_60e609c11b1f4d::t_87fc8d0b370a43 3,9
+  s_60e609c11b1f4d::t_d897ed6fc8bed4 8
+packages/ui/app/components/model/list/Place.vue
+  s_60e609c11b1f4d::t_c9d4c57de8d2ab 3
+  s_60e609c11b1f4d::t_cbc62b0bac9a05 8
+  s_d551c988b073d8::t_0e2c6ea057fb2f 2,4-5,7
+  s_d551c988b073d8::t_b4db4e0ed9f493 40
+  s_60e609c11b1f4d::t_f35fbd7bf8a2b9 9
+apps/science/app/pages/variants/new.vue
+  s_d551c988b073d8::t_2c3933b6d9a087 1-76
+apps/science/app/pages/programs/[id]/index.vue
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+apps/science/app/pages/sources/[id]/index.vue
+  s_d551c988b073d8::t_c7b79f573ec8f1 1,3-8
+  s_60e609c11b1f4d::t_f3dc41430f34db 2
+apps/science/app/pages/orgs/new.vue
+  s_d551c988b073d8::t_bac951a735bf59 1-76
+apps/science/app/components/component/ComponentDetail.vue
+  s_60e609c11b1f4d::t_516ec9b9c9b7b2 172
+  s_466a7f4df5d341::t_e2de2f6382c79b 84
+  s_d551c988b073d8::t_c922703b3a0dbf 1-6,24-80,87-95,106-171,173-174,176-186,188-199,201-204,206-247
+  s_466a7f4df5d341::t_8d6647548d94b8 81-83,85-86,96-105
+  s_466a7f4df5d341::t_09fc75e1ea7b01 200,205
+  s_466a7f4df5d341::t_911668fed73988 175,187
+  s_60e609c11b1f4d::t_9c706f47dc1ec7 7-13,20-23
+  s_60e609c11b1f4d::t_b4b10f22fed875 14-19
+apps/science/app/components/material/MaterialDetail.vue
+  s_466a7f4df5d341::t_704ccdbd08c9a8 130,136
+  s_d551c988b073d8::t_8e69446607d916 1-6,24-69,76-86,93-105,107-129,131-135,137-145
+  s_60e609c11b1f4d::t_f61cfcd9a3784a 106
+  s_60e609c11b1f4d::t_0954436ce08615 7-13,20-23
+  s_466a7f4df5d341::t_d19e7f858204c6 70-75,87-92
+  s_60e609c11b1f4d::t_45eadd772a3ca6 14-19
+apps/science/app/components/place/PlaceDetail.vue
+  s_466a7f4df5d341::t_783b450ec9ad7c 112-114
+  s_60e609c11b1f4d::t_4abc478232fdb1 149
+  s_466a7f4df5d341::t_28dc70fc5fe793 183
+  s_60e609c11b1f4d::t_fdb8c3d30001b8 7-13,20-23
+  s_d551c988b073d8::t_496700c40ec27d 1-6,24-111,115-147,150-182,184-197
+  s_60e609c11b1f4d::t_3849d01b854d47 14-19
+  s_466a7f4df5d341::t_aeb858ee5e6848 148
+apps/science/app/components/source/SourceDetail.vue
+  s_d551c988b073d8::t_2a176c5754dab2 151,161
+  s_60e609c11b1f4d::t_1c34d31914dbdf 7-13,20-23
+  s_d551c988b073d8::t_9d5c384ee92d8a 103-106
+  s_60e609c11b1f4d::t_19c4862c1c1011 148
+  s_d551c988b073d8::t_6351f45f38eb9e 1-6,24-102,107-147,149-150,152-160,162-213
+  s_60e609c11b1f4d::t_afc5e409b599e5 14-19
+apps/science/app/components/detail/SlidePanel.vue
+  s_d551c988b073d8::t_e46fdf20d16cf5 2-8,10-12
+  s_60e609c11b1f4d::t_4f7d8e64cf80e8 9
+  s_d551c988b073d8::t_5c73159b272fd2 1,13-48
+packages/ui/app/components/model/list/Variant.vue
+  s_60e609c11b1f4d::t_f322b17e49e6ff 3,9
+  s_60e609c11b1f4d::t_4a2acfe8ffefe6 8
+  s_d551c988b073d8::t_4ed48a73bbbb79 2,4-5,7
+  s_d551c988b073d8::t_4f0e83eee6233a 44
+  s_60e609c11b1f4d::t_5b7645ef990d44 12
+apps/science/app/pages/changes/index.vue
+  s_d551c988b073d8::t_9a1cc7951badef 26
+  s_d551c988b073d8::t_bda7433830b922 27-28
+  s_d551c988b073d8::t_ef2d69c6beb370 54,58
+apps/science/app/components/SearchDialog.vue
+  s_d55bff51e96628::t_82c7f8eba6bc34 233-234
+  s_d55bff51e96628::t_c65e79fe4a4c24 39,59-64,66-69,71-93,100-102,128,143-144,151-152,154,162,164-165,200,202,207,211,215,219,223,227-232,240,242,251,253-255,257-258,276-277
+  s_d55bff51e96628::t_9680cd9148a368 94-99
+  s_d55bff51e96628::t_c25509bb5d1bdd 145-150
+  s_d55bff51e96628::t_8a8e635d23a44f 153
+apps/science/app/components/org/OrgDetail.vue
+  s_d551c988b073d8::t_50b35e49ef16a5 1-6,24-144,146-195
+  s_60e609c11b1f4d::t_a7c5df91247e12 7-13,20-23
+  s_60e609c11b1f4d::t_5034cabd3d2057 145
+  s_60e609c11b1f4d::t_2c64bc8de79a86 14-19
+apps/science/app/pages/variants/[id]/edit.vue
+  s_d551c988b073d8::t_1bfa944120d908 1-77
+apps/science/app/pages/processes/new.vue
+  s_d551c988b073d8::t_4f3bef249faf6c 1-76
+apps/science/app/pages/places/new.vue
+  s_d551c988b073d8::t_d522c181d9bbfa 60,71
+  s_d551c988b073d8::t_fde9b897b53e0f 1-59,61-70,72-76
+apps/science/app/pages/categories/[id]/edit.vue
+  s_d551c988b073d8::t_89597ce62f230c 1-78
+apps/science/app/pages/processes/[id]/edit.vue
+  s_d551c988b073d8::t_8775ec082f8678 1-77
+apps/science/app/pages/components/index.vue
+  s_d551c988b073d8::t_e9f7853b8f0f41 61
+  s_d551c988b073d8::t_59b89107fef8dc 4,15-16,32,42,55,60
+  s_d551c988b073d8::t_b25a6501e95f22 40
+  s_d551c988b073d8::t_017d8d14811c06 30
+  s_d551c988b073d8::t_19be9a88d3a4e6 54
+apps/science/app/components/item/ItemDetail.vue
+  s_60e609c11b1f4d::t_d0bf06bc18c521 132
+  s_d551c988b073d8::t_db0270e05ed94d 135,147
+  s_d551c988b073d8::t_626c3bf32ac98d 1-6,24-82,87-99,104-131,133-134,136-146,148-192
+  s_60e609c11b1f4d::t_4a382eb039603d 7-13,20-23
+  s_d551c988b073d8::t_aa1cfb20de572b 100-103
+  s_d551c988b073d8::t_31e80131393bab 83-86
+  s_60e609c11b1f4d::t_b6dbf0f52a768f 14-19
+apps/science/app/pages/items/[id]/edit.vue
+  s_d551c988b073d8::t_7437748dff1482 1-77
+packages/ui/app/components/model/Form.vue
+  s_d551c988b073d8::t_390d0ab7394f1c 76
+  s_d551c988b073d8::t_0f38e139450768 326-327
+  s_d551c988b073d8::t_3f036e9981350f 19-22
+apps/science/app/pages/orgs/index.vue
+  s_d551c988b073d8::t_877329e3e5c1f9 56
+  s_d551c988b073d8::t_3d6fe49ecfbbbc 63
+  s_d551c988b073d8::t_3763ee62de4775 42
+  s_d551c988b073d8::t_2bf07bb813949e 4,15-16,28,44,57,62
+  s_d551c988b073d8::t_7eaf4cdb00096d 26
+apps/science/app/pages/variants/index.vue
+  s_d551c988b073d8::t_64fea8b9b1a352 61
+  s_d551c988b073d8::t_a3dbdcfd13e9d7 30
+  s_d551c988b073d8::t_fb2e2890cd18ae 40
+  s_d551c988b073d8::t_afdca0815aacb7 4,15-16,32,42,55,60
+  s_d551c988b073d8::t_4d93021565b92d 54
+apps/science/app/gql/graphql.ts
+  s_466a7f4df5d341::t_52845590088a57 3651-3679,3682-3684,3686-3704,3712-3768,3778-3809,3841-3883,3940-3952,3954-3956,3971,3976,3979-3988,3990-3992,3995,3997,4000,4002-4003,4007,4009-4010,4014,4121,4124,4126-4127,4131,4133-4134,4138,4174,4177,4179,4184,4186,4191,4231,4234,4236,4241,4243,4248,4250-4254,4258-4260,4262-4288,4290-4291,4293,4296,4298,4303,4305,4310,4412-4418,4422-4425,4429,4436-4442,4446-4450,4452-4453,4513,4516,4518,4523,4525,4530,4532-4538,4542,4544-4545,4549,4589,4592,4594,4599,4601,4606,4608,4611,4613,4618,4620,4625,4687-4705,4728-4734,4738-4742,4745,4747,4750-4752,4757,4759,4764,4804,4807,4809,4814,4816,4821,4833,4836,4838,4843,4845,4850,4952-4953,4955-4970,5150-5152,5154-5159,5161-5163,5167-5171,5178-5179,5182-5186,5195-5197,5202-5204,5207-5213,5221-5223,5225-5227,5231-5236,5239-5244,5250-5252,5256-5261,5264-5266,5268-5270,5278-5280
+  s_d551c988b073d8::t_3d304777cf36fa 3685,3769,3810,3884,3953,4426-4428,4451,4539-4540,4543,4749,4954
+  s_466a7f4df5d341::t_daf63329f52469 4541
+apps/science/app/gql/gql.ts
+  s_466a7f4df5d341::t_52845590088a57 19-21,23-28,30-32,36-40,47-48,51-55,64-66,71-73,76-82,90-92,94-96,100-105,108-113,119-121,125-130,133-135,137-139,147-149,177-179,181-186,188-190,194-198,205-206,209-213,222-224,229-231,234-240,248-250,252-254,258-263,266-271,277-279,283-288,291-293,295-297,305-307,358-366,371-394,399-410,423-442,470,474,478,482,486,490,494,498,502,506,510,514,538,542,546,566,570,574,586,590,594,598,602,606,610,614,618,622,626,630,634,638,642,646,650,654,658,662,666,682,686,690,694,698,702,706,710,714,718,722,726,730,734,746,750,754,758,762,766,782,786,790,794,798,802,806,810,814,818,822,830,834,838,850,854,858,862,866,870,874,878
+apps/science/app/components/variant/VariantDetail.vue
+  s_d551c988b073d8::t_3fb137e2a009a3 83-86
+  s_60e609c11b1f4d::t_2041ece667686e 7-13,20-23
+  s_466a7f4df5d341::t_95008a3b271f7f 118-124,135-140
+  s_d551c988b073d8::t_febdfbfbe7d6a4 199,211
+  s_d551c988b073d8::t_665d889fb85f0b 102
+  s_60e609c11b1f4d::t_cfd03900097e7b 196
+  s_d551c988b073d8::t_74d87015bd3927 1-6,24-82,87-101,103-117,125-134,141-195,197-198,200-210,212-241,243-248,250-284
+  s_466a7f4df5d341::t_2f28a8ab218642 242,249
+  s_60e609c11b1f4d::t_4c394e3adce457 14-19
+apps/science/app/layouts/default.vue
+  s_d551c988b073d8::t_4133b2710c3da3 132
+  s_d551c988b073d8::t_90140133183f52 187-190
+packages/ui/app/components/model/list/Change.vue
+  s_d551c988b073d8::t_c9cf9573504103 55
+  s_d551c988b073d8::t_0dacf652f23e99 2-5,7
+packages/ui/app/components/model/list/Process.vue
+  s_d551c988b073d8::t_7511443b8dad46 40
+  s_d551c988b073d8::t_465d8ef2bac4a5 2-5,7
+apps/science/app/pages/components/[id]/edit.vue
+  s_d551c988b073d8::t_c41701de34a32e 1-77
+packages/ui/app/components/form/Checkbox.vue
+  s_d551c988b073d8::t_8b6fa0758f760a 23
+apps/science/app/pages/items/new.vue
+  s_d551c988b073d8::t_afd80f5d29afbc 1-76
+apps/science/app/pages/categories/index.vue
+  s_d551c988b073d8::t_6e31bd60d46192 40
+  s_d551c988b073d8::t_a79c9fb391251a 4,15-16,32,42,55,60
+  s_d551c988b073d8::t_b96fc96509ed4b 54
+  s_d551c988b073d8::t_0bc5a40ef07a0e 30
+  s_d551c988b073d8::t_7b4eba32240a8c 61
+apps/science/app/components/change/ChangeDetail.vue
+  s_d551c988b073d8::t_436c9603bc476c 1-6,24-220,222-281,283-355
+  s_60e609c11b1f4d::t_c7e690b3fdf57f 7-13,20-23
+  s_d551c988b073d8::t_bc28de2bb191e8 282
+  s_60e609c11b1f4d::t_11168f87262352 221
+  s_60e609c11b1f4d::t_33a76baf20dbcb 14-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "66c5ea6d0b30ea572e814cf1cb5452a0d5856cd2",
+  "prompts": {},
+  "sessions": {
+    "s_466a7f4df5d341": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3b21ae34-a7a1-4454-a837-6bce3627e5b3",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_60e609c11b1f4d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8afa6bcb-41e1-4854-9148-51cee1afff90",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_d551c988b073d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ffce71c-ff0e-4e94-a2c4-bd20abc70ccd",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_d55bff51e96628": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4231db76-ffd5-480d-a1b0-1ecb342fbbc4",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
