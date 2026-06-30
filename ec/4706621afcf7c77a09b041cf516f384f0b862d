@@ -1,0 +1,93 @@
+packages/ui/app/components/ui/Image.vue
+  s_76cf5c5695d8d4::t_62d076725c9be0 3-4,6
+  s_76cf5c5695d8d4::t_db7e3dc1680d25 5
+apps/science/app/components/CopyEntityDialog.vue
+  s_d8d7a448a883de::t_4efb67ea3841c1 85
+  s_d8d7a448a883de::t_a8ca579ed7351c 16
+packages/ui/app/forms/complex/TranslatedFieldRenderer.vue
+  s_d8d7a448a883de::t_f982f221e2d896 96
+apps/science/app/pages/dashboard/search.vue
+  s_7236339dd795af::t_60974507c9b944 296
+  s_7236339dd795af::t_0284edce78cf41 355-358
+  s_7236339dd795af::t_dbe63764aca6b1 59
+  s_7236339dd795af::t_9737bf542ebd2a 44-49,51-52,54
+  s_7236339dd795af::t_cc5ee52f033477 21
+  s_7236339dd795af::t_091c7256fa7076 50,53
+  s_7236339dd795af::t_5affca477545db 40
+  s_7236339dd795af::t_e2d0f046330f26 68
+  s_7236339dd795af::t_0a087948b260d7 4-5,19-20,22,36-37,41-42,55-58,60-67,69-83,92-96,300,326,337,346,368-385,387,389-394,396-403,439-446,457,466
+  s_7236339dd795af::t_ca26f23c923e12 43
+  s_7236339dd795af::t_8ae82f769c8a2b 84-86
+  s_7236339dd795af::t_dbfa8455ae4e37 386
+  s_7236339dd795af::t_54d7e4909b020d 388
+packages/ui/app/components/model/list/Component.vue
+  s_7236339dd795af::t_8128025580b708 8-10
+packages/ui/app/components/model/list/Material.vue
+  s_7236339dd795af::t_148baa55005868 7-9
+apps/science/app/pages/settings/index.vue
+  s_d8d7a448a883de::t_217a2ffa561566 54,57
+packages/ui/app/forms/controls/IntegerControlRenderer.vue
+  s_d8d7a448a883de::t_525518732d903f 8,13
+packages/ui/app/components/model/list/Category.vue
+  s_7236339dd795af::t_f1555ad5e949c1 8-10
+packages/ui/app/forms/controls/StringControlRenderer.vue
+  s_d8d7a448a883de::t_f07e3d8b486cbf 8,11
+packages/ui/app/components/model/list/Region.vue
+  s_7236339dd795af::t_4e1adcf8ea809d 3-5
+apps/science/app/components/grid/Model.vue
+  s_d8d7a448a883de::t_61781bff703e88 35,38
+packages/ui/app/forms/controls/DateControlRenderer.vue
+  s_d8d7a448a883de::t_87b29941e88b68 8,12
+packages/ui/app/forms/controls/NumberControlRenderer.vue
+  s_d8d7a448a883de::t_1b03107bc1dcfb 8,13
+packages/ui/app/components/model/list/Org.vue
+  s_7236339dd795af::t_c8166afa58bdfa 8-10
+packages/ui/app/forms/controls/TimeControlRenderer.vue
+  s_d8d7a448a883de::t_57445d8dba7984 8,12
+packages/ui/app/forms/controls/DateTimeControlRenderer.vue
+  s_d8d7a448a883de::t_47928d2d81db1d 8,12
+packages/ui/app/forms/complex/AssetRenderer.vue
+  s_d8d7a448a883de::t_d85f8122fc93c5 8,11
+packages/ui/app/components/model/list/Variant.vue
+  s_7236339dd795af::t_248955d117dfec 8-10
+packages/ui/app/components/model/list/Item.vue
+  s_7236339dd795af::t_e0fdaa9c2c3701 8-10
+packages/ui/app/components/model/list/Place.vue
+  s_7236339dd795af::t_2dad258d50b04e 8-10
+apps/science/app/gql/gql.ts
+  s_7236339dd795af::t_971f4c69472fcc 79,237,598
+apps/science/app/gql/graphql.ts
+  s_7236339dd795af::t_5de745fdbb1ca8 4253,4292,5211
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.4",
+  "base_commit_sha": "ec4706621afcf7c77a09b041cf516f384f0b862d",
+  "prompts": {},
+  "sessions": {
+    "s_7236339dd795af": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f606a9ff-f6e8-471c-b4c6-cd5ae603e118",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_76cf5c5695d8d4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4ac747b1-b020-4c9a-b497-9a63e9b6b918",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_d8d7a448a883de": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd4eb438-b89a-48b0-82fc-84bb895802c2",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
