@@ -5,7 +5,9 @@
   >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
     <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
-    <slot name="leading" />
+    <div v-if="$slots.leading" class="relative z-10">
+      <slot name="leading" />
+    </div>
     <div class="shrink-0">
       <UiImage class="size-10" :src="variant.imageURL"></UiImage>
     </div>

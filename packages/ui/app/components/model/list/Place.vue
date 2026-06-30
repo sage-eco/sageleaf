@@ -5,7 +5,9 @@
   >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
     <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
-    <slot name="leading" />
+    <div v-if="$slots.leading" class="relative z-10">
+      <slot name="leading" />
+    </div>
     <div class="min-w-0 flex-1">
       <div class="text-bold">{{ place.name }}</div>
       <div class="text-xs opacity-70">

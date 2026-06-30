@@ -4,7 +4,9 @@
     :class="{ 'cursor-pointer hover:bg-base-200': !!onRowClick }"
   >
     <button v-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
-    <slot name="leading" />
+    <div v-if="$slots.leading" class="relative z-10">
+      <slot name="leading" />
+    </div>
     <div class="shrink-0">
       <UiImage class="size-10" :src="'icon://lets-icons:materials'"></UiImage>
     </div>

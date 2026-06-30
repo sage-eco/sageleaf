@@ -1,6 +1,8 @@
 <template>
   <li class="list-row flex items-center gap-4 rounded-lg px-4 py-3 transition-colors">
-    <slot name="leading" />
+    <div v-if="$slots.leading" class="relative z-10">
+      <slot name="leading" />
+    </div>
     <div class="min-w-0 flex-1">
       <div class="text-bold">{{ region.name }}</div>
     </div>

@@ -51,11 +51,10 @@
             :side-offset="4"
             class="z-50 w-80 rounded-lg border border-base-content/10 bg-base-100 p-2 shadow-lg"
           >
-            <input
+            <FormInput
               v-model="search"
-              type="text"
-              class="input-bordered input input-sm mb-2 w-full"
               placeholder="Search languages..."
+              class="mb-2"
               @keydown.escape="addOpen = false"
               @keydown.enter.prevent="confirmFirst"
             />

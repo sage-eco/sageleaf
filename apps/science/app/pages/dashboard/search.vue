@@ -1,8 +1,8 @@
 <template>
   <div class="flex min-h-0 min-w-0 flex-1 flex-col">
     <!-- Search input -->
-    <div class="border-b border-base-content/10 px-4 py-3">
-      <div class="relative flex items-center gap-2">
+    <div class="flex flex-col gap-2 border-b border-base-content/10 px-4 py-3">
+      <div class="relative flex items-center">
         <div class="relative flex flex-1 items-center">
           <SearchIcon :size="16" class="absolute left-3 shrink-0 opacity-40" />
           <FormInput v-model="searchInput" placeholder="Search…" class="pl-9" />
@@ -16,6 +16,10 @@
             <XIcon :size="14" />
           </Button>
         </div>
+      </div>
+      <!-- Filter chips row -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Type dropdown -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button variant="outline" size="sm" class="shrink-0 gap-1.5">
@@ -29,15 +33,67 @@
               </span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-40">
-            <DropdownMenuCheckboxItem
+          <DropdownMenuContent align="start" class="w-40">
+            <DropdownMenuItem
               v-for="opt in typeOptions"
               :key="opt.value"
-              :checked="selectedTypes.has(opt.value)"
-              @update:checked="(v: boolean | 'indeterminate') => toggleType(opt.value, v)"
+              class="group/item justify-between"
+              @select.prevent
+              @click="toggleType(opt.value, !selectedTypes.has(opt.value))"
             >
-              {{ opt.label }}
-            </DropdownMenuCheckboxItem>
+              <span class="flex items-center gap-x-3.5">
+                <Check v-if="selectedTypes.has(opt.value)" class="size-4" />
+                <span v-else class="size-4" />
+                {{ opt.label }}
+              </span>
+              <button
+                class="rounded px-1 py-0.5 text-[10px] opacity-0 group-hover/item:opacity-40 hover:bg-base-300 hover:!opacity-100"
+                @click.stop="soloType(opt.value)"
+              >
+                Only
+              </button>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <!-- Facet dropdowns (only when searching) -->
+        <DropdownMenu v-for="facet in facets" :key="facet.field">
+          <DropdownMenuTrigger as-child>
+            <Button variant="outline" size="sm" class="shrink-0 gap-1.5">
+              {{ formatFacetField(facet.field) }}
+              <span
+                v-if="activeFilters[facet.field]?.length"
+                class="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-content"
+              >
+                {{ activeFilters[facet.field]?.length }}
+              </span>
+              <span
+                v-if="activeFilters[facet.field]?.length"
+                class="ml-0.5 opacity-60 hover:opacity-100"
+                @click.stop="clearFacet(facet.field)"
+              >
+                <XIcon :size="12" />
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" class="w-52">
+            <DropdownMenuItem
+              v-for="count in facet.counts"
+              :key="count.value"
+              @select.prevent
+              @click="
+                toggleFacetFilter(
+                  facet.field,
+                  count.value,
+                  !(activeFilters[facet.field]?.includes(count.value) ?? false),
+                )
+              "
+            >
+              <Check v-if="activeFilters[facet.field]?.includes(count.value)" class="size-4" />
+              <span v-else class="size-4" />
+              {{ count.label || count.value }}
+              <span class="ml-auto text-xs opacity-50">{{ count.count }}</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -237,11 +293,11 @@
 </template>
 
 <script setup lang="ts">
-import { ListFilterIcon, SearchIcon, SearchXIcon, XIcon } from '@lucide/vue'
+import { Check, ListFilterIcon, SearchIcon, SearchXIcon, XIcon } from '@lucide/vue'
 import { watchDebounced } from '@vueuse/core'
 
 import { graphql } from '~/gql'
-import type { SearchType } from '~/gql/graphql'
+import type { SearchFacetFilterInput, SearchType } from '~/gql/graphql'
 import { useDetailPanelStore } from '~/stores/detail_panel_store'
 
 const route = useRoute()
@@ -267,6 +323,7 @@ const searchInput = ref((route.query.q as string) || '')
 const debouncedSearch = ref((route.query.q as string) || '')
 const offset = ref(0)
 const selectedIds = ref<Set<string>>(new Set())
+const activeFilters = ref<Record<string, string[]>>({})
 
 watch(searchInput, (val) => {
   router.replace({ query: val ? { q: val } : {} })
@@ -277,6 +334,7 @@ watchDebounced(
   (val) => {
     debouncedSearch.value = val
     offset.value = 0
+    activeFilters.value = {}
   },
   { debounce: 300 },
 )
@@ -285,13 +343,17 @@ watch(selectedTypes, () => {
   offset.value = 0
 })
 
-function toggleType(value: string, checked: boolean | 'indeterminate') {
+function toggleType(value: string, checked: boolean) {
   if (checked) {
     selectedTypes.value.add(value)
   } else {
     selectedTypes.value.delete(value)
   }
   selectedTypes.value = new Set(selectedTypes.value)
+}
+
+function soloType(value: string) {
+  selectedTypes.value = new Set([value])
 }
 
 function toggleSelected(id: string, checked: boolean | 'indeterminate') {
@@ -303,9 +365,42 @@ function toggleSelected(id: string, checked: boolean | 'indeterminate') {
   selectedIds.value = new Set(selectedIds.value)
 }
 
+function toggleFacetFilter(field: string, value: string, checked: boolean) {
+  const current = activeFilters.value[field] ?? []
+  if (checked) {
+    activeFilters.value = { ...activeFilters.value, [field]: [...current, value] }
+  } else {
+    const next = current.filter((v) => v !== value)
+    activeFilters.value = { ...activeFilters.value, [field]: next }
+  }
+  offset.value = 0
+}
+
+function clearFacet(field: string) {
+  const { [field]: _, ...rest } = activeFilters.value
+  activeFilters.value = rest
+  offset.value = 0
+}
+
+function formatFacetField(field: string) {
+  return field.replaceAll(`_`, ' ').replaceAll(/\b\w/g, (c) => c.toUpperCase())
+}
+
+const filtersInput = computed<SearchFacetFilterInput[]>(() =>
+  Object.entries(activeFilters.value)
+    .filter(([, vals]) => vals.length > 0)
+    .map(([field, values]) => ({ field, values })),
+)
+
 const searchQuery = graphql(`
-  query DashboardSearch($query: String!, $types: [SearchType!], $limit: Int, $offset: Int) {
-    search(query: $query, types: $types, limit: $limit, offset: $offset) {
+  query DashboardSearch(
+    $query: String!
+    $types: [SearchType!]
+    $filters: [SearchFacetFilterInput!]
+    $limit: Int
+    $offset: Int
+  ) {
+    search(query: $query, types: $types, filters: $filters, limit: $limit, offset: $offset) {
       nodes {
         __typename
         ... on Category {
@@ -341,6 +436,14 @@ const searchQuery = graphql(`
           ...ListRegionFragment
         }
       }
+      facets(limit: 20) {
+        field
+        counts {
+          value
+          label
+          count
+        }
+      }
       totalCount
     }
   }
@@ -351,6 +454,7 @@ const { result, loading } = useQuery(
   () => ({
     query: debouncedSearch.value,
     types: selectedTypes.value.size > 0 ? ([...selectedTypes.value] as SearchType[]) : undefined,
+    filters: filtersInput.value.length > 0 ? filtersInput.value : undefined,
     limit: LIMIT,
     offset: offset.value,
   }),
@@ -359,6 +463,7 @@ const { result, loading } = useQuery(
 
 const results = computed(() => result.value?.search.nodes ?? [])
 const totalCount = computed(() => result.value?.search.totalCount ?? 0)
+const facets = computed(() => result.value?.search.facets ?? [])
 
 const panelTypeMap: Record<string, string> = {
   Category: 'category',

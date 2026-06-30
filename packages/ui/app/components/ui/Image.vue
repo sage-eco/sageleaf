@@ -1,6 +1,9 @@
 <template>
   <div :class="cn('flex h-full items-center justify-center', props.class)">
-    <picture v-if="src && srcType === 'img'">
+    <picture
+      v-if="src && srcType === 'img'"
+      class="flex h-full w-full items-center justify-center overflow-hidden"
+    >
       <source :src="src" />
       <img srcset="" :src="src" :alt="alt" :class="imgClass" :style="widthHeightStyle" />
     </picture>
