@@ -1,5 +1,6 @@
 <template>
   <div>
+    <UiPageLoadingBar />
     <SidebarProvider v-model:open="sidebarOpen">
       <Sidebar>
         <SidebarHeader>
