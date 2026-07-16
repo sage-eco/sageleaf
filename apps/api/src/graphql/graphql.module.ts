@@ -1,32 +1,53 @@
 import { IncomingMessage } from 'http'
 import { join } from 'path'
 
+import ApolloServerPluginResponseCache from '@apollo/server-plugin-response-cache'
+import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { DynamicModule, Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { Int, GraphQLModule as NestGraphQLModule } from '@nestjs/graphql'
+import { fromNodeHeaders } from 'better-auth/node'
 import { DirectiveLocation, GraphQLBoolean, GraphQLDirective } from 'graphql'
 import type { GraphQLFormattedError } from 'graphql'
 import { JSONObjectDefinition, JSONObjectResolver } from 'graphql-scalars'
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs'
 
+import { AuthModule } from '@src/auth/auth.module'
+import { AuthService } from '@src/auth/auth.service'
 import { LuxonDateTimeResolver } from '@src/common/datetime.model'
 import { CacheControlScopeEnum } from '@src/graphql/cache-control'
-import { Context } from '@src/graphql/graphql.context'
+import { createGraphQLCache } from '@src/graphql/graphql-cache'
+import { Context, IncomingMessageWithAuthCode } from '@src/graphql/graphql.context'
 
 @Module({})
 export class GraphQLModule {
   static register(): DynamicModule {
     const graphQL = NestGraphQLModule.forRootAsync({
       driver: ApolloDriver,
-      imports: [ConfigModule],
+      imports: [ConfigModule, AuthModule],
+      inject: [ConfigService, AuthService],
 
-      useFactory: (configService: ConfigService): ApolloDriverConfig => {
+      useFactory: (configService: ConfigService, authService: AuthService): ApolloDriverConfig => {
         const context: Context = {}
+        const cache = createGraphQLCache(configService)
+
+        const getSessionId = async (req?: IncomingMessageWithAuthCode): Promise<string | null> => {
+          if (!req?.headers.cookie) return null
+          try {
+            const session = await authService.api.getSession({
+              headers: fromNodeHeaders(req.headers),
+            })
+            return session?.session.id ?? null
+          } catch {
+            return null
+          }
+        }
 
         return {
           autoSchemaFile: join(process.cwd(), 'schema/schema.gql'),
+          cache,
           context: ({ req }: { req: IncomingMessage }) => {
             context.req = req
             return context
@@ -67,6 +88,14 @@ export class GraphQLModule {
                 endpointIsEditable: false,
               },
               includeCookies: true,
+            }),
+            ApolloServerPluginCacheControl({ defaultMaxAge: 300 }),
+            ApolloServerPluginResponseCache({
+              cache,
+              shouldWriteToCache: async (requestContext) =>
+                requestContext.operation?.operation === 'query',
+              sessionId: async (requestContext) =>
+                getSessionId((requestContext.contextValue as Context).req),
             }),
           ],
           introspection: true,

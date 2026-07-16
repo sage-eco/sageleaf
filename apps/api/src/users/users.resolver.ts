@@ -1,4 +1,4 @@
-import { Args, ID, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, Directive, ID, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 
 import { AuthUser, type ReqUser } from '@src/auth/auth.guard'
 import { OptionalAuth } from '@src/auth/decorators'
@@ -30,6 +30,7 @@ export class UsersResolver {
   }
 
   @Query(() => User, { name: 'me', nullable: true })
+  @Directive('@cacheControl(maxAge: 0)')
   async me(@AuthUser() authUser: ReqUser) {
     const user = await this.usersService.findOneByID(authUser.id)
     if (!user) {

@@ -228,6 +228,6 @@ class AuthModuleWithoutControllers extends BetterAuthModule {
     }),
   ],
   providers: [AuthUserService],
-  exports: [AuthUserService],
+  exports: [AuthUserService, BetterAuthModule],
 })
 export class AuthModule {}

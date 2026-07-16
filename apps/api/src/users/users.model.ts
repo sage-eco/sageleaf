@@ -1,4 +1,4 @@
-import { ArgsType, Field, ObjectType } from '@nestjs/graphql'
+import { ArgsType, Directive, Field, ObjectType } from '@nestjs/graphql'
 import { IsEmail, IsOptional, IsUrl, MaxLength } from 'class-validator'
 
 import { ChangesConnection } from '@src/changes/change.model'
@@ -18,11 +18,13 @@ export class User extends IDCreatedUpdated {
   name?: string
 
   @Field()
+  @Directive('@cacheControl(maxAge: 60, scope: PRIVATE)')
   @IsEmail()
   @MaxLength(1024)
   email!: string
 
   @Field()
+  @Directive('@cacheControl(maxAge: 60, scope: PRIVATE)')
   emailVerified!: boolean
 
   @Field()

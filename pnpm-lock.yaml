@@ -94,6 +94,15 @@ importers:
       '@apollo/server':
         specifier: ^5.5.0
         version: 5.5.0(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8))
+      '@apollo/server-plugin-response-cache':
+        specifier: ^5.0.0
+        version: 5.0.0(@apollo/server@5.5.0(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8)))(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8))
+      '@apollo/utils.keyvadapter':
+        specifier: ^4.0.1
+        version: 4.0.1
+      '@apollo/utils.keyvaluecache':
+        specifier: ^4.0.0
+        version: 4.0.0
       '@as-integrations/express5':
         specifier: ^1.1.2
         version: 1.1.2(@apollo/server@5.5.0(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8)))(express@5.2.1)
@@ -103,6 +112,9 @@ importers:
       '@better-auth/api-key':
         specifier: 1.5.6
         version: 1.5.6(@better-auth/core@1.5.6(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.14)(nanostores@1.2.0))(@better-auth/utils@0.3.1)(better-auth@1.5.6(67ddf167218691d4b99f9a879d356806))
+      '@keyv/redis':
+        specifier: ^5.1.6
+        version: 5.1.6(keyv@5.6.0)
       '@mikro-orm/core':
         specifier: ^6.6.6
         version: 6.6.6
@@ -202,6 +214,9 @@ importers:
       jsonld:
         specifier: ^8.3.3
         version: 8.3.3(web-streams-polyfill@3.3.3)
+      keyv:
+        specifier: ^5.6.0
+        version: 5.6.0
       kysely:
         specifier: ^0.28.14
         version: 0.28.14
@@ -1120,6 +1135,13 @@ packages:
     peerDependencies:
       '@apollo/server': ^4.0.0
 
+  '@apollo/server-plugin-response-cache@5.0.0':
+    resolution: {integrity: sha512-q78R0jUP642EjBvfzkAV5HtM0fcoA0/D2tBGQdXPShj6PvcV2UDhaw6Yw/N9rkXKJmFtXZiGyDyOssfWO1cTxw==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@apollo/server': ^5.0.0
+      graphql: 16.11.0
+
   '@apollo/server@5.5.0':
     resolution: {integrity: sha512-vWtodBOK/SZwBTJzItECOmLfL8E8pn/IdvP7pnxN5g2tny9iW4+9sxdajE798wV1H2+PYp/rRcl/soSHIBKMPw==}
     engines: {node: '>=20'}
@@ -1145,6 +1167,10 @@ packages:
 
   '@apollo/utils.isnodelike@3.0.0':
     resolution: {integrity: sha512-xrjyjfkzunZ0DeF6xkHaK5IKR8F1FBq6qV+uZ+h9worIF/2YSzA0uoBxGv6tbTeo9QoIQnRW4PVFzGix5E7n/g==}
+    engines: {node: '>=16'}
+
+  '@apollo/utils.keyvadapter@4.0.1':
+    resolution: {integrity: sha512-nCsAM/uNi17sta6f98FOBiQc8qwx3As78LfUGmHWzaKnwpolzeV8Phz04W723CSaDGxeo/gxEkkQiK0oAdvGxw==}
     engines: {node: '>=16'}
 
   '@apollo/utils.keyvaluecache@4.0.0':
@@ -3042,6 +3068,15 @@ packages:
     peerDependencies:
       '@jsonforms/core': 3.7.0
       vue: ^3.5.0
+
+  '@keyv/redis@5.1.6':
+    resolution: {integrity: sha512-eKvW6pspvVaU5dxigaIDZr635/Uw6urTXL3gNbY9WTR8d3QigZQT+r8gxYSEOsw4+1cCBsC4s7T2ptR0WC9LfQ==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      keyv: ^5.6.0
+
+  '@keyv/serialize@1.1.1':
+    resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
   '@kwsites/file-exists@1.1.1':
     resolution: {integrity: sha512-m9/5YGR18lIwxSFDwfE3oA7bWuq9kdau6ugN4H2rJeyhFQZcG9AgSHkQtSD15a8WvTgfz9aikZMrKPHvbpqFiw==}
@@ -9580,6 +9615,9 @@ packages:
   hookable@6.1.0:
     resolution: {integrity: sha512-ZoKZSJgu8voGK2geJS+6YtYjvIzu9AOM/KZXsBxr83uhLL++e9pEv/dlgwgy3dvHg06kTz6JOh1hk3C8Ceiymw==}
 
+  hookified@1.15.1:
+    resolution: {integrity: sha512-MvG/clsADq1GPM2KGo2nyfaWVyn9naPiXrqIe4jYjXNZQt238kWyOGrsyc/DmRAQ+Re6yeo6yX/yoNCG5KAEVg==}
+
   html-encoding-sniffer@3.0.0:
     resolution: {integrity: sha512-oWv4T4yJ52iKrufjnyZPkrN0CH3QnrUqdB6In1g5Fe1mia8GmF36gnfNySxoZtxD5+NmYw1EElVXiBk93UeskA==}
     engines: {node: '>=12'}
@@ -10076,6 +10114,9 @@ packages:
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
+
+  keyv@5.6.0:
+    resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
 
   kind-of@6.0.3:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
@@ -13287,8 +13328,8 @@ packages:
   vue-component-type-helpers@2.2.12:
     resolution: {integrity: sha512-YbGqHZ5/eW4SnkPNR44mKVc6ZKQoRs/Rux1sxC6rdwXb4qpbOSYfDr9DsTHolOTGmIKgM9j141mZbBeg05R1pw==}
 
-  vue-component-type-helpers@3.3.5:
-    resolution: {integrity: sha512-Fe1jyPJoUGpJOYKOri44jduR7My4yYINOMJISuMAbmrs+L5LbIDUc8NTWZYY3EJLK0yPLuCmcd5zoCsE4k2/KA==}
+  vue-component-type-helpers@3.3.7:
+    resolution: {integrity: sha512-Skkhw9agYSgsWqv7bxSOGJZa9SaiJbZVGdXuFWnrzKaQYHnw9qbjD630rw6RyMqDbp54nfLCLw5SZA55if7JLg==}
 
   vue-demi@0.14.10:
     resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
@@ -13756,6 +13797,13 @@ snapshots:
       '@apollo/server': 5.5.0(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8))
       '@apollographql/graphql-playground-html': 1.6.29
 
+  '@apollo/server-plugin-response-cache@5.0.0(@apollo/server@5.5.0(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8)))(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8))':
+    dependencies:
+      '@apollo/server': 5.5.0(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8))
+      '@apollo/utils.createhash': 3.0.1
+      '@apollo/utils.keyvaluecache': 4.0.0
+      graphql: 16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8)
+
   '@apollo/server@5.5.0(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8))':
     dependencies:
       '@apollo/cache-control-types': 1.0.3(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8))
@@ -13799,6 +13847,12 @@ snapshots:
   '@apollo/utils.fetcher@3.1.0': {}
 
   '@apollo/utils.isnodelike@3.0.0': {}
+
+  '@apollo/utils.keyvadapter@4.0.1':
+    dependencies:
+      '@apollo/utils.keyvaluecache': 4.0.0
+      dataloader: 2.2.3
+      keyv: 5.6.0
 
   '@apollo/utils.keyvaluecache@4.0.0':
     dependencies:
@@ -16240,6 +16294,17 @@ snapshots:
       '@jsonforms/core': 3.7.0
       lodash: 4.17.23
       vue: 3.5.31(typescript@5.9.3)
+
+  '@keyv/redis@5.1.6(keyv@5.6.0)':
+    dependencies:
+      '@redis/client': 5.11.0
+      cluster-key-slot: 1.1.2
+      hookified: 1.15.1
+      keyv: 5.6.0
+    transitivePeerDependencies:
+      - '@node-rs/xxhash'
+
+  '@keyv/serialize@1.1.1': {}
 
   '@kwsites/file-exists@1.1.1':
     dependencies:
@@ -19748,7 +19813,7 @@ snapshots:
       storybook: 10.3.3(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       type-fest: 2.19.0
       vue: 3.5.31(typescript@5.9.3)
-      vue-component-type-helpers: 3.3.5
+      vue-component-type-helpers: 3.3.7
 
   '@stylistic/eslint-plugin@5.10.0(eslint@10.0.0(jiti@2.6.1))':
     dependencies:
@@ -23583,6 +23648,8 @@ snapshots:
 
   hookable@6.1.0: {}
 
+  hookified@1.15.1: {}
+
   html-encoding-sniffer@3.0.0:
     dependencies:
       whatwg-encoding: 2.0.0
@@ -24099,6 +24166,10 @@ snapshots:
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
+
+  keyv@5.6.0:
+    dependencies:
+      '@keyv/serialize': 1.1.1
 
   kind-of@6.0.3: {}
 
@@ -27847,7 +27918,7 @@ snapshots:
 
   vue-component-type-helpers@2.2.12: {}
 
-  vue-component-type-helpers@3.3.5: {}
+  vue-component-type-helpers@3.3.7: {}
 
   vue-demi@0.14.10(vue@3.5.31(typescript@5.9.3)):
     dependencies:
