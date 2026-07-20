@@ -1,5 +1,6 @@
 <template>
   <div>
+    <UiPageLoadingBar />
     <SidebarProvider v-model:open="sidebarOpen">
       <Sidebar>
         <SidebarHeader>
@@ -129,6 +130,7 @@
         <slot />
       </SidebarInset>
     </SidebarProvider>
+    <DetailSlidePanel />
     <Dialog v-model:open="showSignIn">
       <DialogContent class="sm:max-w-[425px]">
         <DialogHeader class="flex items-center">
@@ -183,7 +185,10 @@ const menuItems = computed(() => [
     title: t.value('nav.dashboard', { ns: 'science' }),
     url: '/dashboard',
     icon: LayoutDashboard,
-    subItems: [{ title: t.value('nav.dashboard.index', { ns: 'science' }), url: '/dashboard' }],
+    subItems: [
+      { title: t.value('nav.dashboard.index', { ns: 'science' }), url: '/dashboard' },
+      { title: 'Search', url: '/dashboard/search' },
+    ],
   },
   {
     title: t.value('nav.categories', { ns: 'science' }),

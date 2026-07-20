@@ -32,11 +32,10 @@
           <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-base-content/40">
             <SearchIcon :size="16" />
           </span>
-          <input
+          <FormInput
             v-model="searchInput"
-            type="text"
             :placeholder="searchPlaceholder ?? 'Search...'"
-            class="input-bordered input w-full pl-9 text-sm"
+            class="pl-9 text-sm"
           />
         </div>
         <CardDescription>{{ desc }}</CardDescription>

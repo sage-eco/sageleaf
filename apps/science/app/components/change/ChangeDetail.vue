@@ -1,9 +1,26 @@
 <template>
   <div>
     <div class="flex items-start gap-3 p-3">
-      <Button variant="ghost" @click="router.back()">
+      <Button v-if="mode === 'page'" variant="ghost" @click="emit('close')">
         <ArrowLeft class="size-4" />
       </Button>
+      <template v-else>
+        <Button variant="ghost" size="icon" @click="emit('close')">
+          <X class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="
+            () => {
+              emit('close')
+              navigateTo(`/changes/${id}`)
+            }
+          "
+        >
+          <Maximize2 class="size-4" />
+        </Button>
+      </template>
       <div class="flex-1">
         <h1 class="text-xl font-bold">{{ entity?.title ?? id }}</h1>
         <EntityMeta
@@ -13,14 +30,16 @@
           :updated-at="entity.updatedAt"
         />
       </div>
-      <Button @click="requireAuth(() => (showEdit = true))">
-        <Pencil class="size-4" />
-        Edit
-      </Button>
-      <Button variant="destructive" @click="requireAuth(() => (showDelete = true))">
-        <Trash2 class="size-4" />
-        Delete
-      </Button>
+      <template v-if="mode === 'page'">
+        <Button @click="requireAuth(() => (showEdit = true))">
+          <Pencil class="size-4" />
+          Edit
+        </Button>
+        <Button variant="destructive" @click="requireAuth(() => (showDelete = true))">
+          <Trash2 class="size-4" />
+          Delete
+        </Button>
+      </template>
     </div>
 
     <div v-if="entity">
@@ -77,6 +96,7 @@
           </Button>
         </template>
       </div>
+
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle>Overview</CardTitle>
@@ -86,7 +106,12 @@
           <div v-if="entity.description">
             <span class="font-semibold">Description:</span> {{ entity.description }}
           </div>
-          <div><span class="font-semibold">Created by:</span> {{ entity.user?.name }}</div>
+          <div>
+            <span class="font-semibold">Created by:</span> {{ entity.user?.name
+            }}<span v-if="entity.user?.username" class="ml-1 opacity-60"
+              >@{{ entity.user.username }}</span
+            >
+          </div>
         </CardContent>
       </Card>
 
@@ -129,29 +154,15 @@
       </Card>
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
-        <CardHeader>
-          <CardTitle>Sources</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Sources</CardTitle></CardHeader>
         <CardContent>
-          <ul class="space-y-2">
-            <li
+          <div class="grid grid-cols-4 gap-2">
+            <SourceCard
               v-for="cs in entity.sources?.nodes ?? []"
               :key="cs.source.id"
-              class="flex items-center gap-2 text-sm"
-            >
-              <span class="badge badge-outline badge-sm">{{ cs.source.type }}</span>
-              <a
-                v-if="cs.source.contentURL"
-                :href="cs.source.contentURL"
-                target="_blank"
-                class="max-w-xs link truncate link-primary"
-                >{{ cs.source.contentURL }}</a
-              >
-              <NuxtLink :to="`/sources/${cs.source.id}`" class="link text-xs link-secondary"
-                >View</NuxtLink
-              >
-            </li>
-          </ul>
+              :source="cs.source"
+            />
+          </div>
           <div v-if="!entity.sources?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
@@ -198,14 +209,17 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, GitMerge, Pencil, RotateCcw, Send, Trash2 } from '@lucide/vue'
+import { ArrowLeft, GitMerge, Maximize2, Pencil, RotateCcw, Send, Trash2, X } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import { ChangeStatus } from '~/gql/graphql'
 
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id as string
+const props = defineProps<{
+  id: string
+  mode?: 'page' | 'panel'
+}>()
+
+const emit = defineEmits<{ close: [] }>()
 
 const { requireAuth } = useRequireAuth()
 
@@ -221,14 +235,13 @@ const detailQuery = graphql(`
       user {
         id
         name
+        username
       }
       sources(first: 10) {
         nodes {
           source {
             id
-            type
-            contentURL
-            location
+            ...SourceCardFragment
           }
         }
       }
@@ -247,7 +260,7 @@ const detailQuery = graphql(`
   }
 `)
 
-const { result, refetch } = useQuery(detailQuery, { id })
+const { result, refetch } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.change ?? null)
 
 const selectedEditId = ref<string | null>(null)
@@ -256,7 +269,7 @@ const selectedEdit = computed(
 )
 
 const updateChangeMutation = graphql(`
-  mutation UpdateChangeFromDetail($input: UpdateChangeInput!) {
+  mutation UpdateChangeDetail($input: UpdateChangeInput!) {
     updateChange(input: $input) {
       change {
         id
@@ -269,7 +282,7 @@ const updateChangeMutation = graphql(`
 `)
 
 const deleteChangeMutation = graphql(`
-  mutation DeleteChangeFromDetail($id: ID!) {
+  mutation DeleteChange($id: ID!) {
     deleteChange(id: $id) {
       success
     }
@@ -277,7 +290,7 @@ const deleteChangeMutation = graphql(`
 `)
 
 const mergeChangeMutation = graphql(`
-  mutation MergeChangeFromDetail($id: ID!) {
+  mutation MergeChange($id: ID!) {
     mergeChange(id: $id) {
       change {
         id
@@ -291,10 +304,7 @@ const { mutate: updateChange } = useMutation(updateChangeMutation)
 const { mutate: deleteChange } = useMutation(deleteChangeMutation)
 const { mutate: mergeChange } = useMutation(mergeChangeMutation)
 
-const editForm = reactive({
-  title: '',
-  description: '',
-})
+const editForm = reactive({ title: '', description: '' })
 
 watch(
   entity,
@@ -311,29 +321,25 @@ const showEdit = ref(false)
 const showDelete = ref(false)
 
 const doSetStatus = async (status: ChangeStatus) => {
-  await updateChange({ input: { id, status } })
+  await updateChange({ input: { id: props.id, status } })
   await refetch()
 }
 
 const doMerge = async () => {
-  await mergeChange({ id })
+  await mergeChange({ id: props.id })
   await refetch()
 }
 
 const doEdit = async () => {
   await updateChange({
-    input: {
-      id,
-      title: editForm.title,
-      description: editForm.description,
-    },
+    input: { id: props.id, title: editForm.title, description: editForm.description },
   })
   await refetch()
   showEdit.value = false
 }
 
 const doDelete = async () => {
-  await deleteChange({ id })
+  await deleteChange({ id: props.id })
   navigateTo('/changes')
 }
 </script>

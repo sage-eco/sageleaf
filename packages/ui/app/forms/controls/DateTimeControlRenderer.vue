@@ -5,11 +5,11 @@
     :is-focused="isFocused"
     :applied-options="appliedOptions"
   >
-    <input
+    <FormInput
       :id="control.id + '-input'"
       type="datetime-local"
       :class="styles.control.input"
-      :value="dataTime"
+      :model-value="dataTime"
       :disabled="!control.enabled"
       :autofocus="appliedOptions.focus"
       :placeholder="appliedOptions.placeholder"

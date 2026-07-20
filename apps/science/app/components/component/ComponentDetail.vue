@@ -1,9 +1,26 @@
 <template>
   <div>
     <div class="flex items-start gap-3 p-3">
-      <Button variant="ghost" @click="router.back()">
+      <Button v-if="mode === 'page'" variant="ghost" @click="emit('close')">
         <ArrowLeft class="size-4" />
       </Button>
+      <template v-else>
+        <Button variant="ghost" size="icon" @click="emit('close')">
+          <X class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="
+            () => {
+              emit('close')
+              navigateTo(`/components/${id}`)
+            }
+          "
+        >
+          <Maximize2 class="size-4" />
+        </Button>
+      </template>
       <div class="flex-1">
         <h1 class="text-xl font-bold">{{ entity?.name ?? id }}</h1>
         <EntityMeta
@@ -13,21 +30,30 @@
           :updated-at="entity.updatedAt"
         />
       </div>
-      <Button :disabled="!isChangeSelected" @click="requireAuth(() => (showEdit = true))">
-        <Pencil class="size-4" />
-        Edit
-      </Button>
-      <Button
-        variant="destructive"
-        :disabled="!isChangeSelected"
-        @click="requireAuth(() => (showDelete = true))"
-      >
-        <Trash2 class="size-4" />
-        Delete
-      </Button>
+      <template v-if="mode === 'page'">
+        <Button
+          :disabled="!isChangeSelected"
+          @click="requireAuth(() => navigateTo(`/components/${id}/edit`))"
+        >
+          <Pencil class="size-4" />
+          Edit
+        </Button>
+        <Button
+          variant="destructive"
+          :disabled="!isChangeSelected"
+          @click="requireAuth(() => (showDelete = true))"
+        >
+          <Trash2 class="size-4" />
+          Delete
+        </Button>
+      </template>
     </div>
 
-    <div v-if="!isChangeSelected" role="alert" class="mx-3 mb-3 alert alert-warning">
+    <div
+      v-if="mode === 'page' && !isChangeSelected"
+      role="alert"
+      class="mx-3 mb-3 alert alert-warning"
+    >
       <span>Select a change from the sidebar to edit or delete.</span>
     </div>
 
@@ -43,6 +69,9 @@
             <div v-if="entity.desc">
               <span class="font-semibold">Description:</span> {{ entity.desc }}
             </div>
+            <div v-if="entity.region">
+              <span class="font-semibold">Region:</span> {{ entity.region.name }}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -52,9 +81,12 @@
           <CardTitle>Primary Material</CardTitle>
         </CardHeader>
         <CardContent>
-          <div v-if="entity.primaryMaterial?.name" class="text-sm">
-            {{ entity.primaryMaterial.name }}
-          </div>
+          <ul v-if="entity.primaryMaterial" class="list">
+            <ModelListMaterial
+              :material="entity.primaryMaterial"
+              :on-row-click="() => panelStore.openPanel('material', entity!.primaryMaterial!.id)"
+            />
+          </ul>
           <div v-else class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
@@ -64,13 +96,16 @@
           <CardTitle>Materials</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul class="space-y-1">
-            <li v-for="cm in entity.materials ?? []" :key="cm.material.id" class="text-sm">
-              {{ cm.material.name }}
-              <span v-if="cm.materialFraction != null" class="opacity-70"
-                >— {{ Math.round(cm.materialFraction * 100) }}%</span
-              >
-            </li>
+          <ul class="list">
+            <div v-for="cm in entity.materials ?? []" :key="cm.material.id">
+              <ModelListMaterial
+                :material="cm.material"
+                :on-row-click="() => panelStore.openPanel('material', cm.material.id)"
+              />
+              <div v-if="cm.materialFraction != null" class="pl-4 text-xs opacity-70">
+                Fraction: {{ Math.round(cm.materialFraction * 100) }}%
+              </div>
+            </div>
           </ul>
           <div v-if="!entity.materials?.length" class="text-sm opacity-60">None</div>
         </CardContent>
@@ -89,28 +124,32 @@
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Sources</CardTitle>
+          <CardTitle>Tags</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul class="space-y-2">
-            <li
+          <div v-if="entity.tags?.nodes?.length" class="flex flex-wrap gap-2">
+            <span
+              v-for="tag in entity.tags.nodes"
+              :key="tag.id"
+              class="badge badge-outline"
+              :style="tag.bgColor ? { backgroundColor: tag.bgColor } : {}"
+              >{{ tag.name }}</span
+            >
+          </div>
+          <div v-else class="text-sm opacity-60">None</div>
+        </CardContent>
+      </Card>
+
+      <Card class="m-3 border-0 bg-base-100 shadow-md">
+        <CardHeader><CardTitle>Sources</CardTitle></CardHeader>
+        <CardContent>
+          <div class="grid grid-cols-4 gap-2">
+            <SourceCard
               v-for="cs in entity.sources?.nodes ?? []"
               :key="cs.source.id"
-              class="flex items-center gap-2 text-sm"
-            >
-              <span class="badge badge-outline badge-sm">{{ cs.source.type }}</span>
-              <a
-                v-if="cs.source.contentURL"
-                :href="cs.source.contentURL"
-                target="_blank"
-                class="max-w-xs link truncate link-primary"
-                >{{ cs.source.contentURL }}</a
-              >
-              <NuxtLink :to="`/sources/${cs.source.id}`" class="link text-xs link-secondary"
-                >View</NuxtLink
-              >
-            </li>
-          </ul>
+              :source="cs.source"
+            />
+          </div>
           <div v-if="!entity.sources?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
@@ -119,21 +158,6 @@
     <div v-else class="flex justify-center p-8">
       <span class="loading loading-lg loading-spinner" />
     </div>
-
-    <Dialog v-model:open="showEdit">
-      <DialogContent class="max-h-[80vh] overflow-auto sm:max-w-[70vw]">
-        <DialogTitle>Edit Component</DialogTitle>
-        <ModelForm
-          :change-id="selectedChange"
-          :model-id="id"
-          :schema-query="componentSchema"
-          :create-mutation="createComponentMutation"
-          :update-mutation="updateComponentMutation"
-          :create-model-key="'component'"
-          @saved="showEdit = false"
-        />
-      </DialogContent>
-    </Dialog>
 
     <Dialog v-model:open="showDelete">
       <DialogContent>
@@ -152,18 +176,22 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Pencil, Trash2 } from '@lucide/vue'
+import { ArrowLeft, Maximize2, Pencil, Trash2, X } from '@lucide/vue'
 
 import { graphql } from '~/gql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
 
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id as string
+const props = defineProps<{
+  id: string
+  mode?: 'page' | 'panel'
+}>()
+
+const emit = defineEmits<{ close: [] }>()
 
 const { requireAuth } = useRequireAuth()
-
 const changeStore = useChangeStore()
 const { selectedChange, isChangeSelected } = storeToRefs(changeStore)
+const panelStore = useDetailPanelStore()
 
 const detailQuery = graphql(`
   query ComponentDetail($id: ID!) {
@@ -176,12 +204,12 @@ const detailQuery = graphql(`
       updatedAt
       primaryMaterial {
         id
-        name
+        ...ListMaterialFragment
       }
       materials {
         material {
           id
-          name
+          ...ListMaterialFragment
         }
         materialFraction
       }
@@ -191,13 +219,22 @@ const detailQuery = graphql(`
         ratingF
         name
       }
+      region {
+        id
+        name
+      }
+      tags(first: 20) {
+        nodes {
+          id
+          name
+          bgColor
+        }
+      }
       sources(first: 10) {
         nodes {
           source {
             id
-            type
-            contentURL
-            location
+            ...SourceCardFragment
           }
         }
       }
@@ -205,48 +242,11 @@ const detailQuery = graphql(`
   }
 `)
 
-const { result } = useQuery(detailQuery, { id })
+const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.component ?? null)
 
-const componentSchema = graphql(`
-  query ComponentDetailSchema {
-    componentSchema {
-      create {
-        schema
-        uischema
-      }
-      update {
-        schema
-        uischema
-      }
-    }
-  }
-`)
-
-const createComponentMutation = graphql(`
-  mutation CreateComponentFromDetail($input: CreateComponentInput!) {
-    createComponent(input: $input) {
-      component {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const updateComponentMutation = graphql(`
-  mutation UpdateComponentFromDetail($input: UpdateComponentInput!) {
-    updateComponent(input: $input) {
-      component {
-        id
-        name
-      }
-    }
-  }
-`)
-
 const deleteComponentMutation = graphql(`
-  mutation DeleteComponentFromDetail($input: DeleteInput!) {
+  mutation DeleteComponent($input: DeleteInput!) {
     deleteComponent(input: $input) {
       success
     }
@@ -254,12 +254,10 @@ const deleteComponentMutation = graphql(`
 `)
 
 const { mutate: deleteComponent } = useMutation(deleteComponentMutation)
-
-const showEdit = ref(false)
 const showDelete = ref(false)
 
 const doDelete = async () => {
-  await deleteComponent({ input: { id, changeID: selectedChange.value } })
+  await deleteComponent({ input: { id: props.id, changeID: selectedChange.value } })
   navigateTo('/components')
 }
 </script>

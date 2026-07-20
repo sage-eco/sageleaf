@@ -1,13 +1,23 @@
 <template>
-  <li class="list-row relative" :class="{ 'cursor-pointer hover:bg-base-200': !!href }">
+  <li
+    class="list-row relative flex items-center gap-4 rounded-lg px-4 py-3 transition-colors"
+    :class="{ 'cursor-pointer hover:bg-base-200': !!href || !!onRowClick }"
+  >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
-    <div>
+    <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
+    <div v-if="$slots.leading" class="relative z-10">
+      <slot name="leading" />
+    </div>
+    <div class="shrink-0">
       <UiImage class="size-10" :src="org.avatarURL"></UiImage>
     </div>
-    <div>
+    <div class="min-w-0 flex-1">
       <div class="text-bold">{{ org.name_req }}</div>
       <div class="text-xs opacity-70">
         {{ org.desc }}
+      </div>
+      <div v-if="websiteDomain" class="mt-1 text-xs opacity-50">
+        {{ websiteDomain }}
       </div>
     </div>
     <ModelListActionButtons
@@ -29,6 +39,7 @@ const ListOrgFragment = graphql(`
     name_req: name
     desc
     avatarURL
+    websiteURL
   }
 `)
 
@@ -36,6 +47,7 @@ const props = defineProps<{
   org: FragmentType<typeof ListOrgFragment>
   buttons?: ('select' | 'edit' | 'delete')[]
   href?: string
+  onRowClick?: () => void
 }>()
 
 const emits = defineEmits<{
@@ -43,4 +55,12 @@ const emits = defineEmits<{
 }>()
 
 const org = computed(() => useFragment(ListOrgFragment, props.org))
+const websiteDomain = computed(() => {
+  if (!org.value.websiteURL) return null
+  try {
+    return new URL(org.value.websiteURL).hostname.replace(/^www\./, '')
+  } catch {
+    return null
+  }
+})
 </script>

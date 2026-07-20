@@ -1,15 +1,7 @@
 <template>
   <div>
     <div class="flex gap-2 p-3">
-      <Button
-        @click="
-          requireAuth(() => {
-            copyData = undefined
-            editId = 'new'
-            showEdit = true
-          })
-        "
-      >
+      <Button @click="requireAuth(() => navigateTo('/components/new'))">
         <Plus />
         Add Component
       </Button>
@@ -20,9 +12,8 @@
         @selected="
           (data) => {
             requireAuth(() => {
-              copyData = data
-              editId = 'new'
-              showEdit = true
+              copyStore.setCopyData(data)
+              navigateTo('/components/new')
             })
           }
         "
@@ -36,9 +27,9 @@
       <template #default="{ node }">
         <ModelListComponent
           :component="node.changes"
-          :href="`/components/${node.changes.id}`"
+          :on-row-click="() => panelStore.openPanel('component', node.changes.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/components/${id}/edit`)"
         />
       </template>
     </GridModelChanges>
@@ -46,30 +37,12 @@
       <template #default="{ node }">
         <ModelListComponent
           :component="node"
-          :href="`/components/${node.id}`"
+          :on-row-click="() => panelStore.openPanel('component', node.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/components/${id}/edit`)"
         />
       </template>
     </GridModel>
-    <Dialog v-model:open="showEdit">
-      <DialogContent class="max-h-[80vh] overflow-auto sm:max-w-[70vw]">
-        <DialogTitle>
-          <span v-if="editId === 'new'">Create Component</span>
-          <span v-else>Edit Component</span>
-        </DialogTitle>
-        <ModelForm
-          :change-id="selectedChange"
-          :model-id="editId"
-          :schema-query="componentSchema"
-          :create-mutation="createComponentMutation"
-          :update-mutation="updateComponentMutation"
-          :create-model-key="'component'"
-          :initial-data="copyData"
-          @saved="onSaved"
-        />
-      </DialogContent>
-    </Dialog>
   </div>
 </template>
 
@@ -78,18 +51,14 @@ import { Plus } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import { EditModelType } from '~/gql/graphql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
+import { useEntityCopyStore } from '~/stores/entity_copy_store'
 
 const changeStore = useChangeStore()
 const { selectedChange } = storeToRefs(changeStore)
-
 const { requireAuth } = useRequireAuth()
-
-const actionButton = (btn: string, id: string) => {
-  if (btn === 'edit') {
-    editId.value = id
-    showEdit.value = true
-  }
-}
+const copyStore = useEntityCopyStore()
+const panelStore = useDetailPanelStore()
 
 const componentQuery = graphql(`
   query ComponentsQuery($first: Int, $last: Int, $before: String, $after: String) {
@@ -133,48 +102,4 @@ const componentChangesQuery = graphql(`
     }
   }
 `)
-
-const componentSchema = graphql(`
-  query ComponentsSchema {
-    componentSchema {
-      create {
-        schema
-        uischema
-      }
-      update {
-        schema
-        uischema
-      }
-    }
-  }
-`)
-const createComponentMutation = graphql(`
-  mutation MainCreateComponent($input: CreateComponentInput!) {
-    createComponent(input: $input) {
-      component {
-        id
-        name
-      }
-    }
-  }
-`)
-const updateComponentMutation = graphql(`
-  mutation UpdateComponent($input: UpdateComponentInput!) {
-    updateComponent(input: $input) {
-      component {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const showEdit = ref(false)
-const editId = ref<string>('new')
-const copyData = ref<Record<string, unknown> | undefined>(undefined)
-const onSaved = () => {
-  showEdit.value = false
-  editId.value = 'new'
-  copyData.value = undefined
-}
 </script>

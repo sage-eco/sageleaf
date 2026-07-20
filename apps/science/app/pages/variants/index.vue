@@ -1,15 +1,7 @@
 <template>
   <div>
     <div class="flex gap-2 p-3">
-      <Button
-        @click="
-          requireAuth(() => {
-            copyData = undefined
-            editId = 'new'
-            showEdit = true
-          })
-        "
-      >
+      <Button @click="requireAuth(() => navigateTo('/variants/new'))">
         <Plus />
         Add Variant
       </Button>
@@ -20,9 +12,8 @@
         @selected="
           (data) => {
             requireAuth(() => {
-              copyData = data
-              editId = 'new'
-              showEdit = true
+              copyStore.setCopyData(data)
+              navigateTo('/variants/new')
             })
           }
         "
@@ -36,9 +27,9 @@
       <template #default="{ node }">
         <ModelListVariant
           :variant="node.changes"
-          :href="`/variants/${node.changes.id}`"
+          :on-row-click="() => panelStore.openPanel('variant', node.changes.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/variants/${id}/edit`)"
         />
       </template>
     </GridModelChanges>
@@ -46,30 +37,12 @@
       <template #default="{ node }">
         <ModelListVariant
           :variant="node"
-          :href="`/variants/${node.id}`"
+          :on-row-click="() => panelStore.openPanel('variant', node.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/variants/${id}/edit`)"
         />
       </template>
     </GridModel>
-    <Dialog v-model:open="showEdit">
-      <DialogContent class="max-h-[80vh] overflow-auto sm:max-w-[70vw]">
-        <DialogTitle>
-          <span v-if="editId === 'new'">Create Variant</span>
-          <span v-else>Edit Variant</span>
-        </DialogTitle>
-        <ModelForm
-          :change-id="selectedChange"
-          :model-id="editId"
-          :schema-query="variantSchema"
-          :create-mutation="createVariantMutation"
-          :update-mutation="updateVariantMutation"
-          :create-model-key="'variant'"
-          :initial-data="copyData"
-          @saved="onSaved"
-        />
-      </DialogContent>
-    </Dialog>
   </div>
 </template>
 
@@ -78,18 +51,14 @@ import { Plus } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import { EditModelType } from '~/gql/graphql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
+import { useEntityCopyStore } from '~/stores/entity_copy_store'
 
 const changeStore = useChangeStore()
 const { selectedChange } = storeToRefs(changeStore)
-
 const { requireAuth } = useRequireAuth()
-
-const actionButton = (btn: string, id: string) => {
-  if (btn === 'edit') {
-    editId.value = id
-    showEdit.value = true
-  }
-}
+const copyStore = useEntityCopyStore()
+const panelStore = useDetailPanelStore()
 
 const variantsQuery = graphql(`
   query VariantsQuery($first: Int, $last: Int, $before: String, $after: String) {
@@ -133,48 +102,4 @@ const variantsChangesQuery = graphql(`
     }
   }
 `)
-
-const variantSchema = graphql(`
-  query VariantsSchema {
-    variantSchema {
-      create {
-        schema
-        uischema
-      }
-      update {
-        schema
-        uischema
-      }
-    }
-  }
-`)
-const createVariantMutation = graphql(`
-  mutation CreateVariant($input: CreateVariantInput!) {
-    createVariant(input: $input) {
-      variant {
-        id
-        name
-      }
-    }
-  }
-`)
-const updateVariantMutation = graphql(`
-  mutation UpdateVariant($input: UpdateVariantInput!) {
-    updateVariant(input: $input) {
-      variant {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const showEdit = ref(false)
-const editId = ref<string>('new')
-const copyData = ref<Record<string, unknown> | undefined>(undefined)
-const onSaved = () => {
-  showEdit.value = false
-  editId.value = 'new'
-  copyData.value = undefined
-}
 </script>

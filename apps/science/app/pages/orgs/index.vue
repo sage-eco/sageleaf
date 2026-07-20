@@ -1,15 +1,7 @@
 <template>
   <div>
     <div class="flex gap-2 p-3">
-      <Button
-        @click="
-          requireAuth(() => {
-            copyData = undefined
-            editId = 'new'
-            showEdit = true
-          })
-        "
-      >
+      <Button @click="requireAuth(() => navigateTo('/orgs/new'))">
         <Plus />
         Add Org
       </Button>
@@ -20,9 +12,8 @@
         @selected="
           (data) => {
             requireAuth(() => {
-              copyData = data
-              editId = 'new'
-              showEdit = true
+              copyStore.setCopyData(data)
+              navigateTo('/orgs/new')
             })
           }
         "
@@ -32,9 +23,9 @@
       <template #default="{ node }">
         <ModelListOrg
           :org="node.changes"
-          :href="`/orgs/${node.changes.id}`"
+          :on-row-click="() => panelStore.openPanel('org', node.changes.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/orgs/${id}/edit`)"
         />
       </template>
     </GridModelChanges>
@@ -48,30 +39,12 @@
       <template #default="{ node }">
         <ModelListOrg
           :org="node"
-          :href="`/orgs/${node.id}`"
+          :on-row-click="() => panelStore.openPanel('org', node.id)"
           :buttons="['edit']"
-          @button="actionButton"
+          @button="(btn, id) => btn === 'edit' && navigateTo(`/orgs/${id}/edit`)"
         />
       </template>
     </GridModel>
-    <Dialog v-model:open="showEdit">
-      <DialogContent class="max-h-[80vh] overflow-auto sm:max-w-[70vw]">
-        <DialogTitle>
-          <span v-if="editId === 'new'">Create Org</span>
-          <span v-else>Edit Org</span>
-        </DialogTitle>
-        <ModelForm
-          :change-id="selectedChange"
-          :model-id="editId"
-          :schema-query="orgSchema"
-          :create-mutation="createOrgMutation"
-          :update-mutation="updateOrgMutation"
-          :create-model-key="'org'"
-          :initial-data="copyData"
-          @saved="onSaved"
-        />
-      </DialogContent>
-    </Dialog>
   </div>
 </template>
 
@@ -80,11 +53,14 @@ import { Plus } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import { EditModelType } from '~/gql/graphql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
+import { useEntityCopyStore } from '~/stores/entity_copy_store'
 
 const changeStore = useChangeStore()
 const { selectedChange } = storeToRefs(changeStore)
-
 const { requireAuth } = useRequireAuth()
+const copyStore = useEntityCopyStore()
+const panelStore = useDetailPanelStore()
 
 const orgsQuery = graphql(`
   query GridOrgsQuery($first: Int, $last: Int, $after: String, $before: String) {
@@ -142,57 +118,4 @@ const orgsChangesQuery = graphql(`
     }
   }
 `)
-
-const orgSchema = graphql(`
-  query OrgSchema {
-    orgSchema {
-      create {
-        schema
-        uischema
-      }
-      update {
-        schema
-        uischema
-      }
-    }
-  }
-`)
-
-const createOrgMutation = graphql(`
-  mutation CreateOrg($input: CreateOrgInput!) {
-    createOrg(input: $input) {
-      org {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const updateOrgMutation = graphql(`
-  mutation UpdateOrg($input: UpdateOrgInput!) {
-    updateOrg(input: $input) {
-      org {
-        id
-        name
-      }
-    }
-  }
-`)
-
-const actionButton = (btn: string, id: string) => {
-  if (btn === 'edit') {
-    editId.value = id
-    showEdit.value = true
-  }
-}
-
-const showEdit = ref(false)
-const editId = ref<string>('new')
-const copyData = ref<Record<string, unknown> | undefined>(undefined)
-const onSaved = () => {
-  showEdit.value = false
-  editId.value = 'new'
-  copyData.value = undefined
-}
 </script>

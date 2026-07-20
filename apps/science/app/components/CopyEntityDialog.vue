@@ -13,9 +13,8 @@
       <template v-if="entityType">
         <div class="flex items-center gap-2 border-b border-base-content/10 pb-3">
           <SearchIcon :size="16" class="shrink-0 opacity-40" />
-          <input
+          <FormInput
             v-model="searchInput"
-            type="text"
             :placeholder="`Search ${label}s…`"
             class="flex-1 bg-transparent py-1 text-sm text-base-content outline-none placeholder:opacity-40"
             autofocus
@@ -83,11 +82,10 @@
       <template v-else>
         <p class="text-sm text-base-content/60">Paste the ID of the {{ label }} to copy from.</p>
         <div class="flex gap-2 pt-1">
-          <input
+          <FormInput
             v-model="pastedId"
             type="text"
             placeholder="Entity ID…"
-            class="flex-1 rounded-md border border-base-content/20 bg-transparent px-3 py-2 text-sm outline-none focus:border-base-content/40"
             autofocus
             @keydown.enter="pastedId && selectItem(pastedId)"
           />

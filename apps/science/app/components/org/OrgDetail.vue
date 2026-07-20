@@ -1,9 +1,26 @@
 <template>
   <div>
     <div class="flex items-start gap-3 p-3">
-      <Button variant="ghost" @click="router.back()">
+      <Button v-if="mode === 'page'" variant="ghost" @click="emit('close')">
         <ArrowLeft class="size-4" />
       </Button>
+      <template v-else>
+        <Button variant="ghost" size="icon" @click="emit('close')">
+          <X class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="
+            () => {
+              emit('close')
+              navigateTo(`/orgs/${id}`)
+            }
+          "
+        >
+          <Maximize2 class="size-4" />
+        </Button>
+      </template>
       <div class="flex-1">
         <h1 class="text-xl font-bold">{{ entity?.name ?? id }}</h1>
         <EntityMeta
@@ -16,7 +33,6 @@
     </div>
 
     <div v-if="entity">
-      <!-- Overview -->
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle>Overview</CardTitle>
@@ -54,7 +70,6 @@
         </CardContent>
       </Card>
 
-      <!-- Members -->
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle>Members</CardTitle>
@@ -87,7 +102,6 @@
         </CardContent>
       </Card>
 
-      <!-- History -->
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle>History</CardTitle>
@@ -128,13 +142,16 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft } from '@lucide/vue'
+import { ArrowLeft, Maximize2, X } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id as string
+const props = defineProps<{
+  id: string
+  mode?: 'page' | 'panel'
+}>()
+
+const emit = defineEmits<{ close: [] }>()
 
 const detailQuery = graphql(`
   query OrgDetail($id: ID!) {
@@ -173,6 +190,6 @@ const detailQuery = graphql(`
   }
 `)
 
-const { result } = useQuery(detailQuery, { id })
+const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.org ?? null)
 </script>

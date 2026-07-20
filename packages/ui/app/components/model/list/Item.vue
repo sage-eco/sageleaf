@@ -1,13 +1,28 @@
 <template>
-  <li class="list-row relative" :class="{ 'cursor-pointer hover:bg-base-200': !!href }">
+  <li
+    class="list-row relative flex items-center gap-4 rounded-lg px-4 py-3 transition-colors"
+    :class="{ 'cursor-pointer hover:bg-base-200': !!href || !!onRowClick }"
+  >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
-    <div>
+    <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
+    <div v-if="$slots.leading" class="relative z-10">
+      <slot name="leading" />
+    </div>
+    <div class="shrink-0">
       <UiImage class="size-10" :src="item.imageURL"></UiImage>
     </div>
-    <div>
+    <div class="min-w-0 flex-1">
       <div class="text-bold">{{ item.name }}</div>
       <div class="text-xs opacity-70">
         {{ item.desc }}
+      </div>
+      <div v-if="item.categories?.nodes?.length" class="mt-1 flex flex-wrap gap-1">
+        <span
+          v-for="cat in item.categories.nodes"
+          :key="cat.id"
+          class="badge badge-outline badge-sm"
+          >{{ cat.name }}</span
+        >
       </div>
     </div>
     <ModelListActionButtons
@@ -29,6 +44,12 @@ const ListItemFragment = graphql(`
     name
     desc
     imageURL
+    categories(first: 3) {
+      nodes {
+        id
+        name
+      }
+    }
   }
 `)
 
@@ -36,6 +57,7 @@ const props = defineProps<{
   item: FragmentType<typeof ListItemFragment>
   buttons?: ('select' | 'edit' | 'delete')[]
   href?: string
+  onRowClick?: () => void
 }>()
 
 const emits = defineEmits<{

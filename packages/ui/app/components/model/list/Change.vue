@@ -1,6 +1,10 @@
 <template>
-  <li class="list-row relative" :class="{ 'cursor-pointer hover:bg-base-200': !!href }">
+  <li
+    class="list-row relative"
+    :class="{ 'cursor-pointer hover:bg-base-200': !!href || !!onRowClick }"
+  >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
+    <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
     <div>
       <span
         class="badge badge-sm"
@@ -19,6 +23,11 @@
       <div class="text-bold">{{ change.title }}</div>
       <div class="text-xs opacity-70">
         {{ change.description }}
+      </div>
+      <div class="mt-1 text-xs opacity-50">
+        <span v-if="change.user">by @{{ change.user.username }}</span>
+        <span v-if="change.user && change.createdAt"> · </span>
+        <span v-if="change.createdAt">{{ formattedDate }}</span>
       </div>
     </div>
     <ModelListActionButtons
@@ -41,6 +50,12 @@ const ListChangeFragment = graphql(`
     title
     description
     status
+    createdAt
+    user {
+      id
+      name
+      username
+    }
   }
 `)
 
@@ -48,6 +63,7 @@ const props = defineProps<{
   change: FragmentType<typeof ListChangeFragment>
   buttons?: ('select' | 'edit' | 'delete')[]
   href?: string
+  onRowClick?: () => void
 }>()
 
 const emits = defineEmits<{
@@ -55,4 +71,13 @@ const emits = defineEmits<{
 }>()
 
 const change = computed(() => useFragment(ListChangeFragment, props.change))
+const formattedDate = computed(() =>
+  change.value.createdAt
+    ? new Date(change.value.createdAt).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    : null,
+)
 </script>

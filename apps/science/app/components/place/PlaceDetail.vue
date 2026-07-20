@@ -1,9 +1,26 @@
 <template>
   <div>
     <div class="flex items-start gap-3 p-3">
-      <Button variant="ghost" @click="router.back()">
+      <Button v-if="mode === 'page'" variant="ghost" @click="emit('close')">
         <ArrowLeft class="size-4" />
       </Button>
+      <template v-else>
+        <Button variant="ghost" size="icon" @click="emit('close')">
+          <X class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="
+            () => {
+              emit('close')
+              navigateTo(`/places/${id}`)
+            }
+          "
+        >
+          <Maximize2 class="size-4" />
+        </Button>
+      </template>
       <div class="flex-1">
         <h1 class="text-xl font-bold">{{ entity?.name ?? id }}</h1>
         <EntityMeta
@@ -16,7 +33,6 @@
     </div>
 
     <div v-if="entity">
-      <!-- Overview -->
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle>Overview</CardTitle>
@@ -31,7 +47,6 @@
         </CardContent>
       </Card>
 
-      <!-- Address -->
       <Card v-if="entity.address" class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle class="flex items-center gap-2">
@@ -55,7 +70,6 @@
         </CardContent>
       </Card>
 
-      <!-- Location / Coordinates -->
       <Card v-if="entity.location" class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle class="flex items-center gap-2">
@@ -87,7 +101,6 @@
         </CardContent>
       </Card>
 
-      <!-- Organization -->
       <Card v-if="entity.org" class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle class="flex items-center gap-2">
@@ -96,31 +109,12 @@
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <NuxtLink
-            :to="`/orgs/${entity.org.id}`"
-            class="group flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-base-200"
-          >
-            <UiImage
-              v-if="entity.org.avatarURL"
-              :src="entity.org.avatarURL"
-              :width="12"
-              :height="12"
-              class="size-12 rounded-lg object-cover"
-            />
-            <div class="flex flex-col gap-0.5">
-              <div class="font-medium group-hover:underline">{{ entity.org.name }}</div>
-              <div v-if="entity.org.desc" class="text-xs text-base-content/60">
-                {{ entity.org.desc }}
-              </div>
-              <div v-if="entity.org.websiteURL" class="text-xs text-base-content/50">
-                {{ entity.org.websiteURL }}
-              </div>
-            </div>
-          </NuxtLink>
+          <ul class="list">
+            <ModelListOrg :org="entity.org" :href="`/orgs/${entity.org.id}`" />
+          </ul>
         </CardContent>
       </Card>
 
-      <!-- Tags -->
       <Card v-if="entity.tags?.nodes?.length" class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
           <CardTitle class="flex items-center gap-2">
@@ -145,13 +139,24 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, BuildingIcon, MapPinIcon, NavigationIcon, TagIcon } from '@lucide/vue'
+import {
+  ArrowLeft,
+  BuildingIcon,
+  MapPinIcon,
+  Maximize2,
+  NavigationIcon,
+  TagIcon,
+  X,
+} from '@lucide/vue'
 
 import { graphql } from '~/gql'
 
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id as string
+const props = defineProps<{
+  id: string
+  mode?: 'page' | 'panel'
+}>()
+
+const emit = defineEmits<{ close: [] }>()
 
 const detailQuery = graphql(`
   query PlaceDetail($id: ID!) {
@@ -175,10 +180,7 @@ const detailQuery = graphql(`
       }
       org {
         id
-        name
-        avatarURL
-        desc
-        websiteURL
+        ...ListOrgFragment
       }
       tags {
         nodes {
@@ -190,6 +192,6 @@ const detailQuery = graphql(`
   }
 `)
 
-const { result } = useQuery(detailQuery, { id })
+const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.place ?? null)
 </script>

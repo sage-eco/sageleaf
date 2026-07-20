@@ -93,9 +93,8 @@
             :side-offset="4"
             class="z-50 w-80 rounded-lg border border-base-content/10 bg-base-100 p-2 shadow-lg"
           >
-            <input
+            <FormInput
               v-model="search"
-              type="text"
               :class="styles.translatedField.dropdownSearch"
               placeholder="Search languages..."
               @keydown.escape="addOpen = false"

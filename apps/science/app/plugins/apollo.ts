@@ -1,5 +1,5 @@
 import type { ApolloClient } from '@apollo/client/core'
-import { from } from '@apollo/client/core'
+import { ApolloLink, Observable, from } from '@apollo/client/core'
 import { setContext } from '@apollo/client/link/context'
 import type { TolgeeInstance } from '@tolgee/vue'
 import { provideApolloClient } from '@vue/apollo-composable'
@@ -28,8 +28,28 @@ export default defineNuxtPlugin(({ hook }) => {
     }
   })
 
+  const { increment, decrement } = useGqlLoadingState()
+
+  const loadingLink = new ApolloLink((operation, forward) => {
+    increment()
+    return new Observable((observer) => {
+      const sub = forward(operation).subscribe({
+        next: (result) => observer.next(result),
+        error: (err) => {
+          decrement()
+          observer.error(err)
+        },
+        complete: () => {
+          decrement()
+          observer.complete()
+        },
+      })
+      return () => sub.unsubscribe()
+    })
+  })
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultClient.setLink(from([ctxLink as any, defaultClient.link]))
+  defaultClient.setLink(from([loadingLink, ctxLink as any, defaultClient.link]))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   provideApolloClient(defaultClient as any)
