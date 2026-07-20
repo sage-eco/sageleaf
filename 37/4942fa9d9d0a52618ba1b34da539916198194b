@@ -1,0 +1,127 @@
+packages/ui/app/components/model/list/Variant.vue
+  s_1c66c292ce9032::t_228f290dde6662 19-27,48-59,75
+apps/science/app/components/material/MaterialDetail.vue
+  s_8eb953ba1da980::t_f9665b42e0c662 55-58
+  s_8eb953ba1da980::t_7f2f572c025fa4 181-186,188-192
+  s_8eb953ba1da980::t_20e53524e1a922 156-157
+  s_8eb953ba1da980::t_a944e389b8de59 147
+  s_8eb953ba1da980::t_238b61fdec4624 187
+  s_8eb953ba1da980::t_8a98c72e3ba6d2 166
+  s_8eb953ba1da980::t_80d0bc773a59f2 101-134
+apps/science/app/components/process/ProcessDetail.vue
+  s_f6acf77858ee8b::t_eed92396bd2873 114,116-117,120-122
+  s_8eb953ba1da980::t_a3a0ec9a5cbef5 164
+  s_8eb953ba1da980::t_4d06f1d5178b3d 152
+  s_f6acf77858ee8b::t_63f323675cde52 199
+  s_8eb953ba1da980::t_2301d54aaa0eb7 177,181,185,189,193
+  s_8eb953ba1da980::t_1fc72869e13ad1 82-109
+  s_8eb953ba1da980::t_72e4b41c3331e4 210-218
+apps/science/app/components/variant/VariantDetail.vue
+  s_8eb953ba1da980::t_6f660a81e34015 256-262
+  s_f6acf77858ee8b::t_92246e997b6a82 267
+  s_f6acf77858ee8b::t_cc6c4010016347 165,167-168,171-173
+  s_8eb953ba1da980::t_fd921a54debf77 132-147
+  s_8eb953ba1da980::t_d03f102ed0d5e0 130-131
+apps/science/app/gql/gql.ts
+  s_f6acf77858ee8b::t_34746923cf40b1 23,27,38,47-48,53,183,187,198,207-208,213,378,394,438,471-478,498
+  s_8eb953ba1da980::t_83d69ae01691e1 20,30,32,180,190,192,366,406,414
+  s_f6acf77858ee8b::t_0a2c76168d0b5e 163-173,323-333,938,942,946,950,954,958,962,966,970,974,978
+apps/science/app/components/source/SourceCard.vue
+  s_f6acf77858ee8b::t_4bce6d1552d9ab 21,23,31-42,44-64,66-74,76-95
+  s_f6acf77858ee8b::t_e9cc0f93ec76a7 111
+  s_f6acf77858ee8b::t_9e7c0d482d7868 1-12,14-19,22,30,43,65,75,96-110,112-152
+  s_f6acf77858ee8b::t_7e1f0a25a60643 24-29
+  s_f6acf77858ee8b::t_c8849e563b5445 13
+  s_f6acf77858ee8b::t_41053cf3bfff3d 20
+packages/ui/app/components/model/list/Material.vue
+  s_1c66c292ce9032::t_6658a37e27320b 18-19,21-24,44-45,60
+  s_1c66c292ce9032::t_a92b9d944bf265 20
+packages/ui/app/components/model/list/Category.vue
+  s_1c66c292ce9032::t_98f2a2026ff4c1 19-21,42-47,63
+apps/science/app/components/component/ComponentDetail.vue
+  s_f6acf77858ee8b::t_b07378eacde9df 144-147,150-152
+  s_8eb953ba1da980::t_a6abfd6a998141 72-74
+  s_8eb953ba1da980::t_6461a4b6aa3c06 224
+  s_f6acf77858ee8b::t_184535bc345a81 237
+  s_8eb953ba1da980::t_5256ee5b761f99 127,130-142
+  s_8eb953ba1da980::t_cc9db22827c891 222-223,225-232
+  s_f6acf77858ee8b::t_ec8439127f40dc 143
+apps/science/app/gql/graphql.ts
+  s_8eb953ba1da980::t_83d69ae01691e1 3696-3698,3798-3800,3815,3821-3826,3881-3895,5204,5214,5216
+  s_f6acf77858ee8b::t_34746923cf40b1 3720-3723,3767-3770,3896-3899,3976-3987,4036-4039,5126,5128,5130,5132,5134,5136,5138,5140,5142,5144,5146,5189,5207,5211,5222,5224-5225,5231-5232,5236
+  s_f6acf77858ee8b::t_8a62d87930a08b 5190-5200,5203,5221,5242-5243,5245,5253,5259-5260,5264,5268-5269,5271,5282-5284,5291-5292,5299-5300,5316-5317,5325-5326,5328,5338-5346
+apps/science/app/components/category/CategoryDetail.vue
+  s_8eb953ba1da980::t_a9a1b228612e8b 129-145
+  s_8eb953ba1da980::t_2751ae243b7f18 216-220
+  s_8eb953ba1da980::t_cf520104eff526 215
+packages/ui/app/components/model/list/Place.vue
+  s_1c66c292ce9032::t_a663c2267ccd59 16-21,41-48,64-67
+apps/science/app/components/change/ChangeDetail.vue
+  s_8eb953ba1da980::t_e3c42b505e68d6 109-114
+  s_f6acf77858ee8b::t_7c76de86a463ef 157,159-160,163-165
+  s_8eb953ba1da980::t_ed292e09617725 238
+  s_f6acf77858ee8b::t_a0c06901bb83cc 244
+packages/ui/app/components/model/list/Org.vue
+  s_1c66c292ce9032::t_e4baa07ca2b1c1 19-21,42,58-65
+packages/ui/app/components/model/list/Item.vue
+  s_1c66c292ce9032::t_b0eb4986aeac9f 19-26,47-52
+packages/ui/app/components/model/list/Process.vue
+  s_1c66c292ce9032::t_6a2208208442b6 3,8-11,16,18-27,47-59,75-81
+  s_1c66c292ce9032::t_f26729c87d41ec 17
+packages/ui/app/components/model/list/Component.vue
+  s_1c66c292ce9032::t_7f9a8ff4d7701a 19,29-37,69-78,94-100
+packages/ui/app/components/model/list/Region.vue
+  s_1c66c292ce9032::t_3a0bfb944bb925 2-7,13-19,37-46,53-54,62-65
+packages/ui/app/components/model/list/Program.vue
+  s_1c66c292ce9032::t_795caf02769eac 3,8-11,21-26,47-56,72
+apps/science/app/components/item/ItemDetail.vue
+  s_8eb953ba1da980::t_a824d92540beb4 204-210,212-216
+  s_8eb953ba1da980::t_a7898f6bf39c54 109-142
+  s_8eb953ba1da980::t_e428ecd9eb5411 211
+packages/ui/app/components/model/list/Change.vue
+  s_1c66c292ce9032::t_ec2bbcbbbb0ce7 27-31,53-58,74-82
+packages/ui/app/gql/gql.ts
+  s_81faaeca45a8e2::t_f14e0b70b36952 28-38,53-63,128,132,136,140,144,148,152,156,160,164,168
+packages/ui/app/gql/graphql.ts
+  s_81faaeca45a8e2::t_30f7b87232b9ff 3723,3725,3727,3729,3731,3733,3735,3737,3739,3741,3743,3786-3796,3800-3808
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "374942fa9d9d0a52618ba1b34da539916198194b",
+  "prompts": {},
+  "sessions": {
+    "s_1c66c292ce9032": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "036e035f-f9e4-4d58-bbda-7cdc24665bc5",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_81faaeca45a8e2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d1828a5f-eac0-413f-8cdc-2256ed30ca59",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_8eb953ba1da980": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f35d213-31fa-46ff-abda-45cdb72d9cd0",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    },
+    "s_f6acf77858ee8b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fb5f75e9-2674-45f6-9b28-129837f9fdfd",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
