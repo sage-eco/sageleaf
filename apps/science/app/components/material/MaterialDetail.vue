@@ -52,6 +52,10 @@
                 <td class="font-semibold">Shape</td>
                 <td>{{ entity.shape }}</td>
               </tr>
+              <tr v-if="entity.synonyms?.length">
+                <td class="font-semibold">Synonyms</td>
+                <td>{{ entity.synonyms.join(', ') }}</td>
+              </tr>
               <tr>
                 <td class="font-semibold">Technical</td>
                 <td>{{ entity.technical ? 'Yes' : 'No' }}</td>
@@ -94,6 +98,40 @@
           <div v-if="!entity.children?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
+
+      <Card class="m-3 border-0 bg-base-100 shadow-md">
+        <CardHeader>
+          <CardTitle>Processes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul class="list">
+            <ModelListProcess
+              v-for="process in entity.processes?.nodes ?? []"
+              :key="process.id"
+              :process="process"
+              :on-row-click="() => panelStore.openPanel('process', process.id)"
+            />
+          </ul>
+          <div v-if="!entity.processes?.nodes?.length" class="text-sm opacity-60">None</div>
+        </CardContent>
+      </Card>
+
+      <Card class="m-3 border-0 bg-base-100 shadow-md">
+        <CardHeader>
+          <CardTitle>Related Materials</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul class="list">
+            <ModelListMaterial
+              v-for="mat in entity.related?.nodes ?? []"
+              :key="mat.id"
+              :material="mat"
+              :on-row-click="() => panelStore.openPanel('material', mat.id)"
+            />
+          </ul>
+          <div v-if="!entity.related?.nodes?.length" class="text-sm opacity-60">None</div>
+        </CardContent>
+      </Card>
     </div>
 
     <div v-else class="flex justify-center p-8">
@@ -106,6 +144,7 @@
 import { ArrowLeft, Maximize2, X } from '@lucide/vue'
 
 import { graphql } from '~/gql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
 
 const props = defineProps<{
   id: string
@@ -113,6 +152,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ close: [] }>()
+
+const panelStore = useDetailPanelStore()
 
 const detailQuery = graphql(`
   query MaterialDetail($id: ID!) {
@@ -122,6 +163,7 @@ const detailQuery = graphql(`
       desc
       shape
       technical
+      synonyms
       createdAt
       updatedAt
       parents(first: 20) {
@@ -131,6 +173,18 @@ const detailQuery = graphql(`
         }
       }
       children(first: 50) {
+        nodes {
+          id
+          ...ListMaterialFragment
+        }
+      }
+      processes(first: 20) {
+        nodes {
+          id
+          ...ListProcessFragment
+        }
+      }
+      related(limit: 10) {
         nodes {
           id
           ...ListMaterialFragment

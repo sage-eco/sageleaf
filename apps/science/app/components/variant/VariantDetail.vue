@@ -129,6 +129,24 @@
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
+          <CardTitle>Tags</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div v-if="entity.tags?.nodes?.length" class="flex flex-wrap gap-2">
+            <span
+              v-for="tag in entity.tags.nodes"
+              :key="tag.id"
+              class="badge badge-outline"
+              :style="tag.bgColor ? { backgroundColor: tag.bgColor } : {}"
+              >{{ tag.name }}</span
+            >
+          </div>
+          <div v-else class="text-sm opacity-60">None</div>
+        </CardContent>
+      </Card>
+
+      <Card class="m-3 border-0 bg-base-100 shadow-md">
+        <CardHeader>
           <CardTitle>Regions</CardTitle>
         </CardHeader>
         <CardContent>
@@ -144,29 +162,15 @@
       </Card>
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
-        <CardHeader>
-          <CardTitle>Sources</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Sources</CardTitle></CardHeader>
         <CardContent>
-          <ul class="space-y-2">
-            <li
+          <div class="grid grid-cols-4 gap-2">
+            <SourceCard
               v-for="vs in entity.sources?.nodes ?? []"
               :key="vs.source.id"
-              class="flex items-center gap-2 text-sm"
-            >
-              <span class="badge badge-outline badge-sm">{{ vs.source.type }}</span>
-              <a
-                v-if="vs.source.contentURL"
-                :href="vs.source.contentURL"
-                target="_blank"
-                class="max-w-xs link truncate link-primary"
-                >{{ vs.source.contentURL }}</a
-              >
-              <NuxtLink :to="`/sources/${vs.source.id}`" class="link text-xs link-secondary"
-                >View</NuxtLink
-              >
-            </li>
-          </ul>
+              :source="vs.source"
+            />
+          </div>
           <div v-if="!entity.sources?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
@@ -249,13 +253,18 @@ const detailQuery = graphql(`
           ...ListRegionFragment
         }
       }
+      tags(first: 20) {
+        nodes {
+          id
+          name
+          bgColor
+        }
+      }
       sources(first: 10) {
         nodes {
           source {
             id
-            type
-            contentURL
-            location
+            ...SourceCardFragment
           }
         }
       }

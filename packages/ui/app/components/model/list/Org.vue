@@ -16,6 +16,9 @@
       <div class="text-xs opacity-70">
         {{ org.desc }}
       </div>
+      <div v-if="websiteDomain" class="mt-1 text-xs opacity-50">
+        {{ websiteDomain }}
+      </div>
     </div>
     <ModelListActionButtons
       v-if="buttons && buttons.length"
@@ -36,6 +39,7 @@ const ListOrgFragment = graphql(`
     name_req: name
     desc
     avatarURL
+    websiteURL
   }
 `)
 
@@ -51,4 +55,12 @@ const emits = defineEmits<{
 }>()
 
 const org = computed(() => useFragment(ListOrgFragment, props.org))
+const websiteDomain = computed(() => {
+  if (!org.value.websiteURL) return null
+  try {
+    return new URL(org.value.websiteURL).hostname.replace(/^www\./, '')
+  } catch {
+    return null
+  }
+})
 </script>

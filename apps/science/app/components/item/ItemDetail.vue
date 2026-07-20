@@ -106,6 +106,40 @@
           <div v-if="!entity.variants?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
+      <Card class="m-3 border-0 bg-base-100 shadow-md">
+        <CardHeader>
+          <CardTitle>Tags</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div v-if="entity.tags?.nodes?.length" class="flex flex-wrap gap-2">
+            <span
+              v-for="tag in entity.tags.nodes"
+              :key="tag.id"
+              class="badge badge-outline"
+              :style="tag.bgColor ? { backgroundColor: tag.bgColor } : {}"
+              >{{ tag.name }}</span
+            >
+          </div>
+          <div v-else class="text-sm opacity-60">None</div>
+        </CardContent>
+      </Card>
+
+      <Card class="m-3 border-0 bg-base-100 shadow-md">
+        <CardHeader>
+          <CardTitle>Related Items</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul class="list">
+            <div v-for="item in entity.related?.nodes ?? []" :key="item.id">
+              <ModelListItem
+                :item="item"
+                :on-row-click="() => panelStore.openPanel('item', item.id)"
+              />
+            </div>
+          </ul>
+          <div v-if="!entity.related?.nodes?.length" class="text-sm opacity-60">None</div>
+        </CardContent>
+      </Card>
     </div>
 
     <div v-else class="flex justify-center p-8">
@@ -165,6 +199,19 @@ const detailQuery = graphql(`
         nodes {
           id
           ...ListVariantFragment
+        }
+      }
+      tags(first: 20) {
+        nodes {
+          id
+          name
+          bgColor
+        }
+      }
+      related(limit: 10) {
+        nodes {
+          id
+          ...ListItemFragment
         }
       }
     }

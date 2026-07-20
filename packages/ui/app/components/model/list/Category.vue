@@ -16,6 +16,9 @@
       <div class="text-xs opacity-70">
         {{ category.descShort }}
       </div>
+      <div v-if="parentName" class="mt-1 flex flex-wrap gap-1">
+        <span class="badge badge-outline badge-sm">{{ parentName }}</span>
+      </div>
     </div>
     <ModelListActionButtons
       v-if="buttons && buttons.length"
@@ -36,6 +39,12 @@ const ListCategoryFragment = graphql(`
     name_req: name
     descShort
     imageURL
+    parents(first: 1) {
+      nodes {
+        id
+        name
+      }
+    }
   }
 `)
 
@@ -51,4 +60,5 @@ const emits = defineEmits<{
 }>()
 
 const category = computed(() => useFragment(ListCategoryFragment, props.category))
+const parentName = computed(() => category.value.parents?.nodes?.[0]?.name ?? null)
 </script>

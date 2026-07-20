@@ -16,10 +16,7 @@
       <div class="text-xs opacity-70">
         {{ component.desc }}
       </div>
-      <div
-        v-if="component.primaryMaterial?.name || component.materials?.length"
-        class="mt-1 flex flex-wrap gap-1"
-      >
+      <div v-if="hasBadges" class="mt-1 flex flex-wrap gap-1">
         <span v-if="component.primaryMaterial?.name" class="badge badge-sm badge-primary">{{
           component.primaryMaterial.name
         }}</span>
@@ -29,6 +26,15 @@
           class="badge badge-outline badge-sm"
           >{{ cm.material.name }}</span
         >
+        <span
+          v-for="tag in component.tags?.nodes"
+          :key="tag.id"
+          class="badge badge-outline badge-sm"
+          >{{ tag.name }}</span
+        >
+        <span v-if="component.region?.name" class="badge badge-outline badge-sm">{{
+          component.region.name
+        }}</span>
       </div>
     </div>
     <ModelListActionButtons
@@ -60,6 +66,16 @@ const ListComponentFragment = graphql(`
         name
       }
     }
+    tags(first: 3) {
+      nodes {
+        id
+        name
+      }
+    }
+    region {
+      id
+      name
+    }
   }
 `)
 
@@ -75,4 +91,11 @@ const emits = defineEmits<{
 }>()
 
 const component = computed(() => useFragment(ListComponentFragment, props.component))
+const hasBadges = computed(
+  () =>
+    !!component.value.primaryMaterial?.name ||
+    !!component.value.materials?.length ||
+    !!component.value.tags?.nodes?.length ||
+    !!component.value.region?.name,
+)
 </script>

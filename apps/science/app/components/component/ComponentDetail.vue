@@ -69,6 +69,9 @@
             <div v-if="entity.desc">
               <span class="font-semibold">Description:</span> {{ entity.desc }}
             </div>
+            <div v-if="entity.region">
+              <span class="font-semibold">Region:</span> {{ entity.region.name }}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -121,28 +124,32 @@
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Sources</CardTitle>
+          <CardTitle>Tags</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul class="space-y-2">
-            <li
+          <div v-if="entity.tags?.nodes?.length" class="flex flex-wrap gap-2">
+            <span
+              v-for="tag in entity.tags.nodes"
+              :key="tag.id"
+              class="badge badge-outline"
+              :style="tag.bgColor ? { backgroundColor: tag.bgColor } : {}"
+              >{{ tag.name }}</span
+            >
+          </div>
+          <div v-else class="text-sm opacity-60">None</div>
+        </CardContent>
+      </Card>
+
+      <Card class="m-3 border-0 bg-base-100 shadow-md">
+        <CardHeader><CardTitle>Sources</CardTitle></CardHeader>
+        <CardContent>
+          <div class="grid grid-cols-4 gap-2">
+            <SourceCard
               v-for="cs in entity.sources?.nodes ?? []"
               :key="cs.source.id"
-              class="flex items-center gap-2 text-sm"
-            >
-              <span class="badge badge-outline badge-sm">{{ cs.source.type }}</span>
-              <a
-                v-if="cs.source.contentURL"
-                :href="cs.source.contentURL"
-                target="_blank"
-                class="max-w-xs link truncate link-primary"
-                >{{ cs.source.contentURL }}</a
-              >
-              <NuxtLink :to="`/sources/${cs.source.id}`" class="link text-xs link-secondary"
-                >View</NuxtLink
-              >
-            </li>
-          </ul>
+              :source="cs.source"
+            />
+          </div>
           <div v-if="!entity.sources?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
@@ -212,13 +219,22 @@ const detailQuery = graphql(`
         ratingF
         name
       }
+      region {
+        id
+        name
+      }
+      tags(first: 20) {
+        nodes {
+          id
+          name
+          bgColor
+        }
+      }
       sources(first: 10) {
         nodes {
           source {
             id
-            type
-            contentURL
-            location
+            ...SourceCardFragment
           }
         }
       }

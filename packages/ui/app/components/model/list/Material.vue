@@ -15,6 +15,13 @@
       <div class="text-xs opacity-70">
         {{ material.desc }}
       </div>
+      <div v-if="hasBadges" class="mt-1 flex flex-wrap gap-1">
+        <span v-if="material.shape" class="badge badge-outline badge-sm">{{ material.shape }}</span>
+        <span v-if="material.technical" class="badge badge-sm badge-warning">Technical</span>
+      </div>
+      <div v-if="material.synonyms?.length" class="mt-1 text-xs opacity-50">
+        {{ material.synonyms.slice(0, 2).join(', ') }}
+      </div>
     </div>
     <ModelListActionButtons
       v-if="buttons && buttons.length"
@@ -34,6 +41,8 @@ const ListMaterialFragment = graphql(`
     name
     desc
     shape
+    technical
+    synonyms
   }
 `)
 
@@ -48,4 +57,5 @@ const emits = defineEmits<{
 }>()
 
 const material = computed(() => useFragment(ListMaterialFragment, props.material))
+const hasBadges = computed(() => !!material.value.shape || material.value.technical)
 </script>

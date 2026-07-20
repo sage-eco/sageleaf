@@ -79,74 +79,47 @@
           <CardTitle>References</CardTitle>
         </CardHeader>
         <CardContent>
-          <table class="table w-full table-sm">
-            <tbody>
-              <tr v-if="entity.material">
-                <td class="font-semibold">Material</td>
-                <td>{{ entity.material.name }}</td>
-              </tr>
-              <tr v-if="entity.org">
-                <td class="font-semibold">Organization</td>
-                <td>{{ entity.org.name }}</td>
-              </tr>
-              <tr v-if="entity.place">
-                <td class="font-semibold">Place</td>
-                <td>{{ entity.place.name }}</td>
-              </tr>
-              <tr v-if="entity.region">
-                <td class="font-semibold">Region</td>
-                <td>
-                  <div>{{ entity.region.name }}</div>
-                  <div v-if="entity.region.desc" class="text-xs opacity-60">
-                    {{ entity.region.desc }}
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="entity.variant">
-                <td class="font-semibold">Variant</td>
-                <td>
-                  <NuxtLink :to="`/variants/${entity.variant.id}`" class="link link-primary">
-                    {{ entity.variant.name }}
-                  </NuxtLink>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div
-            v-if="
-              !entity.material && !entity.org && !entity.place && !entity.region && !entity.variant
-            "
-            class="text-sm opacity-60"
-          >
-            None
-          </div>
+          <ul class="list">
+            <ModelListMaterial
+              v-if="entity.material"
+              :material="entity.material"
+              :on-row-click="() => panelStore.openPanel('material', entity!.material!.id)"
+            />
+            <ModelListOrg
+              v-if="entity.org"
+              :org="entity.org"
+              :on-row-click="() => panelStore.openPanel('org', entity!.org!.id)"
+            />
+            <ModelListPlace
+              v-if="entity.place"
+              :place="entity.place"
+              :on-row-click="() => panelStore.openPanel('place', entity!.place!.id)"
+            />
+            <ModelListRegion
+              v-if="entity.region"
+              :region="entity.region"
+              :on-row-click="() => panelStore.openPanel('region', entity!.region!.id)"
+            />
+            <ModelListVariant
+              v-if="entity.variant"
+              :variant="entity.variant"
+              :on-row-click="() => panelStore.openPanel('variant', entity!.variant!.id)"
+            />
+          </ul>
+          <div v-if="noRefs" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
-        <CardHeader>
-          <CardTitle>Sources</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Sources</CardTitle></CardHeader>
         <CardContent>
-          <ul class="space-y-2">
-            <li
+          <div class="grid grid-cols-4 gap-2">
+            <SourceCard
               v-for="ps in entity.sources?.nodes ?? []"
               :key="ps.source.id"
-              class="flex items-center gap-2 text-sm"
-            >
-              <span class="badge badge-outline badge-sm">{{ ps.source.type }}</span>
-              <a
-                v-if="ps.source.contentURL"
-                :href="ps.source.contentURL"
-                target="_blank"
-                class="max-w-xs link truncate link-primary"
-                >{{ ps.source.contentURL }}</a
-              >
-              <NuxtLink :to="`/sources/${ps.source.id}`" class="link text-xs link-secondary"
-                >View</NuxtLink
-              >
-            </li>
-          </ul>
+              :source="ps.source"
+            />
+          </div>
           <div v-if="!entity.sources?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
@@ -176,6 +149,7 @@
 import { ArrowLeft, Maximize2, Pencil, Trash2, X } from '@lucide/vue'
 
 import { graphql } from '~/gql'
+import { useDetailPanelStore } from '~/stores/detail_panel_store'
 
 const props = defineProps<{
   id: string
@@ -187,6 +161,7 @@ const emit = defineEmits<{ close: [] }>()
 const { requireAuth } = useRequireAuth()
 const changeStore = useChangeStore()
 const { selectedChange, isChangeSelected } = storeToRefs(changeStore)
+const panelStore = useDetailPanelStore()
 
 const detailQuery = graphql(`
   query ProcessDetail($id: ID!) {
@@ -199,32 +174,29 @@ const detailQuery = graphql(`
       updatedAt
       material {
         id
-        name
+        ...ListMaterialFragment
       }
       org {
         id
-        name
+        ...ListOrgFragment
       }
       place {
         id
-        name
+        ...ListPlaceFragment
       }
       region {
         id
-        name
-        desc
+        ...ListRegionFragment
       }
       variant {
         id
-        name
+        ...ListVariantFragment
       }
       sources(first: 10) {
         nodes {
           source {
             id
-            type
-            contentURL
-            location
+            ...SourceCardFragment
           }
         }
       }
@@ -234,6 +206,15 @@ const detailQuery = graphql(`
 
 const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.process ?? null)
+
+const noRefs = computed(
+  () =>
+    !entity.value?.material &&
+    !entity.value?.org &&
+    !entity.value?.place &&
+    !entity.value?.region &&
+    !entity.value?.variant,
+)
 
 const deleteProcessMutation = graphql(`
   mutation DeleteProcess($input: DeleteInput!) {

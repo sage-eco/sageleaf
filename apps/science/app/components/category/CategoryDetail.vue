@@ -126,6 +126,23 @@
           <div v-if="!entity.items?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
+
+      <Card class="m-3 border-0 bg-base-100 shadow-md">
+        <CardHeader>
+          <CardTitle>Related Categories</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul class="list">
+            <div v-for="cat in entity.related?.nodes ?? []" :key="cat.id">
+              <ModelListCategory
+                :category="cat"
+                :on-row-click="() => panelStore.openPanel('category', cat.id)"
+              />
+            </div>
+          </ul>
+          <div v-if="!entity.related?.nodes?.length" class="text-sm opacity-60">None</div>
+        </CardContent>
+      </Card>
     </div>
 
     <div v-else class="flex justify-center p-8">
@@ -193,6 +210,12 @@ const detailQuery = graphql(`
         nodes {
           id
           ...ListItemFragment
+        }
+      }
+      related(limit: 10) {
+        nodes {
+          id
+          ...ListCategoryFragment
         }
       }
     }

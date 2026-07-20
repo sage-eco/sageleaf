@@ -24,6 +24,11 @@
       <div class="text-xs opacity-70">
         {{ change.description }}
       </div>
+      <div class="mt-1 text-xs opacity-50">
+        <span v-if="change.user">by @{{ change.user.username }}</span>
+        <span v-if="change.user && change.createdAt"> · </span>
+        <span v-if="change.createdAt">{{ formattedDate }}</span>
+      </div>
     </div>
     <ModelListActionButtons
       v-if="buttons && buttons.length"
@@ -45,6 +50,12 @@ const ListChangeFragment = graphql(`
     title
     description
     status
+    createdAt
+    user {
+      id
+      name
+      username
+    }
   }
 `)
 
@@ -60,4 +71,13 @@ const emits = defineEmits<{
 }>()
 
 const change = computed(() => useFragment(ListChangeFragment, props.change))
+const formattedDate = computed(() =>
+  change.value.createdAt
+    ? new Date(change.value.createdAt).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    : null,
+)
 </script>

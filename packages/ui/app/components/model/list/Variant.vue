@@ -16,6 +16,15 @@
       <div class="text-xs opacity-70">
         {{ variant.desc }}
       </div>
+      <div v-if="firstItem || variant.tags?.nodes?.length" class="mt-1 flex flex-wrap gap-1">
+        <span v-if="firstItem" class="badge badge-outline badge-sm">{{ firstItem }}</span>
+        <span
+          v-for="tag in variant.tags?.nodes"
+          :key="tag.id"
+          class="badge badge-outline badge-sm"
+          >{{ tag.name }}</span
+        >
+      </div>
     </div>
     <ModelListActionButtons
       v-if="buttons && buttons.length"
@@ -36,6 +45,18 @@ const ListVariantFragment = graphql(`
     name
     desc
     imageURL
+    items(first: 1) {
+      nodes {
+        id
+        name
+      }
+    }
+    tags(first: 3) {
+      nodes {
+        id
+        name
+      }
+    }
   }
 `)
 
@@ -51,4 +72,5 @@ const emits = defineEmits<{
 }>()
 
 const variant = computed(() => useFragment(ListVariantFragment, props.variant))
+const firstItem = computed(() => variant.value.items?.nodes?.[0]?.name ?? null)
 </script>

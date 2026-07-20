@@ -1,12 +1,14 @@
 <template>
   <li
-    class="list-row relative"
+    class="list-row relative flex items-center gap-4 rounded-lg px-4 py-3 transition-colors"
     :class="{ 'cursor-pointer hover:bg-base-200': !!href || !!onRowClick }"
   >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
     <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
-    <div></div>
-    <div>
+    <div v-if="$slots.leading" class="relative z-10">
+      <slot name="leading" />
+    </div>
+    <div class="min-w-0 flex-1">
       <div class="flex items-center gap-2">
         <span class="font-semibold">{{ program.name }}</span>
         <span v-if="program.status" class="badge badge-sm" :class="statusBadgeClass">
@@ -15,6 +17,12 @@
       </div>
       <div class="text-xs opacity-70">
         {{ program.desc }}
+      </div>
+      <div v-if="program.region?.name || firstOrg" class="mt-1 flex flex-wrap gap-1">
+        <span v-if="program.region?.name" class="badge badge-outline badge-sm">{{
+          program.region.name
+        }}</span>
+        <span v-if="firstOrg" class="badge badge-outline badge-sm">{{ firstOrg }}</span>
       </div>
     </div>
     <ModelListActionButtons
@@ -36,6 +44,16 @@ const ListProgramFragment = graphql(`
     name
     desc
     status
+    region {
+      id
+      name
+    }
+    orgs(first: 1) {
+      nodes {
+        id
+        name
+      }
+    }
   }
 `)
 
@@ -51,6 +69,7 @@ const emits = defineEmits<{
 }>()
 
 const program = computed(() => useFragment(ListProgramFragment, props.program))
+const firstOrg = computed(() => program.value.orgs?.nodes?.[0]?.name ?? null)
 
 const statusBadgeClass = computed(() => {
   switch (program.value.status) {

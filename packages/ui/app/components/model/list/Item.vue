@@ -16,6 +16,14 @@
       <div class="text-xs opacity-70">
         {{ item.desc }}
       </div>
+      <div v-if="item.categories?.nodes?.length" class="mt-1 flex flex-wrap gap-1">
+        <span
+          v-for="cat in item.categories.nodes"
+          :key="cat.id"
+          class="badge badge-outline badge-sm"
+          >{{ cat.name }}</span
+        >
+      </div>
     </div>
     <ModelListActionButtons
       v-if="buttons && buttons.length"
@@ -36,6 +44,12 @@ const ListItemFragment = graphql(`
     name
     desc
     imageURL
+    categories(first: 3) {
+      nodes {
+        id
+        name
+      }
+    }
   }
 `)
 

@@ -13,6 +13,12 @@
       <div class="text-xs opacity-70">
         {{ place.desc }}
       </div>
+      <div v-if="locationText || place.org?.name" class="mt-1 flex flex-wrap items-center gap-2">
+        <span v-if="locationText" class="text-xs opacity-50">{{ locationText }}</span>
+        <span v-if="place.org?.name" class="badge badge-outline badge-sm">{{
+          place.org.name
+        }}</span>
+      </div>
     </div>
     <ModelListActionButtons
       v-if="buttons && buttons.length"
@@ -32,6 +38,14 @@ const ListPlaceFragment = graphql(`
     id
     name
     desc
+    address {
+      city
+      country
+    }
+    org {
+      id
+      name
+    }
   }
 `)
 
@@ -47,4 +61,8 @@ const emits = defineEmits<{
 }>()
 
 const place = computed(() => useFragment(ListPlaceFragment, props.place))
+const locationText = computed(() => {
+  const { city, country } = place.value.address ?? {}
+  return [city, country].filter(Boolean).join(', ') || null
+})
 </script>

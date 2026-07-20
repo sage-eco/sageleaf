@@ -106,7 +106,12 @@
           <div v-if="entity.description">
             <span class="font-semibold">Description:</span> {{ entity.description }}
           </div>
-          <div><span class="font-semibold">Created by:</span> {{ entity.user?.name }}</div>
+          <div>
+            <span class="font-semibold">Created by:</span> {{ entity.user?.name
+            }}<span v-if="entity.user?.username" class="ml-1 opacity-60"
+              >@{{ entity.user.username }}</span
+            >
+          </div>
         </CardContent>
       </Card>
 
@@ -149,29 +154,15 @@
       </Card>
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
-        <CardHeader>
-          <CardTitle>Sources</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Sources</CardTitle></CardHeader>
         <CardContent>
-          <ul class="space-y-2">
-            <li
+          <div class="grid grid-cols-4 gap-2">
+            <SourceCard
               v-for="cs in entity.sources?.nodes ?? []"
               :key="cs.source.id"
-              class="flex items-center gap-2 text-sm"
-            >
-              <span class="badge badge-outline badge-sm">{{ cs.source.type }}</span>
-              <a
-                v-if="cs.source.contentURL"
-                :href="cs.source.contentURL"
-                target="_blank"
-                class="max-w-xs link truncate link-primary"
-                >{{ cs.source.contentURL }}</a
-              >
-              <NuxtLink :to="`/sources/${cs.source.id}`" class="link text-xs link-secondary"
-                >View</NuxtLink
-              >
-            </li>
-          </ul>
+              :source="cs.source"
+            />
+          </div>
           <div v-if="!entity.sources?.nodes?.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
@@ -244,14 +235,13 @@ const detailQuery = graphql(`
       user {
         id
         name
+        username
       }
       sources(first: 10) {
         nodes {
           source {
             id
-            type
-            contentURL
-            location
+            ...SourceCardFragment
           }
         }
       }
