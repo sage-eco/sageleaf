@@ -1,0 +1,58 @@
+apps/api/src/rate-limit/rate-limit.plugin.spec.ts
+  s_ac31407edc0ee2::t_d41419d51cf538 1-86
+apps/api/test/app-test.module.ts
+  s_ac31407edc0ee2::t_a9477c81c14be2 42
+  s_ac31407edc0ee2::t_31b2768807cadf 41
+apps/api/package.json
+  s_ac31407edc0ee2::t_10a0ed96c2be15 68
+apps/api/src/config/config.ts
+  s_ac31407edc0ee2::t_16a4caf9d70807 26-36
+apps/api/src/rate-limit/rate-limit.plugin.ts
+  s_ac31407edc0ee2::t_8f38b27b6d8688 53,55-62
+  s_ac31407edc0ee2::t_dce5279fe7c297 3-8,14-52,54,63-77
+  s_ac31407edc0ee2::t_90ae26e612de47 9-13
+  s_ac31407edc0ee2::t_18dd9a59f7fe71 2
+  s_ac31407edc0ee2::t_9e400d17b603fe 1
+apps/api/src/rate-limit/rate-limit.service.integration.spec.ts
+  s_ac31407edc0ee2::t_fdead05b154fa7 64-65,69,82,95
+  s_ac31407edc0ee2::t_28db86250f77a4 1-63,66-68,70-81,83-94,96-106
+apps/api/src/rate-limit/rate-limit.service.spec.ts
+  s_ac31407edc0ee2::t_1571c2971eb700 40,45,53,61,69
+  s_ac31407edc0ee2::t_7389f6114b0c16 1-39,41-44,46-52,54-60,62-68,70-95
+apps/api/src/rate-limit/rate-limit.module.ts
+  s_ac31407edc0ee2::t_6f4892fa75838e 6-7
+  s_ac31407edc0ee2::t_772f4b0e699f60 1-5,8-9
+apps/api/src/common/redis.service.ts
+  s_ac31407edc0ee2::t_5378f2f21d957f 46-63,65-68
+  s_ac31407edc0ee2::t_6b355c10c34d2c 64
+apps/api/src/graphql/graphql.context.ts
+  s_ac31407edc0ee2::t_9500266ce8ff07 9
+apps/api/src/main.ts
+  s_ac31407edc0ee2::t_0a531354c5a448 25
+apps/api/src/rate-limit/rate-limit.service.ts
+  s_ac31407edc0ee2::t_2f7c4268d76d1c 1-12,18-29,31-41
+  s_ac31407edc0ee2::t_d4c82a43b938cc 13-17
+  s_ac31407edc0ee2::t_596b4b2d9bee61 30
+apps/api/src/graphql/graphql.module.ts
+  s_ac31407edc0ee2::t_4d2fdb835eaa8f 24
+  s_ac31407edc0ee2::t_9c675349cb0f7f 23
+  s_ac31407edc0ee2::t_7afda989c1fea7 117-118
+pnpm-lock.yaml
+  s_ac31407edc0ee2::t_89f493fc1b4600 205-207,9495-9499,10350-10353,23563-23567,24381-24382
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "32eefd8e628ecf6adc2f44d4d06746fd0f32fa81",
+  "prompts": {},
+  "sessions": {
+    "s_ac31407edc0ee2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "51750d76-8082-42d6-b21b-dfe8792e3af0",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Christian Johansen <johansen.christian.a@gmail.com>"
+    }
+  }
+}
