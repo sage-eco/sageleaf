@@ -38,7 +38,8 @@ if (dotenv) {
     ConfigModule.forRoot({
       isGlobal: true,
       ignoreEnvFile: true,
-      load: [config],
+      // Disable rate limiting in tests
+      load: [config, () => ({ rateLimit: { enabled: false } })],
     }),
     ClsModule.forRoot({
       global: true,

@@ -202,6 +202,9 @@ importers:
       graphql:
         specifier: 16.11.0
         version: 16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8)
+      graphql-query-complexity:
+        specifier: ^1.1.1
+        version: 1.1.1(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8))
       graphql-scalars:
         specifier: ^1.24.1
         version: 1.24.1(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8))
@@ -9489,6 +9492,11 @@ packages:
       cosmiconfig-toml-loader:
         optional: true
 
+  graphql-query-complexity@1.1.1:
+    resolution: {integrity: sha512-q0u1yrPYdEYnhEL4x6xeEoOHdHUV4hISrI/uDFhOaxLvIN60RqlzV3kW6N0f+0pygGM9wjskl1cD5/55G+TPmw==}
+    peerDependencies:
+      graphql: 16.11.0
+
   graphql-scalars@1.24.1:
     resolution: {integrity: sha512-3L553TMPh3YpHQM4x9G4tXcyD+AX8QQOYA6tUn1nrNiWEXE0JfAnWdjoe3WGxRuGjnZrzvHDz62q8S+sSGXXwA==}
     engines: {node: '>=10'}
@@ -10338,6 +10346,10 @@ packages:
 
   lodash.defaults@4.2.0:
     resolution: {integrity: sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==}
+
+  lodash.get@4.4.2:
+    resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
+    deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
 
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
@@ -23548,6 +23560,11 @@ snapshots:
       - typescript
       - utf-8-validate
 
+  graphql-query-complexity@1.1.1(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8)):
+    dependencies:
+      graphql: 16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8)
+      lodash.get: 4.4.2
+
   graphql-scalars@1.24.1(graphql@16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8)):
     dependencies:
       graphql: 16.11.0(patch_hash=5d7b99c90cd936c0300d91b318f94e48d710b883b2639c69683463cd1f72fac8)
@@ -24360,6 +24377,8 @@ snapshots:
   lodash.debounce@4.0.8: {}
 
   lodash.defaults@4.2.0: {}
+
+  lodash.get@4.4.2: {}
 
   lodash.includes@4.3.0: {}
 

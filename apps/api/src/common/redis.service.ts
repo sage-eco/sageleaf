@@ -43,4 +43,27 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       // ignore
     }
   }
+
+  async throttle(
+    key: string,
+    maxBurst: number,
+    count: number,
+    period: number,
+    quantity: number,
+  ): Promise<[number, number, number, number, number] | null> {
+    try {
+      if (!this.client.isReady) return null
+      const result = await this.client.sendCommand([
+        'CL.THROTTLE',
+        key,
+        String(maxBurst),
+        String(count),
+        String(period),
+        String(quantity),
+      ])
+      return result as unknown as [number, number, number, number, number]
+    } catch {
+      return null
+    }
+  }
 }

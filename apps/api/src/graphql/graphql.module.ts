@@ -20,6 +20,8 @@ import { LuxonDateTimeResolver } from '@src/common/datetime.model'
 import { CacheControlScopeEnum } from '@src/graphql/cache-control'
 import { createGraphQLCache } from '@src/graphql/graphql-cache'
 import { Context, IncomingMessageWithAuthCode } from '@src/graphql/graphql.context'
+import { RateLimitModule } from '@src/rate-limit/rate-limit.module'
+import { RateLimitPlugin } from '@src/rate-limit/rate-limit.plugin'
 
 @Module({})
 export class GraphQLModule {
@@ -112,8 +114,8 @@ export class GraphQLModule {
 
     return {
       module: GraphQLModule,
-      imports: [graphQL],
-      providers: [],
+      imports: [graphQL, AuthModule, RateLimitModule],
+      providers: [RateLimitPlugin],
       exports: [graphQL],
     }
   }
