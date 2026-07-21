@@ -6,4 +6,5 @@ export interface Context {
 
 export class IncomingMessageWithAuthCode extends IncomingMessage {
   authCode?: number
+  ip?: string
 }
