@@ -1,38 +1,66 @@
-import { entry as booleanControlRendererEntry } from './BooleanControlRenderer.vue'
-import { entry as dateControlRendererEntry } from './DateControlRenderer.vue'
-import { entry as dateTimeControlRendererEntry } from './DateTimeControlRenderer.vue'
-import { entry as enumControlRendererEntry } from './EnumControlRenderer.vue'
-import { entry as oneOfEnumControlRendererEntry } from './EnumOneOfControlRenderer.vue'
-import { entry as imageControlRendererEntry } from './ImageControlRenderer.vue'
-import { entry as integerControlRendererEntry } from './IntegerControlRenderer.vue'
-import { entry as multiStringControlRendererEntry } from './MultiStringControlRenderer.vue'
-import { entry as numberControlRendererEntry } from './NumberControlRenderer.vue'
-import { entry as stringControlRendererEntry } from './StringControlRenderer.vue'
-import { entry as timeControlRendererEntry } from './TimeControlRenderer.vue'
+import type { JsonFormsRendererRegistryEntry } from '@jsonforms/core'
+import {
+  and,
+  formatIs,
+  isBooleanControl,
+  isDateControl,
+  isDateTimeControl,
+  isEnumControl,
+  isIntegerControl,
+  isMultiLineControl,
+  isNumberControl,
+  isOneOfEnumControl,
+  isStringControl,
+  isTimeControl,
+  optionIs,
+  or,
+  rankWith,
+  uiTypeIs,
+} from '@jsonforms/core'
+
+import BooleanControlRenderer from './BooleanControlRenderer.vue'
+import DateControlRenderer from './DateControlRenderer.vue'
+import DateTimeControlRenderer from './DateTimeControlRenderer.vue'
+import EnumControlRenderer from './EnumControlRenderer.vue'
+import EnumOneOfControlRenderer from './EnumOneOfControlRenderer.vue'
+import ImageControlRenderer from './ImageControlRenderer.vue'
+import IntegerControlRenderer from './IntegerControlRenderer.vue'
+import MultiStringControlRenderer from './MultiStringControlRenderer.vue'
+import NumberControlRenderer from './NumberControlRenderer.vue'
+import StringControlRenderer from './StringControlRenderer.vue'
+import TimeControlRenderer from './TimeControlRenderer.vue'
 
 export { default as ControlWrapper } from './ControlWrapper.vue'
-export { default as StringControlRenderer } from './StringControlRenderer.vue'
-export { default as MultiStringControlRenderer } from './MultiStringControlRenderer.vue'
-export { default as NumberControlRenderer } from './NumberControlRenderer.vue'
-export { default as IntegerControlRenderer } from './IntegerControlRenderer.vue'
-export { default as EnumControlRenderer } from './EnumControlRenderer.vue'
-export { default as oneOfEnumControlRenderer } from './EnumOneOfControlRenderer.vue'
-export { default as DateControlRenderer } from './DateControlRenderer.vue'
-export { default as DateTimeControlRenderer } from './DateTimeControlRenderer.vue'
-export { default as TimeControlRenderer } from './TimeControlRenderer.vue'
-export { default as BooleanControlRenderer } from './BooleanControlRenderer.vue'
-export { default as ImageControlRenderer } from './ImageControlRenderer.vue'
+export {
+  StringControlRenderer,
+  MultiStringControlRenderer,
+  NumberControlRenderer,
+  IntegerControlRenderer,
+  EnumControlRenderer,
+  EnumOneOfControlRenderer as oneOfEnumControlRenderer,
+  DateControlRenderer,
+  DateTimeControlRenderer,
+  TimeControlRenderer,
+  BooleanControlRenderer,
+  ImageControlRenderer,
+}
 
-export const controlRenderers = [
-  stringControlRendererEntry,
-  multiStringControlRendererEntry,
-  numberControlRendererEntry,
-  integerControlRendererEntry,
-  enumControlRendererEntry,
-  oneOfEnumControlRendererEntry,
-  dateControlRendererEntry,
-  dateTimeControlRendererEntry,
-  timeControlRendererEntry,
-  booleanControlRendererEntry,
-  imageControlRendererEntry,
+export const controlRenderers: JsonFormsRendererRegistryEntry[] = [
+  { renderer: StringControlRenderer, tester: rankWith(1, isStringControl) },
+  {
+    renderer: MultiStringControlRenderer,
+    tester: rankWith(2, and(isStringControl, isMultiLineControl)),
+  },
+  { renderer: NumberControlRenderer, tester: rankWith(1, isNumberControl) },
+  { renderer: IntegerControlRenderer, tester: rankWith(1, isIntegerControl) },
+  { renderer: EnumControlRenderer, tester: rankWith(2, isEnumControl) },
+  { renderer: EnumOneOfControlRenderer, tester: rankWith(5, isOneOfEnumControl) },
+  { renderer: DateControlRenderer, tester: rankWith(2, isDateControl) },
+  { renderer: DateTimeControlRenderer, tester: rankWith(2, isDateTimeControl) },
+  { renderer: TimeControlRenderer, tester: rankWith(2, isTimeControl) },
+  { renderer: BooleanControlRenderer, tester: rankWith(1, isBooleanControl) },
+  {
+    renderer: ImageControlRenderer,
+    tester: rankWith(2, and(uiTypeIs('Control'), or(formatIs('uri'), optionIs('format', 'uri')))),
+  },
 ]

@@ -28,8 +28,7 @@
 </template>
 
 <script lang="ts">
-import type { JsonFormsRendererRegistryEntry, Layout } from '@jsonforms/core'
-import { and, categorizationHasCategory, isCategorization, rankWith } from '@jsonforms/core'
+import type { Layout } from '@jsonforms/core'
 import {
   DispatchRenderer,
   rendererProps,
@@ -40,7 +39,7 @@ import { defineComponent } from 'vue'
 
 import { useVanillaLayout } from '../util'
 
-const layoutRenderer = defineComponent({
+export default defineComponent({
   name: 'CategorizationRenderer',
   components: {
     DispatchRenderer,
@@ -57,10 +56,4 @@ const layoutRenderer = defineComponent({
     }
   },
 })
-
-export default layoutRenderer
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: layoutRenderer,
-  tester: rankWith(2, and(isCategorization, categorizationHasCategory)),
-}
 </script>

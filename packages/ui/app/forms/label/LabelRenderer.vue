@@ -5,15 +5,14 @@
 </template>
 
 <script lang="ts">
-import type { JsonFormsRendererRegistryEntry, LabelElement } from '@jsonforms/core'
-import { rankWith, uiTypeIs } from '@jsonforms/core'
+import type { LabelElement } from '@jsonforms/core'
 import type { RendererProps } from '@jsonforms/vue'
 import { rendererProps, useJsonFormsLabel } from '@jsonforms/vue'
 import { defineComponent } from 'vue'
 
 import { useVanillaLabel } from '../util'
 
-const labelRenderer = defineComponent({
+export default defineComponent({
   name: 'LabelRenderer',
   props: {
     ...rendererProps<LabelElement>(),
@@ -22,11 +21,4 @@ const labelRenderer = defineComponent({
     return useVanillaLabel(useJsonFormsLabel(props))
   },
 })
-
-export default labelRenderer
-
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: labelRenderer,
-  tester: rankWith(1, uiTypeIs('Label')),
-}
 </script>

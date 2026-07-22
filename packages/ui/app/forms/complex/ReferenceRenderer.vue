@@ -142,8 +142,7 @@
 </template>
 
 <script lang="ts">
-import type { ControlElement, JsonFormsRendererRegistryEntry } from '@jsonforms/core'
-import { rankWith, and, uiTypeIs, schemaMatches, schemaTypeIs } from '@jsonforms/core'
+import type { ControlElement } from '@jsonforms/core'
 import type { RendererProps } from '@jsonforms/vue'
 import { rendererProps, useJsonFormsControl } from '@jsonforms/vue'
 import { watchDebounced } from '@vueuse/core'
@@ -155,18 +154,7 @@ import { SearchType } from '~/gql/graphql'
 import { ControlWrapper } from '../controls'
 import { useVanillaControl } from '../util'
 
-const supportedTypes = new Set([
-  'Category',
-  'Item',
-  'Variant',
-  'Component',
-  'Place',
-  'Region',
-  'Org',
-  'Material',
-])
-
-const controlRenderer = defineComponent({
+export default defineComponent({
   name: 'ReferenceRenderer',
   components: {
     ControlWrapper,
@@ -264,21 +252,4 @@ const controlRenderer = defineComponent({
     )
   },
 })
-
-export default controlRenderer
-
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: controlRenderer,
-  tester: rankWith(
-    2,
-    and(
-      uiTypeIs('Control'),
-      schemaMatches((schema) => {
-        const sch = schema as { $id: string }
-        return Object.prototype.hasOwnProperty.call(schema, '$id') && supportedTypes.has(sch.$id)
-      }),
-      schemaTypeIs('string'),
-    ),
-  ),
-}
 </script>

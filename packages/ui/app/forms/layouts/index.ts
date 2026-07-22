@@ -1,16 +1,33 @@
-import { entry as categorizationEntry } from './CategorizationRenderer.vue'
-import { entry as categorizationStepperEntry } from './CategorizationStepperRenderer.vue'
-import { entry as groupRendererEntry } from './GroupRenderer.vue'
-import { entry as layoutRendererEntry } from './LayoutRenderer.vue'
+import type { JsonFormsRendererRegistryEntry } from '@jsonforms/core'
+import {
+  and,
+  categorizationHasCategory,
+  isCategorization,
+  isLayout,
+  optionIs,
+  rankWith,
+  uiTypeIs,
+} from '@jsonforms/core'
 
-export { default as LayoutRenderer } from './LayoutRenderer.vue'
-export { default as GroupRenderer } from './GroupRenderer.vue'
-export { default as CategorizationRenderer } from './CategorizationRenderer.vue'
-export { default as CategorizationStepperRenderer } from './CategorizationStepperRenderer.vue'
+import CategorizationRenderer from './CategorizationRenderer.vue'
+import CategorizationStepperRenderer from './CategorizationStepperRenderer.vue'
+import GroupRenderer from './GroupRenderer.vue'
+import LayoutRenderer from './LayoutRenderer.vue'
 
-export const layoutRenderers = [
-  layoutRendererEntry,
-  groupRendererEntry,
-  categorizationEntry,
-  categorizationStepperEntry,
+export { LayoutRenderer, GroupRenderer, CategorizationRenderer, CategorizationStepperRenderer }
+
+export const layoutRenderers: JsonFormsRendererRegistryEntry[] = [
+  { renderer: LayoutRenderer, tester: rankWith(1, isLayout) },
+  { renderer: GroupRenderer, tester: rankWith(2, and(isLayout, uiTypeIs('Group'))) },
+  {
+    renderer: CategorizationRenderer,
+    tester: rankWith(2, and(isCategorization, categorizationHasCategory)),
+  },
+  {
+    renderer: CategorizationStepperRenderer,
+    tester: rankWith(
+      3,
+      and(isCategorization, categorizationHasCategory, optionIs('variant', 'stepper')),
+    ),
+  },
 ]

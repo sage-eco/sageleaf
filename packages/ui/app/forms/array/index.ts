@@ -1,5 +1,10 @@
-import { entry as arrayListRendererEntry } from './ArrayListRenderer.vue'
+import type { JsonFormsRendererRegistryEntry } from '@jsonforms/core'
+import { rankWith, schemaTypeIs } from '@jsonforms/core'
 
-export { default as ArrayListRenderer } from './ArrayListRenderer.vue'
+import ArrayListRenderer from './ArrayListRenderer.vue'
 
-export const arrayRenderers = [arrayListRendererEntry]
+export { ArrayListRenderer }
+
+export const arrayRenderers: JsonFormsRendererRegistryEntry[] = [
+  { renderer: ArrayListRenderer, tester: rankWith(2, schemaTypeIs('array')) },
+]
