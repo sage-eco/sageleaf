@@ -63,17 +63,10 @@
 </template>
 
 <script lang="ts">
-import type {
-  JsonFormsRendererRegistryEntry,
-  ControlElement,
-  JsonSchema,
-  JsonFormsSubStates,
-} from '@jsonforms/core'
+import type { ControlElement, JsonSchema, JsonFormsSubStates } from '@jsonforms/core'
 import {
   composePaths,
   createDefaultValue,
-  rankWith,
-  schemaTypeIs,
   Resolve,
   arrayDefaultTranslations,
   getArrayTranslations,
@@ -88,7 +81,7 @@ import { useVanillaArrayControl } from '../util'
 import ArrayListElement from './ArrayListElement.vue'
 import ArrayListRefElement from './ArrayListRefElement.vue'
 
-const controlRenderer = defineComponent({
+export default defineComponent({
   name: 'ArrayListRenderer',
   components: {
     ArrayListElement,
@@ -156,11 +149,4 @@ const controlRenderer = defineComponent({
     },
   },
 })
-
-export default controlRenderer
-
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: controlRenderer,
-  tester: rankWith(2, schemaTypeIs('array')),
-}
 </script>

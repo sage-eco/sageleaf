@@ -57,14 +57,7 @@
 </template>
 
 <script lang="ts">
-import type { JsonFormsRendererRegistryEntry, Layout } from '@jsonforms/core'
-import {
-  and,
-  categorizationHasCategory,
-  isCategorization,
-  optionIs,
-  rankWith,
-} from '@jsonforms/core'
+import type { Layout } from '@jsonforms/core'
 import {
   DispatchRenderer,
   rendererProps,
@@ -75,7 +68,7 @@ import { defineComponent } from 'vue'
 
 import { useVanillaLayout } from '../util'
 
-const layoutRenderer = defineComponent({
+export default defineComponent({
   name: 'CategorizationStepperRenderer',
   components: {
     DispatchRenderer,
@@ -97,13 +90,4 @@ const layoutRenderer = defineComponent({
     },
   },
 })
-
-export default layoutRenderer
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: layoutRenderer,
-  tester: rankWith(
-    3,
-    and(isCategorization, categorizationHasCategory, optionIs('variant', 'stepper')),
-  ),
-}
 </script>

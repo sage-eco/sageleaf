@@ -161,8 +161,7 @@
 </template>
 
 <script lang="ts">
-import type { ControlElement, JsonFormsRendererRegistryEntry, JsonSchema } from '@jsonforms/core'
-import { rankWith, and, uiTypeIs, schemaTypeIs, schemaMatches } from '@jsonforms/core'
+import type { ControlElement, JsonSchema } from '@jsonforms/core'
 import type { RendererProps } from '@jsonforms/vue'
 import { rendererProps, useJsonFormsArrayControl, useJsonFormsControl } from '@jsonforms/vue'
 import { ChevronDown, Plus } from '@lucide/vue'
@@ -185,14 +184,6 @@ interface TranslationEntry {
   lang: string
   text?: string
   auto?: boolean
-}
-
-const isTranslatedArray = (schema: JsonSchema): boolean => {
-  if (schema.type !== 'array') return false
-  const items = schema.items
-  if (!items || Array.isArray(items)) return false
-  const langProp = (items as JsonSchema).properties?.lang as JsonSchema | undefined
-  return langProp?.['$ref'] === '#/$defs/lang'
 }
 
 function getLabel(code: string): string {
@@ -334,7 +325,7 @@ function useHandlers(ctx: HandlersContext) {
   }
 }
 
-const controlRenderer = defineComponent({
+export default defineComponent({
   name: 'TranslatedFieldRenderer',
   components: { ChevronDown, Plus, PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent },
   props: {
@@ -447,14 +438,4 @@ const controlRenderer = defineComponent({
     }
   },
 })
-
-export default controlRenderer
-
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: controlRenderer,
-  tester: rankWith(
-    4,
-    and(uiTypeIs('Control'), schemaTypeIs('array'), schemaMatches(isTranslatedArray)),
-  ),
-}
 </script>

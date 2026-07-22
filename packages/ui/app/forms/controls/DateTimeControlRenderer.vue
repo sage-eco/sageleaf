@@ -21,8 +21,7 @@
 </template>
 
 <script lang="ts">
-import type { ControlElement, JsonFormsRendererRegistryEntry } from '@jsonforms/core'
-import { rankWith, isDateTimeControl } from '@jsonforms/core'
+import type { ControlElement } from '@jsonforms/core'
 import type { RendererProps } from '@jsonforms/vue'
 import { rendererProps, useJsonFormsControl } from '@jsonforms/vue'
 import { defineComponent } from 'vue'
@@ -35,7 +34,7 @@ const toISOString = (inputDateTime: string) => {
   return inputDateTime === '' ? undefined : inputDateTime + ':00.000Z'
 }
 
-const controlRenderer = defineComponent({
+export default defineComponent({
   name: 'DatetimeControlRenderer',
   components: {
     ControlWrapper,
@@ -52,11 +51,4 @@ const controlRenderer = defineComponent({
     },
   },
 })
-
-export default controlRenderer
-
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: controlRenderer,
-  tester: rankWith(2, isDateTimeControl),
-}
 </script>

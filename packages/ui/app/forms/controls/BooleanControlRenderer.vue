@@ -21,8 +21,7 @@
 </template>
 
 <script lang="ts">
-import type { ControlElement, JsonFormsRendererRegistryEntry } from '@jsonforms/core'
-import { rankWith, isBooleanControl } from '@jsonforms/core'
+import type { ControlElement } from '@jsonforms/core'
 import type { RendererProps } from '@jsonforms/vue'
 import { rendererProps, useJsonFormsControl } from '@jsonforms/vue'
 import { defineComponent } from 'vue'
@@ -31,7 +30,7 @@ import { useVanillaControl } from '../util'
 // eslint-disable-next-line import/no-named-default
 import { default as ControlWrapper } from './ControlWrapper.vue'
 
-const controlRenderer = defineComponent({
+export default defineComponent({
   name: 'BooleanControlRenderer',
   components: {
     ControlWrapper,
@@ -43,11 +42,4 @@ const controlRenderer = defineComponent({
     return useVanillaControl(useJsonFormsControl(props), (target) => target.checked)
   },
 })
-
-export default controlRenderer
-
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: controlRenderer,
-  tester: rankWith(1, isBooleanControl),
-}
 </script>

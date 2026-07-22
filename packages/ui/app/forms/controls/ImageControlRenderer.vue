@@ -60,8 +60,7 @@
 </template>
 
 <script lang="ts">
-import type { ControlElement, JsonFormsRendererRegistryEntry } from '@jsonforms/core'
-import { rankWith, and, uiTypeIs, or, formatIs, optionIs } from '@jsonforms/core'
+import type { ControlElement } from '@jsonforms/core'
 import type { RendererProps } from '@jsonforms/vue'
 import { rendererProps, useJsonFormsControl } from '@jsonforms/vue'
 import { watchDebounced } from '@vueuse/core'
@@ -71,7 +70,7 @@ import { useVanillaControl } from '../util'
 // eslint-disable-next-line import/no-named-default
 import { default as ControlWrapper } from './ControlWrapper.vue'
 
-const controlRenderer = defineComponent({
+export default defineComponent({
   name: 'ImageControlRenderer',
   components: {
     ControlWrapper,
@@ -119,11 +118,4 @@ const controlRenderer = defineComponent({
     },
   },
 })
-
-export default controlRenderer
-
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: controlRenderer,
-  tester: rankWith(2, and(uiTypeIs('Control'), or(formatIs('uri'), optionIs('format', 'uri')))),
-}
 </script>

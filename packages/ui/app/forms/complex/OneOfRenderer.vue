@@ -68,7 +68,6 @@
 import type {
   CombinatorSubSchemaRenderInfo,
   ControlElement,
-  JsonFormsRendererRegistryEntry,
   JsonFormsSubStates,
 } from '@jsonforms/core'
 import {
@@ -77,8 +76,6 @@ import {
   createDefaultValue,
   defaultJsonFormsI18nState,
   getCombinatorTranslations,
-  isOneOfControl,
-  rankWith,
 } from '@jsonforms/core'
 import type { RendererProps } from '@jsonforms/vue'
 import { DispatchRenderer, rendererProps, useJsonFormsOneOfControl } from '@jsonforms/vue'
@@ -89,7 +86,7 @@ import { ControlWrapper } from '../controls'
 import { useVanillaControl } from '../util'
 import CombinatorProperties from './components/CombinatorProperties.vue'
 
-const controlRenderer = defineComponent({
+export default defineComponent({
   name: 'OneOfRenderer',
   components: {
     ControlWrapper,
@@ -197,11 +194,4 @@ const controlRenderer = defineComponent({
     },
   },
 })
-
-export default controlRenderer
-
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: controlRenderer,
-  tester: rankWith(3, isOneOfControl),
-}
 </script>

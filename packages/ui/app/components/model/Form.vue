@@ -102,7 +102,7 @@ const uiSchema = computed(() => {
   return null
 })
 
-const createData = ref<object | null>(null)
+const createData = ref<object>({})
 const updateData = ref<object | null>(null)
 const changeStatus = ref<ChangeStatus | null>(null)
 

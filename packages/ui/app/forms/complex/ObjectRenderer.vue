@@ -13,13 +13,8 @@
 </template>
 
 <script lang="ts">
-import type {
-  JsonFormsRendererRegistryEntry,
-  ControlElement,
-  GroupLayout,
-  UISchemaElement,
-} from '@jsonforms/core'
-import { rankWith, Generate, findUISchema, isObjectControl } from '@jsonforms/core'
+import type { ControlElement, GroupLayout, UISchemaElement } from '@jsonforms/core'
+import { Generate, findUISchema } from '@jsonforms/core'
 import type { RendererProps } from '@jsonforms/vue'
 import { DispatchRenderer, rendererProps, useJsonFormsControlWithDetail } from '@jsonforms/vue'
 import { isEmpty } from 'lodash-es'
@@ -27,7 +22,7 @@ import { defineComponent } from 'vue'
 
 import { useVanillaControl } from '../util'
 
-const controlRenderer = defineComponent({
+export default defineComponent({
   name: 'ObjectRenderer',
   components: {
     DispatchRenderer,
@@ -73,11 +68,4 @@ const controlRenderer = defineComponent({
     },
   },
 })
-
-export default controlRenderer
-
-export const entry: JsonFormsRendererRegistryEntry = {
-  renderer: controlRenderer,
-  tester: rankWith(2, isObjectControl),
-}
 </script>
