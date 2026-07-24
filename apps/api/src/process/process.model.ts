@@ -19,7 +19,7 @@ import {
   TranslatedInput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
-import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { Material } from '@src/process/material.model'
 import { ProcessIntent } from '@src/process/process.entity'
 import { Variant } from '@src/product/variant.model'
@@ -169,6 +169,14 @@ export class ProcessArgs extends PaginationBasicArgs {
 
   @Field(() => ID, { nullable: true })
   material?: string
+
+  orderBy(): string[] {
+    return ['relevance']
+  }
+
+  orderDir(): OrderDirection[] {
+    return [OrderDirection.DESC]
+  }
 }
 
 @InputType()

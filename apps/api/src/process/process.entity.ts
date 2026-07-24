@@ -2,9 +2,11 @@ import {
   BaseEntity,
   Collection,
   Entity,
+  Index,
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OptionalProps,
   PrimaryKey,
   PrimaryKeyProp,
   Property,
@@ -14,7 +16,7 @@ import { z } from 'zod/v4'
 
 import { Source } from '@src/changes/source.entity'
 import type { TranslatedField } from '@src/common/i18n'
-import type { Rank } from '@src/common/z.schema'
+import { type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Place } from '@src/geo/place.entity'
 import { Region } from '@src/geo/region.entity'
@@ -199,7 +201,13 @@ export const ProcessEfficiencySchema = z.object({
 })
 
 @Entity({ tableName: 'processes', schema: 'public' })
+@Index({
+  name: 'processes_rank_order_idx',
+  expression: `create index "processes_rank_order_idx" on "processes" (rank_order desc, id desc)`,
+})
 export class Process extends IDCreatedUpdated {
+  [OptionalProps]?: 'rankOrder'
+
   @Property({ type: 'text' })
   intent!: ProcessIntent
 
@@ -236,6 +244,9 @@ export class Process extends IDCreatedUpdated {
 
   @Property({ type: 'json' })
   rank?: Rank
+
+  @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
+  rankOrder!: number
 
   @ManyToMany({ entity: () => Source, pivotEntity: () => ProcessSources })
   sources = new Collection<Source>(this)

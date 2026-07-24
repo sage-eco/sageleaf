@@ -3,9 +3,11 @@ import {
   Collection,
   Entity,
   Enum,
+  Index,
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OptionalProps,
   PrimaryKey,
   PrimaryKeyProp,
   Property,
@@ -13,7 +15,7 @@ import {
 import type { Ref } from '@mikro-orm/core'
 
 import type { TranslatedField } from '@src/common/i18n'
-import { type JSONObject, type Rank } from '@src/common/z.schema'
+import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Region } from '@src/geo/region.entity'
 import { Process } from '@src/process/process.entity'
@@ -28,7 +30,13 @@ export enum ProgramStatus {
 }
 
 @Entity({ tableName: 'programs', schema: 'public' })
+@Index({
+  name: 'programs_rank_order_idx',
+  expression: `create index "programs_rank_order_idx" on "programs" (rank_order desc, id desc)`,
+})
 export class Program extends IDCreatedUpdated {
+  [OptionalProps]?: 'rankOrder'
+
   @Property({ type: 'json' })
   name!: TranslatedField
 
@@ -46,6 +54,9 @@ export class Program extends IDCreatedUpdated {
 
   @Property({ type: 'json' })
   rank?: Rank
+
+  @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
+  rankOrder!: number
 
   @ManyToOne()
   region?: Ref<Region>

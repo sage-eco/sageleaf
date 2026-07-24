@@ -6,6 +6,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OptionalProps,
   PrimaryKey,
   PrimaryKeyProp,
   Property,
@@ -13,7 +14,7 @@ import {
 } from '@mikro-orm/core'
 
 import { defaultTranslatedField, type TranslatedField } from '@src/common/i18n'
-import { type JSONObject, type Rank } from '@src/common/z.schema'
+import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Process } from '@src/process/process.entity'
 import { Program } from '@src/process/program.entity'
@@ -21,7 +22,13 @@ import { Variant } from '@src/product/variant.entity'
 import { User } from '@src/users/users.entity'
 
 @Entity({ tableName: 'orgs', schema: 'public' })
+@Index({
+  name: 'orgs_rank_order_idx',
+  expression: `create index "orgs_rank_order_idx" on "orgs" (rank_order desc, id desc)`,
+})
 export class Org extends IDCreatedUpdated {
+  [OptionalProps]?: 'rankOrder'
+
   @Property({ length: 128 })
   name!: string
 
@@ -45,6 +52,9 @@ export class Org extends IDCreatedUpdated {
 
   @Property({ type: 'json' })
   rank?: Rank
+
+  @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
+  rankOrder!: number
 
   @ManyToMany({ entity: () => User, mappedBy: 'orgs' })
   users = new Collection<User>(this)

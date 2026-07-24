@@ -351,11 +351,30 @@
           "primary": false,
           "nullable": true,
           "mappedType": "json"
+        },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
         }
       },
       "name": "categories",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "categories_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"categories_rank_order_idx\" on \"categories\" (rank_order desc, id desc)"
+        },
         {
           "keyName": "categories_pkey",
           "columnNames": [
@@ -865,11 +884,30 @@
           "primary": false,
           "nullable": true,
           "mappedType": "json"
+        },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
         }
       },
       "name": "items",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "items_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"items_rank_order_idx\" on \"items\" (rank_order desc, id desc)"
+        },
         {
           "keyName": "items_pkey",
           "columnNames": [
@@ -1346,6 +1384,16 @@
           "primary": false,
           "nullable": true,
           "mappedType": "json"
+        },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
         }
       },
       "name": "orgs",
@@ -1360,6 +1408,15 @@
           "constraint": true,
           "primary": false,
           "unique": true
+        },
+        {
+          "keyName": "orgs_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"orgs_rank_order_idx\" on \"orgs\" (rank_order desc, id desc)"
         },
         {
           "keyName": "orgs_pkey",
@@ -1473,11 +1530,30 @@
           "primary": false,
           "nullable": true,
           "mappedType": "json"
+        },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
         }
       },
       "name": "places",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "places_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"places_rank_order_idx\" on \"places\" (rank_order desc, id desc)"
+        },
         {
           "keyName": "places_location_index",
           "columnNames": [
@@ -1730,6 +1806,16 @@
           "nullable": true,
           "mappedType": "json"
         },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
+        },
         "region_id": {
           "name": "region_id",
           "type": "varchar(255)",
@@ -1744,6 +1830,15 @@
       "name": "programs",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "programs_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"programs_rank_order_idx\" on \"programs\" (rank_order desc, id desc)"
+        },
         {
           "keyName": "programs_pkey",
           "columnNames": [
@@ -2091,11 +2186,30 @@
           "primary": false,
           "nullable": true,
           "mappedType": "json"
+        },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
         }
       },
       "name": "components",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "components_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"components_rank_order_idx\" on \"components\" (rank_order desc, id desc)"
+        },
         {
           "keyName": "components_pkey",
           "columnNames": [
@@ -2342,11 +2456,30 @@
           "primary": false,
           "nullable": true,
           "mappedType": "json"
+        },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
         }
       },
       "name": "tags",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "tags_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"tags_rank_order_idx\" on \"tags\" (rank_order desc, id desc)"
+        },
         {
           "keyName": "tags_type_tag_id_unique",
           "columnNames": [
@@ -2838,6 +2971,16 @@
           "primary": false,
           "nullable": true,
           "mappedType": "json"
+        },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
         }
       },
       "name": "users",
@@ -2862,6 +3005,15 @@
           "constraint": true,
           "primary": false,
           "unique": true
+        },
+        {
+          "keyName": "users_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"users_rank_order_idx\" on \"users\" (rank_order desc, id desc)"
         },
         {
           "keyName": "users_pkey",
@@ -4920,6 +5072,16 @@
           "primary": false,
           "nullable": true,
           "mappedType": "json"
+        },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
         }
       },
       "name": "variants",
@@ -4934,6 +5096,15 @@
           "constraint": false,
           "primary": false,
           "unique": false
+        },
+        {
+          "keyName": "variants_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"variants_rank_order_idx\" on \"variants\" (rank_order desc, id desc)"
         },
         {
           "keyName": "variants_pkey",
@@ -5081,6 +5252,16 @@
           "nullable": true,
           "mappedType": "json"
         },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "double precision",
+          "generated": "coalesce((rank ->> 'order')::double precision, 0.0) stored",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "double"
+        },
         "org_id": {
           "name": "org_id",
           "type": "varchar(255)",
@@ -5115,6 +5296,15 @@
       "name": "processes",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "processes_rank_order_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"processes_rank_order_idx\" on \"processes\" (rank_order desc, id desc)"
+        },
         {
           "keyName": "processes_pkey",
           "columnNames": [

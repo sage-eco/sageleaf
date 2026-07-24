@@ -15,7 +15,7 @@ import {
   TranslatedInput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
-import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ProcessConnection } from '@src/process/process.model'
 import { ProgramStatus } from '@src/process/program.entity'
 import { TagConnection } from '@src/process/tag.model'
@@ -94,6 +94,14 @@ export class ProgramHistoryArgs extends PaginationBasicArgs {
 @ArgsType()
 export class ProgramsArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  orderBy(): string[] {
+    return ['relevance']
+  }
+
+  orderDir(): OrderDirection[] {
+    return [OrderDirection.DESC]
+  }
 }
 
 @ArgsType()

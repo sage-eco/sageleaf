@@ -2,10 +2,12 @@ import {
   BaseEntity,
   Collection,
   Entity,
+  Index,
   ManyToMany,
   ManyToOne,
   OneToMany,
   type Opt,
+  OptionalProps,
   PrimaryKey,
   PrimaryKeyProp,
   Property,
@@ -15,7 +17,7 @@ import { z } from 'zod/v4'
 
 import { Source } from '@src/changes/source.entity'
 import { type TranslatedField } from '@src/common/i18n'
-import { type JSONObject, type Rank } from '@src/common/z.schema'
+import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Region } from '@src/geo/region.entity'
 import { Component } from '@src/process/component.entity'
@@ -36,7 +38,13 @@ export const VariantOrgRoleSchema = z.enum(['PRODUCER', 'DISTRIBUTOR']).optional
 export type VariantOrgRole = z.infer<typeof VariantOrgRoleSchema>
 
 @Entity({ tableName: 'variants', schema: 'public' })
+@Index({
+  name: 'variants_rank_order_idx',
+  expression: `create index "variants_rank_order_idx" on "variants" (rank_order desc, id desc)`,
+})
 export class Variant extends IDCreatedUpdated {
+  [OptionalProps]?: 'rankOrder'
+
   @Property({ type: 'json' })
   name!: TranslatedField
 
@@ -66,6 +74,9 @@ export class Variant extends IDCreatedUpdated {
 
   @Property({ type: 'json' })
   rank?: Rank
+
+  @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
+  rankOrder!: number
 
   @ManyToMany({ entity: () => Org, pivotEntity: () => VariantsOrgs })
   orgs = new Collection<Org>(this)

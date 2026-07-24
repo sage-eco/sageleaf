@@ -5,13 +5,14 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OptionalProps,
   Property,
 } from '@mikro-orm/core'
 import type { Opt } from '@mikro-orm/core'
 
 import { Account } from '@src/auth/account.entity'
 import { Session } from '@src/auth/session.entity'
-import type { Rank } from '@src/common/z.schema'
+import { type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Org } from '@src/users/org.entity'
 
@@ -20,7 +21,13 @@ export interface ProfileField {
 }
 
 @Entity({ tableName: 'users', schema: 'public' })
+@Index({
+  name: 'users_rank_order_idx',
+  expression: `create index "users_rank_order_idx" on "users" (rank_order desc, id desc)`,
+})
 export class User extends IDCreatedUpdated {
+  [OptionalProps]?: 'rankOrder'
+
   constructor(email: string, username: string, name: string) {
     super()
     this.email = email
@@ -66,6 +73,9 @@ export class User extends IDCreatedUpdated {
 
   @Property({ type: 'json' })
   rank?: Rank
+
+  @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
+  rankOrder!: number
 
   @OneToMany({ mappedBy: 'user' })
   sessions = new Collection<Session>(this)
