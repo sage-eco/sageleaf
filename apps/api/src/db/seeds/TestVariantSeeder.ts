@@ -22,9 +22,43 @@ export const VARIANT_IDS = [
   'tQFWuNfXreUizg8jLMB2j',
   'TlXmWbqomqlrQB1W3Mrhp',
 ]
-export const SOURCE_IDS = ['-rzGA3GmEPNXQmeZ2sk7F', 'BB9KN-G02xsQBvB3ElfYQ']
-export const ITEM_IDS = ['ao9d3DwYb_NEG2bRPhC-f', '3JobgyKigxgRnZtOVNBG3']
-export const COMPONENT_IDS = ['p90O7X3yt19lENUJWr-Am', 'qW9QAqg3WzWAhhmZfKcr_']
+export const SOURCE_IDS = [
+  '-rzGA3GmEPNXQmeZ2sk7F',
+  'BB9KN-G02xsQBvB3ElfYQ',
+  'CC9KN-G02xsQBvB3ElfYQ',
+  'DD9KN-G02xsQBvB3ElfYQ',
+  'EE9KN-G02xsQBvB3ElfYQ',
+]
+export const ITEM_IDS = [
+  'ao9d3DwYb_NEG2bRPhC-f',
+  '3JobgyKigxgRnZtOVNBG3',
+  '4JobgyKigxgRnZtOVNBG3',
+  '5JobgyKigxgRnZtOVNBG3',
+  '6JobgyKigxgRnZtOVNBG3',
+]
+export const COMPONENT_IDS = [
+  'p90O7X3yt19lENUJWr-Am',
+  'qW9QAqg3WzWAhhmZfKcr_',
+  'rW9QAqg3WzWAhhmZfKcr_',
+  'sW9QAqg3WzWAhhmZfKcr_',
+  'tW9QAqg3WzWAhhmZfKcr_',
+]
+
+const ITEM_NAMES = [
+  { en: 'Refurbished Smartphone', sv: 'Renoverad smartphone' },
+  { en: 'Reclaimed Aluminum Sheet', sv: 'Återvunnen aluminiumplåt' },
+  { en: 'Recycled Glass Jar', sv: 'Återvunnen glasburk' },
+  { en: 'Upcycled Denim Jacket', sv: 'Uppcyklad jeansjacka' },
+  { en: 'Reground Plastic Pellets', sv: 'Omslipade plastpellets' },
+]
+
+const COMPONENT_NAMES = [
+  { en: 'Lithium Battery Pack', sv: 'Litiumbatteripaket', materialIdx: 0 },
+  { en: 'Aluminum Casing', sv: 'Aluminiumhölje', materialIdx: 1 },
+  { en: 'Recycled Glass Panel', sv: 'Återvunnen glaspanel', materialIdx: 2 },
+  { en: 'Cotton-Blend Lining', sv: 'Bomullsblandad foder', materialIdx: 3 },
+  { en: 'Molded Plastic Shell', sv: 'Formgjuten plastskal', materialIdx: 4 },
+]
 
 export class TestVariantSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
@@ -38,77 +72,51 @@ export class TestVariantSeeder extends Seeder {
         user: em.getReference(User, NORMAL_USER_ID!),
       })
     }
-    const item1 = em.create(Item, {
-      id: ITEM_IDS[0],
-      name: {
-        en: 'Test Item',
-        sv: 'Test Artikel',
-      },
-      desc: {
-        en: 'This is a test item for seeding.',
-        sv: 'Detta är en testartikel för att fylla databasen.',
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      source: [{ id: SOURCE_IDS[0] }],
-    })
-    try {
-      await em.persist(item1).flush()
-    } catch (error) {
-      throw new Error(`Failed to persist item1: ${error}`)
+
+    const items: Item[] = []
+    for (let i = 0; i < ITEM_IDS.length; i++) {
+      const { en, sv } = ITEM_NAMES[i]
+      const item = em.create(Item, {
+        id: ITEM_IDS[i],
+        name: { en, sv },
+        desc: {
+          en: `${en} sourced for the circular economy catalog.`,
+          sv: `${sv} anskaffad för den cirkulära ekonomins katalog.`,
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        source: [{ id: SOURCE_IDS[i] }],
+      })
+      items.push(item)
     }
-    const item2 = em.create(Item, {
-      id: ITEM_IDS[1],
-      name: {
-        en: 'Another Test Item',
-        sv: 'En annan testartikel',
-      },
-      desc: {
-        en: 'This is another test item for seeding.',
-        sv: 'Detta är ytterligare en testartikel för att fylla databasen.',
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      source: [{ id: SOURCE_IDS[1] }],
-    })
-    const c1 = em.create(Component, {
-      id: COMPONENT_IDS[0],
-      name: {
-        en: 'Test Component',
-        sv: 'Test Komponent',
-      },
-      desc: {
-        en: 'This is a test component for seeding.',
-        sv: 'Detta är en testkomponent för att fylla databasen.',
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      primaryMaterial: em.getReference(Material, MATERIAL_IDS[0]),
-    })
-    em.create(ComponentsMaterials, {
-      component: c1,
-      material: em.getReference(Material, MATERIAL_IDS[0]),
-      materialFraction: 1.0,
-    })
-    const c2 = em.create(Component, {
-      id: COMPONENT_IDS[1],
-      name: {
-        en: 'Another Test Component',
-        sv: 'En annan testkomponent',
-      },
-      desc: {
-        en: 'This is another test component for seeding.',
-        sv: 'Detta är ytterligare en testkomponent för att fylla databasen.',
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      primaryMaterial: em.getReference(Material, MATERIAL_IDS[1]),
-    })
-    em.create(ComponentsMaterials, {
-      component: c2,
-      material: em.getReference(Material, MATERIAL_IDS[1]),
-      materialFraction: 1.0,
-    })
+    try {
+      await em.persist(items).flush()
+    } catch (error) {
+      throw new Error(`Failed to persist items: ${error}`)
+    }
+
+    const components: Component[] = []
+    for (let i = 0; i < COMPONENT_IDS.length; i++) {
+      const { en, sv, materialIdx } = COMPONENT_NAMES[i]
+      const component = em.create(Component, {
+        id: COMPONENT_IDS[i],
+        name: { en, sv },
+        desc: {
+          en: `${en} used in the manufacture of catalog variants.`,
+          sv: `${sv} som används vid tillverkning av katalogvarianter.`,
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        primaryMaterial: em.getReference(Material, MATERIAL_IDS[materialIdx]),
+      })
+      em.create(ComponentsMaterials, {
+        component,
+        material: em.getReference(Material, MATERIAL_IDS[materialIdx]),
+        materialFraction: 1.0,
+      })
+      components.push(component)
+    }
+
     for (const id of VARIANT_IDS) {
       const variant = new Variant()
       variant.id = id
@@ -120,7 +128,9 @@ export class TestVariantSeeder extends Seeder {
         en: `Description for Variant ${id}`,
         sv: `Beskrivning för Svensk Variant ${id}`,
       }
-      variant.items.add(item1, item2)
+      for (const item of items) {
+        variant.items.add(item)
+      }
       em.persist(variant)
       for (const sourceId of SOURCE_IDS) {
         const source = new VariantsSources()

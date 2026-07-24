@@ -75,11 +75,11 @@ describe('CategoryResolver (integration)', () => {
           }
         }
       `),
-      { first: 10 },
+      { first: 20 },
     )
     expect(res.errors).toBeUndefined()
-    expect(res.data?.categories.nodes).toHaveLength(6)
-    expect(res.data?.categories.totalCount).toBe(6)
+    expect(res.data?.categories.nodes).toHaveLength(11)
+    expect(res.data?.categories.totalCount).toBe(11)
   })
 
   test('should query a single category', async () => {

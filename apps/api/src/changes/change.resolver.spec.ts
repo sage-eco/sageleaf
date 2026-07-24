@@ -431,9 +431,14 @@ describe('ChangeResolver (integration)', () => {
       changeID: scopedChange.id,
     })
     expect(directEdit.errors).toBeUndefined()
-    expect(
-      directEdit.data?.directEdit?.updateInput?.items?.map((item: { id: string }) => item.id),
-    ).toEqual([ITEM_IDS[0]])
+    const remainingItemIds = directEdit.data?.directEdit?.updateInput?.items?.map(
+      (item: { id: string }) => item.id,
+    )
+    expect(remainingItemIds).toEqual(
+      expect.arrayContaining(ITEM_IDS.filter((id) => id !== ITEM_IDS[1])),
+    )
+    expect(remainingItemIds).not.toContain(ITEM_IDS[1])
+    expect(remainingItemIds).toHaveLength(ITEM_IDS.length - 1)
   })
 
   test('should update pivot payload when adding an existing Variant -> Component reference directly', async () => {

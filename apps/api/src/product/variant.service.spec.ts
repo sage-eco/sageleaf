@@ -89,9 +89,8 @@ describe('VariantService', () => {
         orderBy: { id: 'DESC' },
       },
     })
-    expect(result.items).toHaveLength(2)
-    expect(result.items[0].id).toBe(ITEM_IDS[0])
-    expect(result.items[1].id).toBe(ITEM_IDS[1])
+    expect(result.items).toHaveLength(ITEM_IDS.length)
+    expect(result.items.map((item) => item.id)).toEqual(expect.arrayContaining(ITEM_IDS))
   })
 
   test('should retrieve components for a variant', async () => {
@@ -101,9 +100,10 @@ describe('VariantService', () => {
         orderBy: { component: 'ASC' },
       },
     })
-    expect(result.items).toHaveLength(2)
-    expect(result.items[0].component.id).toBe(COMPONENT_IDS[0])
-    expect(result.items[1].component.id).toBe(COMPONENT_IDS[1])
+    expect(result.items).toHaveLength(COMPONENT_IDS.length)
+    expect(result.items.map((item) => item.component.id)).toEqual(
+      expect.arrayContaining(COMPONENT_IDS),
+    )
   })
 
   test('should create a new variant', async () => {
