@@ -57,13 +57,14 @@ describe('HomeFeedResolver (integration)', () => {
     )
     expect(res.errors).toBeUndefined()
     const nodes = res.data?.feed.nodes!
-    expect(nodes.length).toBe(4)
-    expect(res.data?.feed.totalCount).toBe(4)
-    // Verify rank order: 1000 < 1500 < 2000 < 3000
+    expect(nodes.length).toBe(5)
+    expect(res.data?.feed.totalCount).toBe(5)
+    // Verify rank order: 1000 < 1500 < 2000 < 3000 < 3500
     expect(nodes[0].id).toBe(FEED_IDS[0])
     expect(nodes[1].id).toBe(FEED_IDS[1])
     expect(nodes[2].id).toBe(FEED_IDS[2])
     expect(nodes[3].id).toBe(FEED_IDS[3])
+    expect(nodes[4].id).toBe(FEED_IDS[4])
   })
 
   test('filters items by regionId', async () => {

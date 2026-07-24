@@ -10,6 +10,7 @@ export const FEED_IDS = [
   'feed_test_global_1500',
   'feed_test_region_2000',
   'feed_test_external_3000',
+  'feed_test_announcement_3500',
 ]
 
 export class TestFeedSeeder extends Seeder {
@@ -59,6 +60,15 @@ export class TestFeedSeeder extends Seeder {
           },
         },
       },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+
+    em.create(HomeFeed, {
+      id: FEED_IDS[4],
+      rank: 3500,
+      format: 'ANNOUNCEMENT',
+      title: { en: 'Seasonal Recycling Update', sv: 'Säsongsuppdatering om återvinning' },
       createdAt: new Date(),
       updatedAt: new Date(),
     })

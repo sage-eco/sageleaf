@@ -53,8 +53,7 @@ export class ItemService implements IEntityService<Item> {
 
   async find(opts: CursorOptions<Item>) {
     opts.options.populate = ['itemCategories', 'itemTags']
-    const items = await this.em.find(Item, opts.where, opts.options)
-    const count = await this.em.count(Item, opts.where)
+    const [items, count] = await this.em.findAndCount(Item, opts.where, opts.options)
     return {
       items,
       count,

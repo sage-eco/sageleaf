@@ -8,6 +8,7 @@ export const TAG_IDS = [
   'tag2_BBBBBBBBBBBBBBBB',
   'tag3_CCCCCCCCCCCCCCCC',
   'tag4_DDDDDDDDDDDDDDDD',
+  'tag5_EEEEEEEEEEEEEEEE',
 ]
 
 export class TestTagSeeder extends Seeder {
@@ -78,6 +79,24 @@ export class TestTagSeeder extends Seeder {
           type: 'object',
           properties: {
             level: { type: 'string' },
+          },
+        },
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+
+    em.create(Tag, {
+      id: TAG_IDS[4],
+      name: 'Compostable',
+      desc: 'Items that break down safely in composting conditions',
+      type: TagType.COMPONENT,
+      bgColor: '#8B5A2B',
+      metaTemplate: {
+        schema: {
+          type: 'object',
+          properties: {
+            days: { type: 'number' },
           },
         },
       },

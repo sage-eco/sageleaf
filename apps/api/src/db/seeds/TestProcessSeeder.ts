@@ -6,14 +6,59 @@ import { Process, ProcessIntent } from '@src/process/process.entity'
 import { Org } from '@src/users/org.entity'
 
 export const PROCESS_IDS = [
-  'proc1_AAAAAAAAAAAAAAA',
-  'proc2_BBBBBBBBBBBBBBB',
-  'proc3_CCCCCCCCCCCCCCC',
+  'proc_test0001',
+  'proc_test0002',
+  'proc_test0003',
+  'proc_test0004',
+  'proc_test0005',
 ]
 
-export const ORG_IDS = ['org1_AAAAAAAAAAAAAAAA', 'org2_BBBBBBBBBBBBBBBB']
+export const ORG_IDS = ['org_test0001', 'org_test0002']
 
-export const REGION_IDS = ['wof__AAAAAAAAAAAAAAAA', 'wof__BBBBBBBBBBBBBBBB']
+export const REGION_IDS = ['wof_test0001', 'wof_test0002']
+
+const PROCESS_NAMES = [
+  {
+    en: 'PET Bottle Recycling',
+    sv: 'Återvinning av PET-flaskor',
+    desc: {
+      en: 'Sorting and reprocessing PET plastic bottles into new material',
+      sv: 'Sortering och omarbetning av PET-plastflaskor till nytt material',
+    },
+  },
+  {
+    en: 'Aluminum Can Smelting',
+    sv: 'Smältning av aluminiumburkar',
+    desc: {
+      en: 'Melting down aluminum cans to produce reusable ingots',
+      sv: 'Smältning av aluminiumburkar för att producera återanvändbara tackor',
+    },
+  },
+  {
+    en: 'E-Waste Component Recovery',
+    sv: 'Återvinning av elektronikkomponenter',
+    desc: {
+      en: 'Disassembling electronics to recover valuable components and metals',
+      sv: 'Isärtagning av elektronik för att återvinna värdefulla komponenter och metaller',
+    },
+  },
+  {
+    en: 'Textile Fiber Reclamation',
+    sv: 'Återvinning av textilfibrer',
+    desc: {
+      en: 'Shredding and reprocessing textiles into reusable fiber',
+      sv: 'Strimling och omarbetning av textilier till återanvändbar fiber',
+    },
+  },
+  {
+    en: 'Glass Cullet Processing',
+    sv: 'Bearbetning av glaskross',
+    desc: {
+      en: 'Crushing and cleaning glass for reuse in new glass products',
+      sv: 'Krossning och rengöring av glas för återanvändning i nya glasprodukter',
+    },
+  },
+]
 
 export class TestProcessSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
@@ -49,10 +94,11 @@ export class TestProcessSeeder extends Seeder {
     // Create test processes
     for (let i = 0; i < PROCESS_IDS.length; i++) {
       const processId = PROCESS_IDS[i]
+      const { en, sv, desc } = PROCESS_NAMES[i]
       em.create(Process, {
         id: processId,
-        name: { en: `Process ${i + 1}`, sv: `Process ${i + 1} Svenska` },
-        desc: { en: `Description for process ${i + 1}`, sv: `Beskrivning för process ${i + 1}` },
+        name: { en, sv },
+        desc,
         intent: ProcessIntent.RECYCLE,
         instructions: {},
         efficiency: {},
