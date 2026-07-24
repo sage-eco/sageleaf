@@ -16,6 +16,6 @@ export class OauthConsent extends IDCreatedUpdated {
   @Property({ fieldName: 'reference_id', nullable: true })
   referenceId?: string
 
-  @Property({ type: 'array' })
+  @Property({ type: 'json' })
   scopes!: string[]
 }

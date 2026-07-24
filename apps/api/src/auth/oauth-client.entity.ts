@@ -24,7 +24,7 @@ export class OauthClient extends IDCreatedUpdated {
   @Property({ fieldName: 'subject_type', nullable: true })
   subjectType?: string
 
-  @Property({ type: 'array', nullable: true })
+  @Property({ type: 'json', nullable: true })
   scopes?: string[]
 
   @ManyToOne(() => User, { nullable: true })
@@ -44,7 +44,7 @@ export class OauthClient extends IDCreatedUpdated {
   @Property({ nullable: true })
   icon?: string
 
-  @Property({ type: 'array', nullable: true })
+  @Property({ type: 'json', nullable: true })
   contacts?: string[]
 
   @Property({ nullable: true })
@@ -62,19 +62,19 @@ export class OauthClient extends IDCreatedUpdated {
   @Property({ fieldName: 'software_statement', type: 'text', nullable: true })
   softwareStatement?: string
 
-  @Property({ fieldName: 'redirect_uris', type: 'array' })
+  @Property({ fieldName: 'redirect_uris', type: 'json' })
   redirectUris!: string[]
 
-  @Property({ fieldName: 'post_logout_redirect_uris', type: 'array', nullable: true })
+  @Property({ fieldName: 'post_logout_redirect_uris', type: 'json', nullable: true })
   postLogoutRedirectUris?: string[]
 
   @Property({ fieldName: 'token_endpoint_auth_method', nullable: true })
   tokenEndpointAuthMethod?: string
 
-  @Property({ fieldName: 'grant_types', type: 'array', nullable: true })
+  @Property({ fieldName: 'grant_types', type: 'json', nullable: true })
   grantTypes?: string[]
 
-  @Property({ fieldName: 'response_types', type: 'array', nullable: true })
+  @Property({ fieldName: 'response_types', type: 'json', nullable: true })
   responseTypes?: string[]
 
   @Property({ nullable: true })

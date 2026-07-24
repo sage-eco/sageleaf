@@ -38,7 +38,7 @@ export class OauthAccessToken extends BaseEntity {
   @Property({ fieldName: 'reference_id', nullable: true })
   referenceId?: string
 
-  @Property({ type: 'array' })
+  @Property({ type: 'json' })
   scopes!: string[]
 
   @Property({ fieldName: 'created_at', defaultRaw: 'current_timestamp()' })
