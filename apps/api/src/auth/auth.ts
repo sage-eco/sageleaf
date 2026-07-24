@@ -1,9 +1,11 @@
 import { apiKey } from '@better-auth/api-key'
+import { oauthProvider } from '@better-auth/oauth-provider'
 import { MikroORM } from '@mikro-orm/postgresql'
 import { betterAuth } from 'better-auth'
-import { admin, organization, username } from 'better-auth/plugins'
+import { admin, jwt, organization, username } from 'better-auth/plugins'
 import { KyselyKnexDialect, PGColdDialect } from 'kysely-knex'
 
+import { getApiOrigin } from '@src/auth/oauth.constants'
 import { reservedUsernames } from '@src/auth/reserved-usernames'
 import { isProd } from '@src/common/common.utils'
 
@@ -91,6 +93,90 @@ export const configureAuth = (orm: MikroORM) => {
               requestCount: 'request_count',
               lastRequest: 'last_request',
               expiresAt: 'expires_at',
+            },
+          },
+        },
+      }),
+      jwt({
+        schema: {
+          jwks: {
+            modelName: 'auth.jwks',
+            fields: {
+              publicKey: 'public_key',
+              privateKey: 'private_key',
+              createdAt: 'created_at',
+              expiresAt: 'expires_at',
+            },
+          },
+        },
+      }),
+      oauthProvider({
+        loginPage: isProd()
+          ? 'https://sageleaf.app/profile/sign_in'
+          : 'https://dev.sageleaf.app/profile/sign_in',
+        consentPage: isProd()
+          ? 'https://sageleaf.app/oauth/consent'
+          : 'https://dev.sageleaf.app/oauth/consent',
+        allowDynamicClientRegistration: true,
+        allowUnauthenticatedClientRegistration: true,
+        scopes: ['openid', 'profile', 'email', 'offline_access'],
+        validAudiences: [getApiOrigin()],
+        schema: {
+          oauthClient: {
+            modelName: 'auth.oauth_clients',
+            fields: {
+              clientId: 'client_id',
+              clientSecret: 'client_secret',
+              subjectType: 'subject_type',
+              userId: 'user_id',
+              createdAt: 'created_at',
+              updatedAt: 'updated_at',
+              softwareId: 'software_id',
+              softwareVersion: 'software_version',
+              softwareStatement: 'software_statement',
+              redirectUris: 'redirect_uris',
+              postLogoutRedirectUris: 'post_logout_redirect_uris',
+              tokenEndpointAuthMethod: 'token_endpoint_auth_method',
+              grantTypes: 'grant_types',
+              responseTypes: 'response_types',
+              requirePKCE: 'require_pkce',
+              referenceId: 'reference_id',
+              enableEndSession: 'enable_end_session',
+              skipConsent: 'skip_consent',
+            },
+          },
+          oauthRefreshToken: {
+            modelName: 'auth.oauth_refresh_tokens',
+            fields: {
+              clientId: 'client_id',
+              sessionId: 'session_id',
+              userId: 'user_id',
+              referenceId: 'reference_id',
+              expiresAt: 'expires_at',
+              createdAt: 'created_at',
+              authTime: 'auth_time',
+            },
+          },
+          oauthAccessToken: {
+            modelName: 'auth.oauth_access_tokens',
+            fields: {
+              clientId: 'client_id',
+              sessionId: 'session_id',
+              userId: 'user_id',
+              referenceId: 'reference_id',
+              refreshId: 'refresh_id',
+              expiresAt: 'expires_at',
+              createdAt: 'created_at',
+            },
+          },
+          oauthConsent: {
+            modelName: 'auth.oauth_consents',
+            fields: {
+              clientId: 'client_id',
+              userId: 'user_id',
+              referenceId: 'reference_id',
+              createdAt: 'created_at',
+              updatedAt: 'updated_at',
             },
           },
         },

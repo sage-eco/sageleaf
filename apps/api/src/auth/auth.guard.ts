@@ -14,6 +14,8 @@ import { fromNodeHeaders } from 'better-auth/node'
 import { ClsService } from 'nestjs-cls'
 
 import { type AuthModuleOptions, MODULE_OPTIONS_TOKEN } from '@src/auth/auth-module-definition'
+import { getApiOrigin, getAuthIssuer } from '@src/auth/oauth.constants'
+import { createResourceClient } from '@src/auth/resource-client'
 import { getRequestFromContext } from '@src/auth/utils'
 import { User } from '@src/users/users.entity'
 
@@ -177,16 +179,27 @@ export class AuthGuard implements CanActivate {
     this.cls.set('session', session)
     request.session = session
 
-    // If no session, try API key authentication (does not mock a session)
-    let apiKeyUser: ReqUser | null = null
+    // If no session, try bearer JWT (OAuth access token) authentication
+    let bearerUser: ReqUser | null = null
     if (!session) {
+      const bearerAuth = await this.authenticateViaBearerToken(nodeHeaders)
+      if (bearerAuth) {
+        bearerUser = bearerAuth.user
+        request.oauthScopes = bearerAuth.scopes
+        this.cls.set('user', bearerUser)
+      }
+    }
+
+    // If no session or bearer token, try API key authentication (does not mock a session)
+    let apiKeyUser: ReqUser | null = null
+    if (!session && !bearerUser) {
       apiKeyUser = await this.authenticateViaApiKey(nodeHeaders)
       if (apiKeyUser) {
         this.cls.set('user', apiKeyUser)
       }
     }
 
-    request.user = session?.user ?? apiKeyUser ?? null // useful for observability tools like Sentry
+    request.user = session?.user ?? bearerUser ?? apiKeyUser ?? null // useful for observability tools like Sentry
 
     const isPublic = this.reflector.getAllAndOverride<boolean>('PUBLIC', [
       context.getHandler(),
@@ -200,7 +213,7 @@ export class AuthGuard implements CanActivate {
       context.getClass(),
     ])
 
-    const effectiveUser = session?.user ?? apiKeyUser ?? null
+    const effectiveUser = session?.user ?? bearerUser ?? apiKeyUser ?? null
 
     if (!effectiveUser && isOptional) return true
 
@@ -233,6 +246,50 @@ export class AuthGuard implements CanActivate {
     }
 
     return true
+  }
+
+  /**
+   * Attempts to authenticate the request using an OAuth `Authorization: Bearer <token>` header.
+   * Verifies the token locally via JWKS (no introspection round-trip) and resolves the
+   * owning user from the JWT's `sub` claim.
+   * Returns the owning user and requested scopes if valid, or null if no bearer token is
+   * present or the token is invalid.
+   */
+  private async authenticateViaBearerToken(
+    nodeHeaders: any,
+  ): Promise<{ user: ReqUser; scopes: string[] } | null> {
+    const headers = fromNodeHeaders(nodeHeaders)
+    const authorization = headers.get('authorization')
+    if (!authorization?.startsWith('Bearer ')) return null
+    const token = authorization.slice('Bearer '.length).trim()
+    if (!token) return null
+
+    try {
+      const resourceClient = createResourceClient(this.options.auth)
+      const payload = await resourceClient.verifyAccessToken(token, {
+        verifyOptions: {
+          issuer: getAuthIssuer(),
+          audience: getApiOrigin(),
+        },
+      })
+
+      if (!payload.sub) return null
+
+      const user = await this.em.findOne(User, { id: payload.sub })
+      if (!user) {
+        this.logger.warn(`OAuth access token subject ${payload.sub} has no matching user`)
+        return null
+      }
+
+      const scopes = typeof payload.scope === 'string' ? payload.scope.split(' ') : []
+      return { user: user as unknown as ReqUser, scopes }
+    } catch (error) {
+      this.logger.error(
+        'Bearer token authentication failed',
+        error instanceof Error ? error.stack : error,
+      )
+      return null
+    }
   }
 
   /**

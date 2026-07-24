@@ -27,6 +27,7 @@ import { AuthGuard } from '@src/auth/auth.guard'
 import { AuthService } from '@src/auth/auth.service'
 import { AuthUserService } from '@src/auth/authuser.service'
 import { SkipBodyParsingMiddleware } from '@src/auth/middlewares'
+import { OAuthResourceController } from '@src/auth/oauth-resource.controller'
 import { AFTER_HOOK_KEY, BEFORE_HOOK_KEY, HOOK_KEY } from '@src/auth/symbols'
 
 const HOOKS = [
@@ -227,6 +228,7 @@ class AuthModuleWithoutControllers extends BetterAuthModule {
       inject: [MikroORM],
     }),
   ],
+  controllers: [OAuthResourceController],
   providers: [AuthUserService],
   exports: [AuthUserService, BetterAuthModule],
 })
