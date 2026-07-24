@@ -98,6 +98,59 @@ describe('ItemResolver (integration)', () => {
     expect(res.data?.items.totalCount).toBeGreaterThan(0)
   })
 
+  describe('items relevance cursor pagination', () => {
+    const EXTRA_ITEM_IDS = [
+      'pagn0ItemAAAAAAAAAAAA',
+      'pagn0ItemBBBBBBBBBBBB',
+      'pagn0ItemCCCCCCCCCCCC',
+    ]
+
+    beforeAll(async () => {
+      const em = orm.em.fork()
+      for (const id of EXTRA_ITEM_IDS) {
+        em.create(Item, {
+          id,
+          name: { en: `Pagination Test Item ${id}` },
+          source: {},
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+      }
+      await em.flush()
+    })
+
+    test('should paginate items across multiple pages using the relevance cursor', async () => {
+      const ItemsPage = graphql(`
+        query ItemResolverListItemsPage($first: Int, $after: String) {
+          items(first: $first, after: $after) {
+            nodes {
+              id
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      `)
+
+      const seenIds: string[] = []
+      let after: string | null | undefined
+      for (let page = 0; page < 3; page++) {
+        const res = await gql.send(ItemsPage, { first: 1, after })
+        expect(res.errors).toBeUndefined()
+        const nodes = res.data?.items.nodes ?? []
+        expect(nodes.length).toBe(1)
+        seenIds.push(nodes[0].id)
+        expect(res.data?.items.pageInfo.hasNextPage).toBe(true)
+        after = res.data?.items.pageInfo.endCursor
+        expect(after).toBeTruthy()
+      }
+      // each page must return a distinct item, proving the cursor actually advances
+      expect(new Set(seenIds).size).toBe(seenIds.length)
+    })
+  })
+
   test('should accept explicit null for unused pagination arguments', async () => {
     const res = await gql.send(
       graphql(`

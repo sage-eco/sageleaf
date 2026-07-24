@@ -123,8 +123,7 @@ export class TransformService {
           throw new GraphQLError('Invalid cursor')
         }
         const cursorOrder = parsed.order ?? 0
-        const rawCmp = cmp === '$gte' ? '>=' : '<='
-        where[raw(`(rank_order, id) ${rawCmp} (?, ?)`, [cursorOrder, parsed.id])] = true
+        where[raw(`(rank_order, id)`)] = { [cmp]: raw(`(?, ?)`, [cursorOrder, parsed.id]) }
       }
     } else if (args.after || args.before) {
       where[orderByField] = { [cmp]: decoded }
