@@ -6,6 +6,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OptionalProps,
   PrimaryKey,
   PrimaryKeyProp,
   Property,
@@ -13,7 +14,7 @@ import {
 import type { Ref } from '@mikro-orm/core'
 
 import type { TranslatedField } from '@src/common/i18n'
-import type { Rank } from '@src/common/z.schema'
+import { type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Item } from '@src/product/item.entity'
 import { User } from '@src/users/users.entity'
@@ -21,7 +22,13 @@ import { User } from '@src/users/users.entity'
 export const CATEGORY_ROOT = 'CATEGORY_ROOT'
 
 @Entity({ tableName: 'categories', schema: 'public' })
+@Index({
+  name: 'categories_rank_order_idx',
+  expression: `create index "categories_rank_order_idx" on "categories" (rank_order desc, id desc)`,
+})
 export class Category extends IDCreatedUpdated {
+  [OptionalProps]?: 'rankOrder'
+
   @Property({ type: 'json' })
   name!: TranslatedField
 
@@ -36,6 +43,9 @@ export class Category extends IDCreatedUpdated {
 
   @Property({ type: 'json' })
   rank?: Rank
+
+  @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
+  rankOrder!: number
 
   @OneToMany({ entity: () => CategoryTree, mappedBy: 'ancestor' })
   ancestors = new Collection<CategoryTree>(this)

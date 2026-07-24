@@ -15,9 +15,15 @@ export const ZJSONObject = z.record(z.string(), z.json())
 export const ZTranslatedField = z.record(z.string(), z.string())
 
 export const RankSchema = z.object({
-  quality: z.number().optional(),
+  llm: z.number().optional(),
+  llm_hash: z.string().optional(),
+  order: z.number().optional(),
+  pop: z.number().optional(),
+  qual: z.number().optional(),
 })
 export type Rank = z.infer<typeof RankSchema>
+
+export const RANK_ORDER_SQL = `coalesce((rank ->> 'order')::double precision, 0.0)`
 
 export const HTTPS_OR_ICON: core.$ZodURLParams = {
   protocol: /^https|icon$/,

@@ -19,7 +19,7 @@ import {
   TranslatedInput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
-import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { Component, ComponentsConnection } from '@src/process/component.model'
 import {
   RecyclingStream,
@@ -267,6 +267,14 @@ export class VariantRegionsArgs extends PaginationBasicArgs {
 @ArgsType()
 export class VariantsArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  orderBy(): string[] {
+    return ['relevance']
+  }
+
+  orderDir(): OrderDirection[] {
+    return [OrderDirection.DESC]
+  }
 }
 
 @ArgsType()

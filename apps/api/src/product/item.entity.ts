@@ -2,9 +2,11 @@ import {
   BaseEntity,
   Collection,
   Entity,
+  Index,
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OptionalProps,
   PrimaryKey,
   PrimaryKeyProp,
   Property,
@@ -13,7 +15,7 @@ import {
 import { z } from 'zod/v4'
 
 import { type TranslatedField } from '@src/common/i18n'
-import type { Rank } from '@src/common/z.schema'
+import { type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Tag } from '@src/process/tag.entity'
 import { Category } from '@src/product/category.entity'
@@ -34,7 +36,13 @@ export const ItemFilesSchema = z.object({
 export type ItemFiles = z.infer<typeof ItemFilesSchema>
 
 @Entity({ tableName: 'items', schema: 'public' })
+@Index({
+  name: 'items_rank_order_idx',
+  expression: `create index "items_rank_order_idx" on "items" (rank_order desc, id desc)`,
+})
 export class Item extends IDCreatedUpdated {
+  [OptionalProps]?: 'rankOrder'
+
   @Property({ type: 'json' })
   name!: TranslatedField
 
@@ -52,6 +60,9 @@ export class Item extends IDCreatedUpdated {
 
   @Property({ type: 'json' })
   rank?: Rank
+
+  @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
+  rankOrder!: number
 
   @ManyToMany({ entity: () => Category, pivotEntity: () => ItemsCategories })
   categories = new Collection<Category>(this)

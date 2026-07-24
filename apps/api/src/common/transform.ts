@@ -9,7 +9,7 @@ import type {
   QueryOrderMap,
   Ref,
 } from '@mikro-orm/core'
-import { EntityManager } from '@mikro-orm/postgresql'
+import { EntityManager, raw } from '@mikro-orm/postgresql'
 import { Injectable } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import type { ClassConstructor, ClassTransformOptions, TransformFnParams } from 'class-transformer'
@@ -100,6 +100,7 @@ export class TransformService {
     const args = plainToInstance(cls, result.data)
     const where: ObjectQuery<any> = {}
     const orderByField = args.orderBy()[0] || 'id'
+    const isRelevance = orderByField === 'relevance'
     let decoded = ''
     if (args.after || args.before) {
       try {
@@ -109,10 +110,24 @@ export class TransformService {
       }
     }
     let orderDirection = args.orderDir()[0] || 'ASC'
-    if ((args.after && orderDirection === 'ASC') || (args.before && orderDirection === 'DESC')) {
-      where[orderByField] = { $gte: decoded }
+    const cmp =
+      (args.after && orderDirection === 'ASC') || (args.before && orderDirection === 'DESC')
+        ? '$gte'
+        : '$lte'
+    if (isRelevance) {
+      if (args.after || args.before) {
+        let parsed: { order: number | null; id: string }
+        try {
+          parsed = JSON.parse(decoded)
+        } catch (e) {
+          throw new GraphQLError('Invalid cursor')
+        }
+        const cursorOrder = parsed.order ?? 0
+        const rawCmp = cmp === '$gte' ? '>=' : '<='
+        where[raw(`(rank_order, id) ${rawCmp} (?, ?)`, [cursorOrder, parsed.id])] = true
+      }
     } else if (args.after || args.before) {
-      where[orderByField] = { $lte: decoded }
+      where[orderByField] = { [cmp]: decoded }
     }
     if (args.before || args.last) {
       // Need to flip order direction, then reverse the results
@@ -122,9 +137,11 @@ export class TransformService {
     const options: CursorOptions<any> = {
       where,
       options: {
-        orderBy: {
-          [orderByField]: orderDirection,
-        } as QueryOrderMap<any>,
+        orderBy: isRelevance
+          ? ([{ rankOrder: orderDirection }, { id: orderDirection }] as any)
+          : ({
+              [orderByField]: orderDirection,
+            } as QueryOrderMap<any>),
         limit: (args.first || args.last || DEFAULT_PAGE_SIZE) + 2,
       },
     }
@@ -233,7 +250,11 @@ export class TransformService {
     for (const item of cursor.items) {
       const cls = await this.zService.entityToModel(model, item)
       nodes.push(cls)
-      const itemOrderField = (item as any)[options.orderBy()[0] || 'id']
+      const orderByField = options.orderBy()[0] || 'id'
+      const itemOrderField =
+        orderByField === 'relevance'
+          ? JSON.stringify({ order: (item as any).rankOrder ?? 0, id: (item as any).id })
+          : (item as any)[orderByField]
       const cid = Buffer.from(
         _.isString(itemOrderField) ? itemOrderField : itemOrderField.id,
       ).toString('base64')

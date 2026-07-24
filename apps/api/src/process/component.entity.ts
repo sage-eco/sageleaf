@@ -2,9 +2,11 @@ import {
   BaseEntity,
   Collection,
   Entity,
+  Index,
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OptionalProps,
   PrimaryKey,
   PrimaryKeyProp,
   Property,
@@ -14,7 +16,7 @@ import { z } from 'zod/v4'
 
 import { Source } from '@src/changes/source.entity'
 import type { TranslatedField } from '@src/common/i18n'
-import { type JSONObject, type Rank } from '@src/common/z.schema'
+import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Region } from '@src/geo/region.entity'
 import { Material } from '@src/process/material.entity'
@@ -62,7 +64,13 @@ export const ComponentPhysicalSchema = z.object({
 export type ComponentPhysical = z.infer<typeof ComponentPhysicalSchema>
 
 @Entity({ tableName: 'components', schema: 'public' })
+@Index({
+  name: 'components_rank_order_idx',
+  expression: `create index "components_rank_order_idx" on "components" (rank_order desc, id desc)`,
+})
 export class Component extends IDCreatedUpdated {
+  [OptionalProps]?: 'rankOrder'
+
   @Property({ type: 'json' })
   name!: TranslatedField
 
@@ -99,6 +107,9 @@ export class Component extends IDCreatedUpdated {
 
   @Property({ type: 'json' })
   rank?: Rank
+
+  @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
+  rankOrder!: number
 
   @ManyToMany({
     entity: () => Material,

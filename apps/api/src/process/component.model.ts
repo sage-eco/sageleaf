@@ -18,7 +18,7 @@ import {
   TranslatedInput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
-import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { type ComponentPhysical, type ComponentVisual } from '@src/process/component.entity'
 import { Material } from '@src/process/material.model'
 import {
@@ -198,6 +198,14 @@ export class ComponentsArgs extends PaginationBasicArgs {
 
   @Field(() => String, { nullable: true })
   query?: string
+
+  orderBy(): string[] {
+    return ['relevance']
+  }
+
+  orderDir(): OrderDirection[] {
+    return [OrderDirection.DESC]
+  }
 }
 
 @ArgsType()

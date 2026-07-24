@@ -14,7 +14,7 @@ import {
   TranslatedOutput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
-import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ItemsConnection } from '@src/product/item.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User } from '@src/users/users.model'
@@ -122,6 +122,14 @@ export class CategoryHistoryArgs extends PaginationBasicArgs {
 @ArgsType()
 export class CategoriesArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  orderBy(): string[] {
+    return ['relevance']
+  }
+
+  orderDir(): OrderDirection[] {
+    return [OrderDirection.DESC]
+  }
 }
 
 @ArgsType()

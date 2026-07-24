@@ -5,7 +5,7 @@ import { z } from 'zod/v4'
 import { type JSONObject, type JSONType } from '@src/common/z.schema'
 import { IDCreatedUpdated, registerModel } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
-import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { TagType } from '@src/process/tag.entity'
 
 registerEnumType(TagType, {
@@ -70,6 +70,14 @@ export class TagConnection extends Paginated(Tag) {}
 @ArgsType()
 export class TagArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  orderBy(): string[] {
+    return ['relevance']
+  }
+
+  orderDir(): OrderDirection[] {
+    return [OrderDirection.DESC]
+  }
 }
 
 export const TagDefinitionIDSchema = z.string().meta({

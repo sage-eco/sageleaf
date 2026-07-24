@@ -1,9 +1,24 @@
-import { Collection, Entity, Enum, ManyToMany, Property, Unique } from '@mikro-orm/core'
+import {
+  Collection,
+  Entity,
+  Enum,
+  Index,
+  ManyToMany,
+  OptionalProps,
+  Property,
+  Unique,
+} from '@mikro-orm/core'
 import { JSONSchemaType } from 'ajv/dist/2020'
 import { z } from 'zod/v4'
 
 import { type TranslatedField } from '@src/common/i18n'
-import { AjvTemplateSchema, JSONType, type Rank, ZTranslatedField } from '@src/common/z.schema'
+import {
+  AjvTemplateSchema,
+  JSONType,
+  type Rank,
+  RANK_ORDER_SQL,
+  ZTranslatedField,
+} from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Place } from '@src/geo/place.entity'
 import { Component } from '@src/process/component.entity'
@@ -70,7 +85,13 @@ export type TagRules = z.infer<typeof TagRulesSchema>
 
 @Entity({ tableName: 'tags', schema: 'public' })
 @Unique({ properties: ['type', 'tag_id'] })
+@Index({
+  name: 'tags_rank_order_idx',
+  expression: `create index "tags_rank_order_idx" on "tags" (rank_order desc, id desc)`,
+})
 export class Tag extends IDCreatedUpdated {
+  [OptionalProps]?: 'rankOrder'
+
   @Property({ type: 'json' })
   name!: TranslatedField
 
@@ -97,6 +118,9 @@ export class Tag extends IDCreatedUpdated {
 
   @Property({ type: 'json' })
   rank?: Rank
+
+  @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
+  rankOrder!: number
 
   @ManyToMany({ entity: () => Place, mappedBy: 'tags' })
   places = new Collection<Place>(this)

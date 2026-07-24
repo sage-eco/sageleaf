@@ -11,7 +11,7 @@ import { IsNanoID } from '@src/common/validator.model'
 import { type JSONObject } from '@src/common/z.schema'
 import { CreatedUpdated, registerModel, TranslatedInput } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
-import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { TagConnection } from '@src/process/tag.model'
 import { Org } from '@src/users/org.model'
 
@@ -120,6 +120,14 @@ export class PlacesArgs extends PaginationBasicArgs {
 
   @Field(() => String, { nullable: true })
   query?: string
+
+  orderBy(): string[] {
+    return ['relevance']
+  }
+
+  orderDir(): OrderDirection[] {
+    return [OrderDirection.DESC]
+  }
 }
 
 @InputType()

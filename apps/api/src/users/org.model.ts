@@ -8,7 +8,7 @@ import { LuxonDateTimeResolver } from '@src/common/datetime.model'
 import { IsNanoID } from '@src/common/validator.model'
 import { BaseModel, IDCreatedUpdated, type ModelRef, registerModel } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
-import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User, UserConnection } from '@src/users/users.model'
 
@@ -72,6 +72,14 @@ export class OrgsConnection extends Paginated(Org) {}
 @ArgsType()
 export class OrgsArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  orderBy(): string[] {
+    return ['relevance']
+  }
+
+  orderDir(): OrderDirection[] {
+    return [OrderDirection.DESC]
+  }
 }
 
 @ArgsType()
