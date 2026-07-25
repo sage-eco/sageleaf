@@ -12,6 +12,7 @@ import {
 } from '@nestjs/core'
 import { mapToExcludeRoute } from '@nestjs/core/middleware/utils.js'
 import { createAuthMiddleware } from 'better-auth/api'
+import type { AuthMiddleware } from 'better-auth/api'
 import { toNodeHandler } from 'better-auth/node'
 import type { Request, Response } from 'express'
 
@@ -35,8 +36,7 @@ const HOOKS = [
   { metadataKey: AFTER_HOOK_KEY, hookType: 'after' as const },
 ]
 
-// biome-ignore lint/suspicious/noExplicitAny: i don't want to cause issues/breaking changes between different ways of setting up better-auth and even versions
-export type Auth = any
+export type Auth = ReturnType<typeof configureAuth>
 
 /**
  * NestJS module that integrates the Auth library with NestJS applications.
@@ -147,7 +147,10 @@ export class BetterAuthModule extends ConfigurableModuleClass implements NestMod
     providerMethod: (...args: unknown[]) => unknown,
     providerClass: { new (...args: unknown[]): unknown },
   ) {
-    if (!this.options.auth.options.hooks) return
+    const hooks = this.options.auth.options.hooks as
+      | { before?: AuthMiddleware; after?: AuthMiddleware }
+      | undefined
+    if (!hooks) return
 
     for (const { metadataKey, hookType } of HOOKS) {
       const hasHook = Reflect.hasMetadata(metadataKey, providerMethod)
@@ -155,8 +158,8 @@ export class BetterAuthModule extends ConfigurableModuleClass implements NestMod
 
       const hookPath = Reflect.getMetadata(metadataKey, providerMethod)
 
-      const originalHook = this.options.auth.options.hooks[hookType]
-      this.options.auth.options.hooks[hookType] = createAuthMiddleware(async (ctx) => {
+      const originalHook = hooks[hookType]
+      hooks[hookType] = createAuthMiddleware(async (ctx) => {
         if (originalHook) {
           await originalHook(ctx)
         }

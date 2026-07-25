@@ -46,10 +46,10 @@ export type BaseUserSession = NonNullable<Awaited<ReturnType<ReturnType<typeof g
 
 export type UserSession = BaseUserSession & {
   user: BaseUserSession['user'] & {
-    role?: string | string[]
+    role?: string | string[] | null
   }
   session: BaseUserSession['session'] & {
-    activeOrganizationId?: string
+    activeOrganizationId?: string | null
   }
 }
 
@@ -328,7 +328,7 @@ export class AuthGuard implements CanActivate {
    * @returns True if the role matches any required role
    */
   private matchesRequiredRole(
-    role: string | string[] | undefined,
+    role: string | string[] | null | undefined,
     requiredRoles: string[],
   ): boolean {
     if (!role) return false
