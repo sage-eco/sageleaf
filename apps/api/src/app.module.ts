@@ -20,6 +20,7 @@ import { FeedbackModule } from '@src/feedback/feedback.module'
 import { GeoModule } from '@src/geo/geo.module'
 import { GraphQLModule } from '@src/graphql/graphql.module'
 import { HealthModule } from '@src/health/health.module'
+import { McpModule } from '@src/mcp/mcp.module'
 import { MIKRO_CONFIG } from '@src/mikro-orm.config'
 import { ProcessModule } from '@src/process/process.module'
 import { ProductModule } from '@src/product/product.module'
@@ -79,6 +80,7 @@ if (dotenv) {
     FeedModule,
     FeedbackModule,
     WindmillModule,
+    McpModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: HttpExceptionFilter }, AppService],
 })
