@@ -5,17 +5,23 @@ import { MetaService } from '@src/common/meta.service'
 import { Tag } from '@src/process/tag.entity'
 import { Category } from '@src/product/category.entity'
 import { Item } from '@src/product/item.entity'
-import { SearchIndex } from '@src/search/search.backend'
+import {
+  SearchBackendMultiSearchResult,
+  SearchBackendSearchResult,
+  SearchIndex,
+} from '@src/search/search.backend'
 import { SearchType } from '@src/search/search.model'
 import { SearchService } from '@src/search/search.service'
 
 function makeSearchService() {
   const findManyByID = vi.fn(async (ids: string[]) => ids.map((id) => ({ id })))
   const searchBackend = {
-    search: vi.fn(async () => ({ hits: [], found: 0 })),
-    multiSearch: vi.fn(async () => ({ results: [] })),
-    listCollections: vi.fn(async () => []),
-    supportsVectorSearch: vi.fn(async () => true),
+    search: vi.fn<() => Promise<SearchBackendSearchResult>>(async () => ({ hits: [], found: 0 })),
+    multiSearch: vi.fn<() => Promise<SearchBackendMultiSearchResult>>(async () => ({
+      results: [],
+    })),
+    listCollections: vi.fn<() => Promise<string[]>>(async () => []),
+    supportsVectorSearch: vi.fn<(collection: string) => Promise<boolean>>(async () => true),
   }
   const i18n = {
     getLang: vi.fn(() => 'en'),
@@ -130,8 +136,8 @@ describe('SearchService', () => {
       ids.map((id) => ({ id, name: { en: `Label for ${id}` } })),
     )
     const searchBackend = {
-      search: vi.fn(async () => ({ hits: [], found: 0 })),
-      multiSearch: vi.fn(async () => ({
+      search: vi.fn<() => Promise<SearchBackendSearchResult>>(async () => ({ hits: [], found: 0 })),
+      multiSearch: vi.fn<() => Promise<SearchBackendMultiSearchResult>>(async () => ({
         results: [
           {
             hits: [],
@@ -148,8 +154,8 @@ describe('SearchService', () => {
           },
         ],
       })),
-      listCollections: vi.fn(async () => []),
-      supportsVectorSearch: vi.fn(async () => false),
+      listCollections: vi.fn<() => Promise<string[]>>(async () => []),
+      supportsVectorSearch: vi.fn<(collection: string) => Promise<boolean>>(async () => false),
     }
     const i18n = {
       getLang: vi.fn(() => 'en'),
@@ -194,8 +200,8 @@ describe('SearchService', () => {
   test('searchAll: label stays as value when entity lookup returns no match for the id', async () => {
     const tagFindManyByID = vi.fn(async () => [])
     const searchBackend = {
-      search: vi.fn(async () => ({ hits: [], found: 0 })),
-      multiSearch: vi.fn(async () => ({
+      search: vi.fn<() => Promise<SearchBackendSearchResult>>(async () => ({ hits: [], found: 0 })),
+      multiSearch: vi.fn<() => Promise<SearchBackendMultiSearchResult>>(async () => ({
         results: [
           {
             hits: [],
@@ -204,8 +210,8 @@ describe('SearchService', () => {
           },
         ],
       })),
-      listCollections: vi.fn(async () => []),
-      supportsVectorSearch: vi.fn(async () => false),
+      listCollections: vi.fn<() => Promise<string[]>>(async () => []),
+      supportsVectorSearch: vi.fn<(collection: string) => Promise<boolean>>(async () => false),
     }
     const i18n = {
       getLang: vi.fn(() => 'en'),
@@ -227,8 +233,8 @@ describe('SearchService', () => {
       ids.map((id) => ({ id, name: { en: `Cat ${id}` } })),
     )
     const searchBackend = {
-      search: vi.fn(async () => ({ hits: [], found: 0 })),
-      multiSearch: vi.fn(async () => ({
+      search: vi.fn<() => Promise<SearchBackendSearchResult>>(async () => ({ hits: [], found: 0 })),
+      multiSearch: vi.fn<() => Promise<SearchBackendMultiSearchResult>>(async () => ({
         results: [
           {
             hits: [],
@@ -237,8 +243,8 @@ describe('SearchService', () => {
           },
         ],
       })),
-      listCollections: vi.fn(async () => []),
-      supportsVectorSearch: vi.fn(async () => false),
+      listCollections: vi.fn<() => Promise<string[]>>(async () => []),
+      supportsVectorSearch: vi.fn<(collection: string) => Promise<boolean>>(async () => false),
     }
     const i18n = {
       getLang: vi.fn(() => 'en'),

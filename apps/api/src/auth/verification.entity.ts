@@ -8,7 +8,7 @@ export class Verification extends IDCreatedUpdated {
   @Index()
   identifier!: string
 
-  @Property()
+  @Property({ type: 'text' })
   value!: string
 
   @Property()

@@ -18,6 +18,15 @@ export const AllowAnonymous = (): CustomDecorator<string> => SetMetadata('PUBLIC
  */
 export const OptionalAuth = (): CustomDecorator<string> => SetMetadata('OPTIONAL', true)
 
+export const OAUTH_SCOPES_METADATA_KEY = 'OAUTH_SCOPES'
+
+/**
+ * Specifies the OAuth scopes a route accepts when authenticated with a bearer access token.
+ * Session and API key authentication remain governed by the existing auth decorators.
+ */
+export const OAuthScopes = (scopes: string[]): CustomDecorator =>
+  SetMetadata(OAUTH_SCOPES_METADATA_KEY, scopes)
+
 /**
  * Specifies the user-level roles required to access a route or controller.
  * Checks ONLY the `user.role` field (from Better Auth's admin plugin).

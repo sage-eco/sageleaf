@@ -6,7 +6,13 @@ import { VoteInput } from '@src/feedback/feedback.model'
 import { FeedbackSchemaService } from '@src/feedback/feedback.schema'
 import { FeedbackService } from '@src/feedback/feedback.service'
 
-function makeEm(overrides: Partial<ReturnType<typeof makeEm>> = {}) {
+type FakeEm = {
+  findOne: ReturnType<typeof vi.fn>
+  execute: ReturnType<typeof vi.fn>
+  getKnex: ReturnType<typeof vi.fn>
+}
+
+function makeEm(overrides: Partial<FakeEm> = {}): FakeEm {
   const knex = { raw: vi.fn().mockReturnValue({ toSQL: vi.fn() }) }
   return {
     findOne: vi.fn(),
