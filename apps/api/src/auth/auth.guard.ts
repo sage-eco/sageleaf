@@ -14,6 +14,7 @@ import { fromNodeHeaders } from 'better-auth/node'
 import { ClsService } from 'nestjs-cls'
 
 import { type AuthModuleOptions, MODULE_OPTIONS_TOKEN } from '@src/auth/auth-module-definition'
+import { OAUTH_SCOPES_METADATA_KEY } from '@src/auth/decorators'
 import { getApiOrigin, getAuthIssuer } from '@src/auth/oauth.constants'
 import { createResourceClient } from '@src/auth/resource-client'
 import { getRequestFromContext } from '@src/auth/utils'
@@ -220,6 +221,27 @@ export class AuthGuard implements CanActivate {
     const ctxType = context.getType()
     if (!effectiveUser) throw AuthContextErrorMap[ctxType].UNAUTHORIZED()
 
+    const requiredOauthScopes = this.reflector.getAllAndOverride<string[]>(
+      OAUTH_SCOPES_METADATA_KEY,
+      [context.getHandler(), context.getClass()],
+    )
+
+    if (bearerUser) {
+      if (!requiredOauthScopes?.length) {
+        throw AuthContextErrorMap[ctxType].FORBIDDEN({
+          code: 'FORBIDDEN',
+          message: 'OAuth bearer tokens are not allowed for this route',
+        })
+      }
+
+      if (!this.hasRequiredScopes(request.oauthScopes, requiredOauthScopes)) {
+        throw AuthContextErrorMap[ctxType].FORBIDDEN({
+          code: 'FORBIDDEN',
+          message: 'OAuth bearer token is missing required scopes',
+        })
+      }
+    }
+
     const headers = fromNodeHeaders(nodeHeaders)
 
     // Check @Roles() - user.role only (admin plugin)
@@ -281,7 +303,8 @@ export class AuthGuard implements CanActivate {
         return null
       }
 
-      const scopes = typeof payload.scope === 'string' ? payload.scope.split(' ') : []
+      const scopes =
+        typeof payload.scope === 'string' ? payload.scope.trim().split(/\s+/).filter(Boolean) : []
       return { user: user as unknown as ReqUser, scopes }
     } catch (error) {
       this.logger.error(
@@ -342,6 +365,16 @@ export class AuthGuard implements CanActivate {
     }
 
     return false
+  }
+
+  private hasRequiredScopes(
+    grantedScopes: string[] | null | undefined,
+    requiredScopes: string[],
+  ): boolean {
+    if (!grantedScopes?.length) return false
+
+    const grantedScopeSet = new Set(grantedScopes)
+    return requiredScopes.every((scope) => grantedScopeSet.has(scope))
   }
 
   /**
