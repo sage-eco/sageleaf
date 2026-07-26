@@ -3,8 +3,10 @@ import { oauthProvider } from '@better-auth/oauth-provider'
 import { MikroORM } from '@mikro-orm/postgresql'
 import { betterAuth } from 'better-auth'
 import { admin, jwt, organization, username } from 'better-auth/plugins'
+import { Kysely } from 'kysely'
 import { KyselyKnexDialect, PGColdDialect } from 'kysely-knex'
 
+import { DateCoercionKyselyPlugin } from '@src/auth/date-coercion-kysely.plugin'
 import { getApiOrigin } from '@src/auth/oauth.constants'
 import { reservedUsernames } from '@src/auth/reserved-usernames'
 import { isProd } from '@src/common/common.utils'
@@ -15,12 +17,14 @@ export const configureAuth = (orm: MikroORM) => {
   return betterAuth({
     basePath: '/auth',
     database: {
-      dialect: new KyselyKnexDialect({
-        knex,
-        kyselySubDialect: new PGColdDialect(),
+      db: new Kysely({
+        dialect: new KyselyKnexDialect({
+          knex,
+          kyselySubDialect: new PGColdDialect(),
+        }),
+        plugins: [new DateCoercionKyselyPlugin()],
       }),
       type: 'postgres',
-      casing: 'snake',
       transaction: true,
     },
     plugins: [
@@ -44,6 +48,11 @@ export const configureAuth = (orm: MikroORM) => {
       }),
       organization({
         schema: {
+          session: {
+            fields: {
+              activeOrganizationId: 'active_organization_id',
+            },
+          },
           organization: {
             modelName: 'orgs',
             fields: {
