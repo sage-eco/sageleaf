@@ -8,6 +8,11 @@ import dotenv from 'dotenv-flow'
 
 import { Account } from '@src/auth/account.entity'
 import { ApiKey } from '@src/auth/apikey.entity'
+import { Jwks } from '@src/auth/jwks.entity'
+import { OauthAccessToken } from '@src/auth/oauth-access-token.entity'
+import { OauthClient } from '@src/auth/oauth-client.entity'
+import { OauthConsent } from '@src/auth/oauth-consent.entity'
+import { OauthRefreshToken } from '@src/auth/oauth-refresh-token.entity'
 import { Session } from '@src/auth/session.entity'
 import { Verification } from '@src/auth/verification.entity'
 import { Change, ChangeEdits, ChangesSources } from '@src/changes/change.entity'
@@ -77,10 +82,15 @@ export const MIKRO_TEST_CONFIG = defineConfig({
     ItemHistory,
     ItemsCategories,
     ItemsTags,
+    Jwks,
     Material,
     MaterialEdge,
     MaterialHistory,
     MaterialTree,
+    OauthAccessToken,
+    OauthClient,
+    OauthConsent,
+    OauthRefreshToken,
     Org,
     OrgHistory,
     Place,
