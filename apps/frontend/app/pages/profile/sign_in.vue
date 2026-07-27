@@ -78,10 +78,18 @@ useTopbar({ title: 'Sign In', back: 'true' })
 
 const auth = useAuthClient()
 const router = useRouter()
+const route = useRoute()
+
+const redirectTarget = computed(() => {
+  const target = route.query.redirectTo
+  return typeof target === 'string' && target.startsWith('/') && !target.startsWith('//')
+    ? target
+    : '/profile'
+})
 
 const session = auth.useSession()
 if (session.value.data) {
-  router.replace('/profile')
+  router.replace(redirectTarget.value)
 }
 const formError = ref<string | null>(null)
 
@@ -107,7 +115,7 @@ const form = useForm({
     }
     const session = await auth.getSession()
     if (session.data) {
-      router.replace('/profile')
+      router.replace(redirectTarget.value)
     }
   },
 })

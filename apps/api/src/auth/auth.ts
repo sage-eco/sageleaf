@@ -2,7 +2,7 @@ import { apiKey } from '@better-auth/api-key'
 import { oauthProvider } from '@better-auth/oauth-provider'
 import { MikroORM } from '@mikro-orm/postgresql'
 import { betterAuth } from 'better-auth'
-import { admin, jwt, organization, username } from 'better-auth/plugins'
+import { admin, jwt, organization, testUtils, username } from 'better-auth/plugins'
 import { Kysely } from 'kysely'
 import { KyselyKnexDialect, PGColdDialect } from 'kysely-knex'
 
@@ -130,6 +130,7 @@ export const configureAuth = (orm: MikroORM) => {
         allowUnauthenticatedClientRegistration: true,
         scopes: ['openid', 'profile', 'email', 'offline_access'],
         validAudiences: [getApiOrigin()],
+        silenceWarnings: { oauthAuthServerConfig: true },
         schema: {
           oauthClient: {
             modelName: 'auth.oauth_clients',
@@ -190,6 +191,7 @@ export const configureAuth = (orm: MikroORM) => {
           },
         },
       }),
+      ...(process.env.NODE_ENV === 'test' ? [testUtils()] : []),
     ],
     user: {
       modelName: 'users',
