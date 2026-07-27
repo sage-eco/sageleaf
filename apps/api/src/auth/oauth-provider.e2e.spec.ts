@@ -8,6 +8,7 @@ import type { TestHelpers } from 'better-auth/plugins'
 import request from 'supertest'
 
 import { AuthModuleOptions, MODULE_OPTIONS_TOKEN } from '@src/auth/auth-module-definition'
+import { getApiOrigin } from '@src/auth/oauth.constants'
 import { BaseSeeder } from '@src/db/seeds/BaseSeeder'
 import { UserSeeder } from '@src/db/seeds/UserSeeder'
 import { clearDatabase } from '@src/db/test.utils'
@@ -77,6 +78,11 @@ describe('OAuth provider (integration)', () => {
     const codeVerifier = crypto.randomBytes(32).toString('base64url')
     const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url')
 
+    // MCP clients canonicalize the resource identifier through the `URL` API, which
+    // appends a trailing slash to a bare-origin URL (e.g. `new URL(origin).toString()`).
+    // Exercise that form here since it's what a spec-compliant client actually sends.
+    const resource = `${getApiOrigin()}/`
+
     const authorizeRes = await request(app.getHttpServer())
       .get('/auth/oauth2/authorize')
       .set('Cookie', cookieHeader)
@@ -88,6 +94,7 @@ describe('OAuth provider (integration)', () => {
         scope: 'openid profile email',
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',
+        resource,
       })
 
     expect(authorizeRes.status).toBe(200)
@@ -116,11 +123,26 @@ describe('OAuth provider (integration)', () => {
         code,
         code_verifier: codeVerifier,
         redirect_uri: redirectUri,
+        resource,
       })
 
     expect(tokenRes.status).toBe(200)
     expect(typeof tokenRes.body.access_token).toBe('string')
     expect(tokenRes.body.access_token.length).toBeGreaterThan(0)
     expect(typeof tokenRes.body.id_token).toBe('string')
+  })
+
+  test('POST /auth/token (JWT plugin token endpoint) is disabled', async () => {
+    const res = await request(app.getHttpServer()).post('/auth/token').set('Cookie', cookieHeader)
+
+    expect(res.status).toBe(404)
+  })
+
+  test('GET /auth/get-session does not set the set-auth-jwt header', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/auth/get-session')
+      .set('Cookie', cookieHeader)
+
+    expect(res.headers['set-auth-jwt']).toBeUndefined()
   })
 })
