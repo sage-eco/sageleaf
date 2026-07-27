@@ -1,6 +1,6 @@
-import { isProd } from '@src/common/common.utils'
+import { getBaseDomain } from '@src/common/common.utils'
 
-const DEFAULT_ORIGIN = isProd() ? 'https://api.sageleaf.app' : 'https://api.dev.sageleaf.app'
+const DEFAULT_ORIGIN = `https://api.${getBaseDomain()}`
 
 /**
  * The origin better-auth itself uses to build issuer/audience claims (derived from

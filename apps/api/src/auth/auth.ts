@@ -9,11 +9,12 @@ import { KyselyKnexDialect, PGColdDialect } from 'kysely-knex'
 import { DateCoercionKyselyPlugin } from '@src/auth/date-coercion-kysely.plugin'
 import { getApiOrigin } from '@src/auth/oauth.constants'
 import { reservedUsernames } from '@src/auth/reserved-usernames'
-import { isProd } from '@src/common/common.utils'
+import { getBaseDomain, isProd } from '@src/common/common.utils'
 
 export const configureAuth = (orm: MikroORM) => {
   const conn = orm.em.getConnection()
   const knex = conn.getKnex()
+  const baseDomain = getBaseDomain()
   return betterAuth({
     basePath: '/auth',
     database: {
@@ -120,12 +121,8 @@ export const configureAuth = (orm: MikroORM) => {
         },
       }),
       oauthProvider({
-        loginPage: isProd()
-          ? 'https://sageleaf.app/profile/sign_in'
-          : 'https://dev.sageleaf.app/profile/sign_in',
-        consentPage: isProd()
-          ? 'https://sageleaf.app/oauth/consent'
-          : 'https://dev.sageleaf.app/oauth/consent',
+        loginPage: `https://${baseDomain}/profile/sign_in`,
+        consentPage: `https://${baseDomain}/oauth/consent`,
         allowDynamicClientRegistration: true,
         allowUnauthenticatedClientRegistration: true,
         scopes: ['openid', 'profile', 'email', 'offline_access'],
@@ -273,10 +270,8 @@ export const configureAuth = (orm: MikroORM) => {
     },
     trustedOrigins: isProd()
       ? [
-          'https://sageleaf.app',
-          'https://dev.sageleaf.app',
-          'https://science.sageleaf.app',
-          'https://science.dev.sageleaf.app',
+          `https://${baseDomain}`,
+          `https://science.${baseDomain}`,
           'http://localhost:*',
           'http://127.0.0.1:*',
           'https://tauri.localhost',
@@ -294,7 +289,7 @@ export const configureAuth = (orm: MikroORM) => {
       cookiePrefix: 'sage',
       crossSubDomainCookies: {
         enabled: isProd(),
-        domain: isProd() ? '.sageleaf.app' : undefined,
+        domain: isProd() ? `.${baseDomain}` : undefined,
       },
       defaultCookieAttributes: {
         secure: true,
