@@ -38,8 +38,8 @@ const clientName = ref(clientId ?? 'An application')
 const formError = ref<string | null>(null)
 const submitting = ref(false)
 
-const session = auth.useSession()
-if (!session.value.data) {
+const { data: session } = await auth.getSession()
+if (!session) {
   router.replace(`/profile/sign_in?redirectTo=${encodeURIComponent(route.fullPath)}`)
 }
 
