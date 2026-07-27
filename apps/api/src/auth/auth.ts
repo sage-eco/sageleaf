@@ -17,6 +17,7 @@ export const configureAuth = (orm: MikroORM) => {
   const baseDomain = getBaseDomain()
   return betterAuth({
     basePath: '/auth',
+    disabledPaths: ['/token'],
     database: {
       db: new Kysely({
         dialect: new KyselyKnexDialect({
@@ -108,6 +109,7 @@ export const configureAuth = (orm: MikroORM) => {
         },
       }),
       jwt({
+        disableSettingJwtHeader: true,
         schema: {
           jwks: {
             modelName: 'auth.jwks',
@@ -126,7 +128,7 @@ export const configureAuth = (orm: MikroORM) => {
         allowDynamicClientRegistration: true,
         allowUnauthenticatedClientRegistration: true,
         scopes: ['openid', 'profile', 'email', 'offline_access'],
-        validAudiences: [getApiOrigin()],
+        validAudiences: [getApiOrigin(), `${getApiOrigin()}/`],
         silenceWarnings: { oauthAuthServerConfig: true },
         schema: {
           oauthClient: {
