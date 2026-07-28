@@ -86,6 +86,26 @@ describe('AuthGuard bearer token scopes', () => {
     expect(request.oauthScopes).toEqual(['process:write', 'offline_access'])
   })
 
+  it('verifies bearer tokens with an explicit jwksUrl', async () => {
+    // configureAuth() never sets betterAuth's `baseURL`, so the resource client can't
+    // derive a jwksUrl on its own (see jwt-jwks.spec.ts) — without passing one explicitly,
+    // local JWT verification is silently skipped and every bearer token fails with
+    // "no token payload", regardless of validity.
+    verifyAccessToken.mockResolvedValueOnce({
+      sub: 'user-1',
+      scope: 'process:write',
+    })
+
+    const { guard, context } = createGuard(['process:write'])
+
+    await guard.canActivate(context as never)
+
+    expect(verifyAccessToken).toHaveBeenCalledWith(
+      'test-token',
+      expect.objectContaining({ jwksUrl: 'https://auth.sageleaf.test/jwks' }),
+    )
+  })
+
   it('rejects bearer tokens missing a required OAuth scope', async () => {
     verifyAccessToken.mockResolvedValueOnce({
       sub: 'user-1',
