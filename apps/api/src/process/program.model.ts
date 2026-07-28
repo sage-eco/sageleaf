@@ -15,6 +15,7 @@ import {
   TranslatedInput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { ExternalLink, ExternalLinkInput } from '@src/graphql/link.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ProcessConnection } from '@src/process/process.model'
 import { ProgramStatus } from '@src/process/program.entity'
@@ -22,6 +23,30 @@ import { TagConnection } from '@src/process/tag.model'
 import { OrgsConnection } from '@src/users/org.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User } from '@src/users/users.model'
+
+@ObjectType()
+export class ProgramSocial {
+  @Field(() => [ExternalLink], { nullable: true })
+  links?: ExternalLink[]
+}
+
+@InputType()
+export class ProgramSocialInput {
+  @Field(() => [ExternalLinkInput], { nullable: true })
+  links?: ExternalLinkInput[]
+}
+
+@ObjectType()
+export class ProgramInstructions {
+  @Field(() => ExternalLink, { nullable: true })
+  primaryLink?: ExternalLink
+}
+
+@InputType()
+export class ProgramInstructionsInput {
+  @Field(() => [ExternalLinkInput], { nullable: true })
+  primaryLinks?: ExternalLinkInput[]
+}
 
 @ObjectType({
   implements: () => [Named],
@@ -34,11 +59,11 @@ export class Program extends IDCreatedUpdated implements Named {
   @Field(() => String, { nullable: true })
   desc?: string
 
-  @Field(() => JSONObjectResolver, { nullable: true })
-  social?: JSONObject
+  @Field(() => ProgramSocial, { nullable: true })
+  social?: ProgramSocial
 
-  @Field(() => JSONObjectResolver, { nullable: true })
-  instructions?: JSONObject
+  @Field(() => ProgramInstructions, { nullable: true })
+  instructions?: ProgramInstructions
 
   @Field(() => String)
   status!: ProgramStatus
@@ -157,11 +182,11 @@ export class CreateProgramInput extends ChangeInputWithLang {
   @Field(() => [TranslatedInput], { nullable: true })
   descTr?: TranslatedInput[]
 
-  @Field(() => JSONObjectResolver, { nullable: true })
-  social?: JSONObject
+  @Field(() => ProgramSocialInput, { nullable: true })
+  social?: ProgramSocialInput
 
-  @Field(() => JSONObjectResolver, { nullable: true })
-  instructions?: JSONObject
+  @Field(() => ProgramInstructionsInput, { nullable: true })
+  instructions?: ProgramInstructionsInput
 
   @Field(() => String)
   status!: ProgramStatus
@@ -196,11 +221,11 @@ export class UpdateProgramInput extends ChangeInputWithLang {
   @Field(() => [TranslatedInput], { nullable: true })
   descTr?: TranslatedInput[]
 
-  @Field(() => JSONObjectResolver, { nullable: true })
-  social?: JSONObject
+  @Field(() => ProgramSocialInput, { nullable: true })
+  social?: ProgramSocialInput
 
-  @Field(() => JSONObjectResolver, { nullable: true })
-  instructions?: JSONObject
+  @Field(() => ProgramInstructionsInput, { nullable: true })
+  instructions?: ProgramInstructionsInput
 
   @Field(() => String, { nullable: true })
   status?: ProgramStatus

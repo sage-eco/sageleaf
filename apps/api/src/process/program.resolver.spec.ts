@@ -143,6 +143,82 @@ describe('ProgramResolver (integration)', () => {
     expect(res.data?.updateProgram?.program?.name).toBe('Updated Program Name')
   })
 
+  test('should persist multi-locale social links and instructions, and resolve them per-locale', async () => {
+    const createRes = await gql.send(
+      graphql(`
+        mutation ProgramResolverCreateProgramWithSocial($input: CreateProgramInput!) {
+          createProgram(input: $input) {
+            program {
+              id
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          nameTr: [{ lang: 'en', text: 'Social Program' }],
+          status: 'ACTIVE',
+          social: {
+            links: [
+              { url: 'https://example.org', label: 'Website' },
+              { url: 'https://example.org/sv', label: 'Webbplats', locale: 'sv' },
+            ],
+          },
+          instructions: {
+            primaryLinks: [
+              { url: 'https://example.org/signup', label: 'Sign up', locale: 'en' },
+              { url: 'https://example.org/anmal', label: 'Anmäl dig', locale: 'sv' },
+            ],
+          },
+        },
+      },
+    )
+    expect(createRes.errors).toBeUndefined()
+    const socialProgramID = createRes.data!.createProgram!.program!.id
+
+    const query = graphql(`
+      query ProgramResolverGetSocialProgram($id: ID!) {
+        program(id: $id) {
+          id
+          social {
+            links {
+              url
+              label
+              locale
+            }
+          }
+          instructions {
+            primaryLink {
+              url
+              label
+              locale
+            }
+          }
+        }
+      }
+    `)
+
+    const enRes = await gql.send(query, { id: socialProgramID })
+    expect(enRes.errors).toBeUndefined()
+    expect(enRes.data?.program?.social?.links?.map((l) => l.url).sort()).toEqual([
+      'https://example.org',
+    ])
+    expect(enRes.data?.program?.instructions?.primaryLink?.url).toBe('https://example.org/signup')
+
+    gql.setLanguage('sv')
+    try {
+      const svRes = await gql.send(query, { id: socialProgramID })
+      expect(svRes.errors).toBeUndefined()
+      expect(svRes.data?.program?.social?.links?.map((l) => l.url).sort()).toEqual([
+        'https://example.org',
+        'https://example.org/sv',
+      ])
+      expect(svRes.data?.program?.instructions?.primaryLink?.url).toBe('https://example.org/anmal')
+    } finally {
+      gql.setLanguage('en')
+    }
+  })
+
   test('should keep currentProgram relation refs isolated while staging program relation changes', async () => {
     const baselineRes = await gql.send(
       graphql(`

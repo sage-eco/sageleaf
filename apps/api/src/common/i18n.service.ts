@@ -29,6 +29,30 @@ export class I18nService {
     return langs[0]?.split('-')[0] ?? 'en'
   }
 
+  // Reduces e.g. 'en-US;a' to 'en', matching TranslatedField key conventions
+  private localeMatchesLang(locale: string | undefined, lang: string): boolean {
+    return !!locale && locale.split(';')[0].split('-')[0] === lang
+  }
+
+  // Filters a `{ locale?: string }[]` array to items with no locale (global/default)
+  // plus items matching the current request language. Used for e.g. social.links.
+  filterByLocale<T extends { locale?: string }>(items?: T[]): T[] {
+    if (!items) return []
+    const lang = this.getLang()
+    return items.filter((item) => !item.locale || this.localeMatchesLang(item.locale, lang))
+  }
+
+  // Picks a single item from a `{ locale?: string }[]` array: prefers an exact
+  // locale match, falls back to the locale-less entry. Used for e.g. instructions.primaryLinks.
+  pickByLocale<T extends { locale?: string }>(items?: T[]): T | undefined {
+    if (!items) return undefined
+    const lang = this.getLang()
+    return (
+      items.find((item) => this.localeMatchesLang(item.locale, lang)) ??
+      items.find((item) => !item.locale)
+    )
+  }
+
   // Picks the appropriate translation for the current request language.
   tr(field: TranslatedField | string | undefined): string | undefined {
     return this.pick(field) as string | undefined

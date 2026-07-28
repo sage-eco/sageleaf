@@ -64,8 +64,13 @@ export class TestProgramSeeder extends Seeder {
         name: { en, sv },
         desc,
         status: ProgramStatus.ACTIVE,
-        social: {},
-        instructions: {},
+        social: { links: [{ url: 'https://example.org', label: 'Website' }] },
+        instructions: {
+          primaryLinks: [
+            { url: 'https://example.org/signup', label: 'Sign up', locale: 'en' },
+            { url: 'https://example.org/anmal', label: 'Anmäl dig', locale: 'sv' },
+          ],
+        },
         createdAt: new Date(),
         updatedAt: new Date(),
       })

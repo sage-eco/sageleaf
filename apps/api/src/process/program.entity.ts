@@ -13,8 +13,10 @@ import {
   Property,
 } from '@mikro-orm/core'
 import type { Ref } from '@mikro-orm/core'
+import { z } from 'zod/v4'
 
 import type { TranslatedField } from '@src/common/i18n'
+import { ExternalLinkSchema } from '@src/common/link.schema'
 import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Region } from '@src/geo/region.entity'
@@ -28,6 +30,16 @@ export enum ProgramStatus {
   ACTIVE = 'ACTIVE',
   CLOSED = 'CLOSED',
 }
+
+export const ProgramSocialSchema = z.object({
+  links: z.array(ExternalLinkSchema).optional(),
+})
+export type ProgramSocial = z.infer<typeof ProgramSocialSchema>
+
+export const ProgramInstructionsSchema = z.object({
+  primaryLinks: z.array(ExternalLinkSchema).optional(),
+})
+export type ProgramInstructions = z.infer<typeof ProgramInstructionsSchema>
 
 @Entity({ tableName: 'programs', schema: 'public' })
 @Index({
@@ -44,10 +56,10 @@ export class Program extends IDCreatedUpdated {
   desc?: TranslatedField
 
   @Property({ type: 'json' })
-  social?: JSONObject
+  social?: ProgramSocial
 
   @Property({ type: 'json' })
-  instructions?: JSONObject
+  instructions?: ProgramInstructions
 
   @Enum(() => ProgramStatus)
   status!: ProgramStatus
