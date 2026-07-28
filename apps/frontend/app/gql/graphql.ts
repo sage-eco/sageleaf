@@ -747,7 +747,7 @@ export type CreateProgramInput = {
   changeID?: InputMaybe<Scalars['ID']['input']>;
   desc?: InputMaybe<Scalars['String']['input']>;
   descTr?: InputMaybe<Array<TranslatedInput>>;
-  instructions?: InputMaybe<Scalars['JSONObject']['input']>;
+  instructions?: InputMaybe<ProgramInstructionsInput>;
   /** Language code for text input fields (BCP 47, e.g. "en") */
   lang?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -757,7 +757,7 @@ export type CreateProgramInput = {
   region?: InputMaybe<Scalars['ID']['input']>;
   /** IDs of sources to remove from this change */
   removeSources?: InputMaybe<Array<Scalars['ID']['input']>>;
-  social?: InputMaybe<Scalars['JSONObject']['input']>;
+  social?: InputMaybe<ProgramSocialInput>;
   status: Scalars['String']['input'];
   tags?: InputMaybe<Array<ProgramTagsInput>>;
 };
@@ -919,6 +919,22 @@ export enum EditModelType {
   Program = 'Program',
   Variant = 'Variant'
 }
+
+export type ExternalLink = {
+  __typename?: 'ExternalLink';
+  icon?: Maybe<Scalars['String']['output']>;
+  label?: Maybe<Scalars['String']['output']>;
+  locale?: Maybe<Scalars['String']['output']>;
+  openGraph?: Maybe<LinkOpenGraph>;
+  url: Scalars['String']['output'];
+};
+
+export type ExternalLinkInput = {
+  icon?: InputMaybe<Scalars['String']['input']>;
+  label?: InputMaybe<Scalars['String']['input']>;
+  locale?: InputMaybe<Scalars['String']['input']>;
+  url: Scalars['String']['input'];
+};
 
 export type FeedConnection = {
   __typename?: 'FeedConnection';
@@ -1284,6 +1300,14 @@ export type JobsConnection = {
   nodes: Array<Job>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
+};
+
+export type LinkOpenGraph = {
+  __typename?: 'LinkOpenGraph';
+  description?: Maybe<Scalars['String']['output']>;
+  image?: Maybe<Scalars['String']['output']>;
+  siteName?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
 };
 
 export type LinkSourceInput = {
@@ -2020,14 +2044,14 @@ export type Program = Named & {
   history: ProgramHistoryConnection;
   /** The ID of the model */
   id: Scalars['ID']['output'];
-  instructions?: Maybe<Scalars['JSONObject']['output']>;
+  instructions?: Maybe<ProgramInstructions>;
   name: Scalars['String']['output'];
   /** Organizations involved in this program */
   orgs: OrgsConnection;
   /** Processes run by this program */
   processes: ProcessConnection;
   region?: Maybe<Region>;
-  social?: Maybe<Scalars['JSONObject']['output']>;
+  social?: Maybe<ProgramSocial>;
   status: Scalars['String']['output'];
   /** Metadata tags applied to this program */
   tags: TagConnection;
@@ -2099,6 +2123,15 @@ export type ProgramHistoryEdge = {
   node: ProgramHistory;
 };
 
+export type ProgramInstructions = {
+  __typename?: 'ProgramInstructions';
+  primaryLink?: Maybe<ExternalLink>;
+};
+
+export type ProgramInstructionsInput = {
+  primaryLinks?: InputMaybe<Array<ExternalLinkInput>>;
+};
+
 export type ProgramOrgsInput = {
   id: Scalars['ID']['input'];
   role?: InputMaybe<Scalars['String']['input']>;
@@ -2106,6 +2139,15 @@ export type ProgramOrgsInput = {
 
 export type ProgramProcessesInput = {
   id: Scalars['ID']['input'];
+};
+
+export type ProgramSocial = {
+  __typename?: 'ProgramSocial';
+  links?: Maybe<Array<ExternalLink>>;
+};
+
+export type ProgramSocialInput = {
+  links?: InputMaybe<Array<ExternalLinkInput>>;
 };
 
 export type ProgramTagsInput = {
@@ -3075,7 +3117,7 @@ export type UpdateProgramInput = {
   desc?: InputMaybe<Scalars['String']['input']>;
   descTr?: InputMaybe<Array<TranslatedInput>>;
   id: Scalars['ID']['input'];
-  instructions?: InputMaybe<Scalars['JSONObject']['input']>;
+  instructions?: InputMaybe<ProgramInstructionsInput>;
   /** Language code for text input fields (BCP 47, e.g. "en") */
   lang?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -3088,7 +3130,7 @@ export type UpdateProgramInput = {
   /** IDs of sources to remove from this change */
   removeSources?: InputMaybe<Array<Scalars['ID']['input']>>;
   removeTags?: InputMaybe<Array<Scalars['ID']['input']>>;
-  social?: InputMaybe<Scalars['JSONObject']['input']>;
+  social?: InputMaybe<ProgramSocialInput>;
   status?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<ProgramTagsInput>>;
 };

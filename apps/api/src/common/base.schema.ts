@@ -55,6 +55,7 @@ export class BaseSchemaService {
       keywords: ['name'],
       formats: {
         date: true,
+        'date-time': true,
         url: true,
         uri: true,
         nanoid: true,

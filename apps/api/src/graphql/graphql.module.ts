@@ -98,6 +98,9 @@ export class GraphQLModule {
                 requestContext.operation?.operation === 'query',
               sessionId: async (requestContext) =>
                 getSessionId((requestContext.contextValue as Context).req),
+              // Changing the requested language(s) should invalidate the cache
+              extraCacheKeyData: async (requestContext) =>
+                (requestContext.contextValue as Context).req?.headers['accept-language'] ?? null,
             }),
           ],
           introspection: true,

@@ -8,6 +8,7 @@ import { ChangeInputWithLangSchema } from '@src/changes/change.schema'
 import { BaseSchemaService, RelMetaSchema, zToSchema } from '@src/common/base.schema'
 import { TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
+import { ExternalLinkInputSchema } from '@src/common/link.schema'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { UISchemaElement } from '@src/common/ui.schema'
 import { TransformInput, ZService } from '@src/common/z.service'
@@ -47,6 +48,15 @@ export const ProgramTagsInputSchema = z.strictObject({
   meta: RelMetaSchema,
 })
 
+// Input variants, to keep server-only link fields out of programSchema's JSON Schema
+export const ProgramSocialInputSchema = z.object({
+  links: z.array(ExternalLinkInputSchema).optional(),
+})
+
+export const ProgramInstructionsInputSchema = z.object({
+  primaryLinks: z.array(ExternalLinkInputSchema).optional(),
+})
+
 @Injectable()
 @IsSchemaService(ProgramEntity)
 export class ProgramSchemaService implements ISchemaService {
@@ -80,7 +90,11 @@ export class ProgramSchemaService implements ISchemaService {
       model.name = input.i18n.tr(entity.name) as string
       model.desc = input.i18n.tr(entity.desc)
       model.social = entity.social
+        ? { links: input.i18n.filterByLocale(entity.social.links) }
+        : undefined
       model.instructions = entity.instructions
+        ? { primaryLink: input.i18n.pickByLocale(entity.instructions.primaryLinks) }
+        : undefined
       model.status = entity.status
       return model
     })
@@ -110,9 +124,9 @@ export class ProgramSchemaService implements ISchemaService {
       nameTr: TrArraySchema,
       desc: z.string().max(100_000).optional(),
       descTr: TrArraySchema,
-      social: z.record(z.string(), z.any()).optional(),
-      instructions: z.record(z.string(), z.any()).optional(),
-      status: z.nativeEnum(ProgramStatus).default(ProgramStatus.ACTIVE),
+      social: ProgramSocialInputSchema.optional(),
+      instructions: ProgramInstructionsInputSchema.optional(),
+      status: z.enum(ProgramStatus).default(ProgramStatus.ACTIVE),
       region: RegionIDSchema.optional(),
       orgs: z.array(this.ProgramOrgsInputSchema).optional(),
       processes: z.array(this.ProgramProcessesInputSchema).optional(),
@@ -134,6 +148,16 @@ export class ProgramSchemaService implements ISchemaService {
           scope: '#/properties/descTr',
           label: 'Description Translations',
           options: this.baseSchema.trOptionsUISchema(),
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/social',
+          label: 'Social',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/instructions',
+          label: 'Instructions',
         },
         {
           type: 'Control',
@@ -169,8 +193,8 @@ export class ProgramSchemaService implements ISchemaService {
       nameTr: TrArraySchema.optional(),
       desc: z.string().max(100_000).optional(),
       descTr: TrArraySchema.optional(),
-      social: z.record(z.string(), z.any()).optional(),
-      instructions: z.record(z.string(), z.any()).optional(),
+      social: ProgramSocialInputSchema.optional(),
+      instructions: ProgramInstructionsInputSchema.optional(),
       status: z.enum(ProgramStatus).optional(),
       region: RegionIDSchema.optional(),
       orgs: z.array(this.ProgramOrgsInputSchema).optional(),
@@ -198,6 +222,16 @@ export class ProgramSchemaService implements ISchemaService {
           scope: '#/properties/descTr',
           label: 'Description Translations',
           options: this.baseSchema.trOptionsUISchema(),
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/social',
+          label: 'Social',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/instructions',
+          label: 'Instructions',
         },
         {
           type: 'Control',

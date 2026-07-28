@@ -598,7 +598,7 @@ input CreateProgramInput {
   changeID: ID
   desc: String
   descTr: [TranslatedInput!]
-  instructions: JSONObject
+  instructions: ProgramInstructionsInput
 
   """Language code for text input fields (BCP 47, e.g. "en")"""
   lang: String
@@ -610,7 +610,7 @@ input CreateProgramInput {
 
   """IDs of sources to remove from this change"""
   removeSources: [ID!]
-  social: JSONObject
+  social: ProgramSocialInput
   status: String!
   tags: [ProgramTagsInput!]
 }
@@ -778,6 +778,21 @@ enum EditModelType {
   Process
   Program
   Variant
+}
+
+type ExternalLink {
+  icon: String
+  label: String
+  locale: String
+  openGraph: LinkOpenGraph
+  url: String!
+}
+
+input ExternalLinkInput {
+  icon: String
+  label: String
+  locale: String
+  url: String!
 }
 
 type FeedConnection {
@@ -1009,6 +1024,13 @@ type JobsConnection {
   nodes: [Job!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type LinkOpenGraph {
+  description: String
+  image: String
+  siteName: String
+  title: String
 }
 
 input LinkSourceInput {
@@ -1407,7 +1429,7 @@ type Program implements Named {
 
   """The ID of the model"""
   id: ID!
-  instructions: JSONObject
+  instructions: ProgramInstructions
   name: String!
 
   """Organizations involved in this program"""
@@ -1416,7 +1438,7 @@ type Program implements Named {
   """Processes run by this program"""
   processes(after: String, before: String, first: Int, last: Int): ProcessConnection!
   region: Region
-  social: JSONObject
+  social: ProgramSocial
   status: String!
 
   """Metadata tags applied to this program"""
@@ -1449,6 +1471,14 @@ type ProgramHistoryEdge {
   node: ProgramHistory!
 }
 
+type ProgramInstructions {
+  primaryLink: ExternalLink
+}
+
+input ProgramInstructionsInput {
+  primaryLinks: [ExternalLinkInput!]
+}
+
 input ProgramOrgsInput {
   id: ID!
   role: String
@@ -1456,6 +1486,14 @@ input ProgramOrgsInput {
 
 input ProgramProcessesInput {
   id: ID!
+}
+
+type ProgramSocial {
+  links: [ExternalLink!]
+}
+
+input ProgramSocialInput {
+  links: [ExternalLinkInput!]
 }
 
 input ProgramTagsInput {
@@ -2220,7 +2258,7 @@ input UpdateProgramInput {
   desc: String
   descTr: [TranslatedInput!]
   id: ID!
-  instructions: JSONObject
+  instructions: ProgramInstructionsInput
 
   """Language code for text input fields (BCP 47, e.g. "en")"""
   lang: String
@@ -2235,7 +2273,7 @@ input UpdateProgramInput {
   """IDs of sources to remove from this change"""
   removeSources: [ID!]
   removeTags: [ID!]
-  social: JSONObject
+  social: ProgramSocialInput
   status: String
   tags: [ProgramTagsInput!]
 }
