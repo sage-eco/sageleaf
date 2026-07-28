@@ -289,6 +289,7 @@ export class AuthGuard implements CanActivate {
     try {
       const resourceClient = createResourceClient(this.options.auth)
       const payload = await resourceClient.verifyAccessToken(token, {
+        jwksUrl: `${getAuthIssuer()}/jwks`,
         verifyOptions: {
           issuer: getAuthIssuer(),
           audience: getApiOrigin(),
