@@ -106,6 +106,7 @@ export class PlaceService implements IEntityService<Place> {
     const place = new Place()
     place.id = generateID()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(place, input)
       await this.editService.createHistory(
         Place.name,

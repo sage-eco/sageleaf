@@ -29,6 +29,12 @@ type Documents = {
     "\n        query ChangeResolverEditCopyInput($id: ID!) {\n          change(id: $id) {\n            edits(first: 10) {\n              nodes {\n                id\n                entityName\n                updateInput\n                copyInput\n              }\n            }\n          }\n        }\n      ": typeof types.ChangeResolverEditCopyInputDocument,
     "\n        mutation ChangeResolverDiscardEdit($changeID: ID!, $editID: ID!) {\n          discardEdit(changeID: $changeID, editID: $editID) {\n            success\n            id\n          }\n        }\n      ": typeof types.ChangeResolverDiscardEditDocument,
     "\n        mutation ChangeResolverDeleteChange($id: ID!) {\n          deleteChange(id: $id) {\n            success\n          }\n        }\n      ": typeof types.ChangeResolverDeleteChangeDocument,
+    "\n          mutation ChangeOwnershipUpdateAsNonOwner($input: UpdateChangeInput!) {\n            updateChange(input: $input) {\n              change {\n                id\n              }\n            }\n          }\n        ": typeof types.ChangeOwnershipUpdateAsNonOwnerDocument,
+    "\n          mutation ChangeOwnershipDeleteAsNonOwner($id: ID!) {\n            deleteChange(id: $id) {\n              success\n            }\n          }\n        ": typeof types.ChangeOwnershipDeleteAsNonOwnerDocument,
+    "\n          mutation ChangeOwnershipDiscardAsNonOwner($changeID: ID!, $editID: ID!) {\n            discardEdit(changeID: $changeID, editID: $editID) {\n              success\n            }\n          }\n        ": typeof types.ChangeOwnershipDiscardAsNonOwnerDocument,
+    "\n          mutation ChangeOwnershipMergeAsNonOwner($id: ID!) {\n            mergeChange(id: $id) {\n              change {\n                id\n              }\n            }\n          }\n        ": typeof types.ChangeOwnershipMergeAsNonOwnerDocument,
+    "\n          mutation ChangeOwnershipUpdateAsAdmin($input: UpdateChangeInput!) {\n            updateChange(input: $input) {\n              change {\n                id\n                title\n              }\n            }\n          }\n        ": typeof types.ChangeOwnershipUpdateAsAdminDocument,
+    "\n          mutation ChangeOwnershipDeleteAsAdmin($id: ID!) {\n            deleteChange(id: $id) {\n              success\n            }\n          }\n        ": typeof types.ChangeOwnershipDeleteAsAdminDocument,
     "\n        mutation ComplexMergeApprove($input: UpdateChangeInput!) {\n          updateChange(input: $input) {\n            change {\n              id\n              status\n            }\n          }\n        }\n      ": typeof types.ComplexMergeApproveDocument,
     "\n        mutation ComplexMergeMerge($id: ID!) {\n          mergeChange(id: $id) {\n            change {\n              id\n              status\n            }\n          }\n        }\n      ": typeof types.ComplexMergeMergeDocument,
     "\n        mutation ComplexMergeASeedChange($input: UpdateVariantInput!) {\n          updateVariant(input: $input) {\n            change {\n              id\n              status\n            }\n            variant {\n              id\n            }\n          }\n        }\n      ": typeof types.ComplexMergeASeedChangeDocument,
@@ -299,6 +305,7 @@ type Documents = {
     "\n        query ItemResolverGetItemTags($id: ID!, $first: Int) {\n          item(id: $id) {\n            id\n            tags(first: $first) {\n              nodes {\n                id\n                name\n              }\n              totalCount\n            }\n          }\n        }\n      ": typeof types.ItemResolverGetItemTagsDocument,
     "\n        query ItemResolverGetItemVariants($id: ID!, $first: Int) {\n          item(id: $id) {\n            id\n            variants(first: $first) {\n              nodes {\n                id\n                name\n              }\n              totalCount\n            }\n          }\n        }\n      ": typeof types.ItemResolverGetItemVariantsDocument,
     "\n        mutation ItemResolverCreateItem($input: CreateItemInput!) {\n          createItem(input: $input) {\n            item {\n              id\n              name\n            }\n          }\n        }\n      ": typeof types.ItemResolverCreateItemDocument,
+    "\n        mutation ItemResolverCreateItemDirectAsUser($input: CreateItemInput!) {\n          createItem(input: $input) {\n            item {\n              id\n            }\n          }\n        }\n      ": typeof types.ItemResolverCreateItemDirectAsUserDocument,
     "\n        mutation ItemResolverUpdateItem($input: UpdateItemInput!) {\n          updateItem(input: $input) {\n            item {\n              id\n              name\n            }\n          }\n        }\n      ": typeof types.ItemResolverUpdateItemDocument,
     "\n        query ItemResolverGetNonExistentItem($id: ID!) {\n          item(id: $id) {\n            id\n          }\n        }\n      ": typeof types.ItemResolverGetNonExistentItemDocument,
     "\n          mutation CreateItemAllText($input: CreateItemInput!) {\n            createItem(input: $input) {\n              item {\n                id\n                name\n                desc\n                imageURL\n              }\n            }\n          }\n        ": typeof types.CreateItemAllTextDocument,
@@ -464,6 +471,12 @@ const documents: Documents = {
     "\n        query ChangeResolverEditCopyInput($id: ID!) {\n          change(id: $id) {\n            edits(first: 10) {\n              nodes {\n                id\n                entityName\n                updateInput\n                copyInput\n              }\n            }\n          }\n        }\n      ": types.ChangeResolverEditCopyInputDocument,
     "\n        mutation ChangeResolverDiscardEdit($changeID: ID!, $editID: ID!) {\n          discardEdit(changeID: $changeID, editID: $editID) {\n            success\n            id\n          }\n        }\n      ": types.ChangeResolverDiscardEditDocument,
     "\n        mutation ChangeResolverDeleteChange($id: ID!) {\n          deleteChange(id: $id) {\n            success\n          }\n        }\n      ": types.ChangeResolverDeleteChangeDocument,
+    "\n          mutation ChangeOwnershipUpdateAsNonOwner($input: UpdateChangeInput!) {\n            updateChange(input: $input) {\n              change {\n                id\n              }\n            }\n          }\n        ": types.ChangeOwnershipUpdateAsNonOwnerDocument,
+    "\n          mutation ChangeOwnershipDeleteAsNonOwner($id: ID!) {\n            deleteChange(id: $id) {\n              success\n            }\n          }\n        ": types.ChangeOwnershipDeleteAsNonOwnerDocument,
+    "\n          mutation ChangeOwnershipDiscardAsNonOwner($changeID: ID!, $editID: ID!) {\n            discardEdit(changeID: $changeID, editID: $editID) {\n              success\n            }\n          }\n        ": types.ChangeOwnershipDiscardAsNonOwnerDocument,
+    "\n          mutation ChangeOwnershipMergeAsNonOwner($id: ID!) {\n            mergeChange(id: $id) {\n              change {\n                id\n              }\n            }\n          }\n        ": types.ChangeOwnershipMergeAsNonOwnerDocument,
+    "\n          mutation ChangeOwnershipUpdateAsAdmin($input: UpdateChangeInput!) {\n            updateChange(input: $input) {\n              change {\n                id\n                title\n              }\n            }\n          }\n        ": types.ChangeOwnershipUpdateAsAdminDocument,
+    "\n          mutation ChangeOwnershipDeleteAsAdmin($id: ID!) {\n            deleteChange(id: $id) {\n              success\n            }\n          }\n        ": types.ChangeOwnershipDeleteAsAdminDocument,
     "\n        mutation ComplexMergeApprove($input: UpdateChangeInput!) {\n          updateChange(input: $input) {\n            change {\n              id\n              status\n            }\n          }\n        }\n      ": types.ComplexMergeApproveDocument,
     "\n        mutation ComplexMergeMerge($id: ID!) {\n          mergeChange(id: $id) {\n            change {\n              id\n              status\n            }\n          }\n        }\n      ": types.ComplexMergeMergeDocument,
     "\n        mutation ComplexMergeASeedChange($input: UpdateVariantInput!) {\n          updateVariant(input: $input) {\n            change {\n              id\n              status\n            }\n            variant {\n              id\n            }\n          }\n        }\n      ": types.ComplexMergeASeedChangeDocument,
@@ -734,6 +747,7 @@ const documents: Documents = {
     "\n        query ItemResolverGetItemTags($id: ID!, $first: Int) {\n          item(id: $id) {\n            id\n            tags(first: $first) {\n              nodes {\n                id\n                name\n              }\n              totalCount\n            }\n          }\n        }\n      ": types.ItemResolverGetItemTagsDocument,
     "\n        query ItemResolverGetItemVariants($id: ID!, $first: Int) {\n          item(id: $id) {\n            id\n            variants(first: $first) {\n              nodes {\n                id\n                name\n              }\n              totalCount\n            }\n          }\n        }\n      ": types.ItemResolverGetItemVariantsDocument,
     "\n        mutation ItemResolverCreateItem($input: CreateItemInput!) {\n          createItem(input: $input) {\n            item {\n              id\n              name\n            }\n          }\n        }\n      ": types.ItemResolverCreateItemDocument,
+    "\n        mutation ItemResolverCreateItemDirectAsUser($input: CreateItemInput!) {\n          createItem(input: $input) {\n            item {\n              id\n            }\n          }\n        }\n      ": types.ItemResolverCreateItemDirectAsUserDocument,
     "\n        mutation ItemResolverUpdateItem($input: UpdateItemInput!) {\n          updateItem(input: $input) {\n            item {\n              id\n              name\n            }\n          }\n        }\n      ": types.ItemResolverUpdateItemDocument,
     "\n        query ItemResolverGetNonExistentItem($id: ID!) {\n          item(id: $id) {\n            id\n          }\n        }\n      ": types.ItemResolverGetNonExistentItemDocument,
     "\n          mutation CreateItemAllText($input: CreateItemInput!) {\n            createItem(input: $input) {\n              item {\n                id\n                name\n                desc\n                imageURL\n              }\n            }\n          }\n        ": types.CreateItemAllTextDocument,
@@ -958,6 +972,30 @@ export function graphql(source: "\n        mutation ChangeResolverDiscardEdit($c
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n        mutation ChangeResolverDeleteChange($id: ID!) {\n          deleteChange(id: $id) {\n            success\n          }\n        }\n      "): (typeof documents)["\n        mutation ChangeResolverDeleteChange($id: ID!) {\n          deleteChange(id: $id) {\n            success\n          }\n        }\n      "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n          mutation ChangeOwnershipUpdateAsNonOwner($input: UpdateChangeInput!) {\n            updateChange(input: $input) {\n              change {\n                id\n              }\n            }\n          }\n        "): (typeof documents)["\n          mutation ChangeOwnershipUpdateAsNonOwner($input: UpdateChangeInput!) {\n            updateChange(input: $input) {\n              change {\n                id\n              }\n            }\n          }\n        "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n          mutation ChangeOwnershipDeleteAsNonOwner($id: ID!) {\n            deleteChange(id: $id) {\n              success\n            }\n          }\n        "): (typeof documents)["\n          mutation ChangeOwnershipDeleteAsNonOwner($id: ID!) {\n            deleteChange(id: $id) {\n              success\n            }\n          }\n        "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n          mutation ChangeOwnershipDiscardAsNonOwner($changeID: ID!, $editID: ID!) {\n            discardEdit(changeID: $changeID, editID: $editID) {\n              success\n            }\n          }\n        "): (typeof documents)["\n          mutation ChangeOwnershipDiscardAsNonOwner($changeID: ID!, $editID: ID!) {\n            discardEdit(changeID: $changeID, editID: $editID) {\n              success\n            }\n          }\n        "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n          mutation ChangeOwnershipMergeAsNonOwner($id: ID!) {\n            mergeChange(id: $id) {\n              change {\n                id\n              }\n            }\n          }\n        "): (typeof documents)["\n          mutation ChangeOwnershipMergeAsNonOwner($id: ID!) {\n            mergeChange(id: $id) {\n              change {\n                id\n              }\n            }\n          }\n        "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n          mutation ChangeOwnershipUpdateAsAdmin($input: UpdateChangeInput!) {\n            updateChange(input: $input) {\n              change {\n                id\n                title\n              }\n            }\n          }\n        "): (typeof documents)["\n          mutation ChangeOwnershipUpdateAsAdmin($input: UpdateChangeInput!) {\n            updateChange(input: $input) {\n              change {\n                id\n                title\n              }\n            }\n          }\n        "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n          mutation ChangeOwnershipDeleteAsAdmin($id: ID!) {\n            deleteChange(id: $id) {\n              success\n            }\n          }\n        "): (typeof documents)["\n          mutation ChangeOwnershipDeleteAsAdmin($id: ID!) {\n            deleteChange(id: $id) {\n              success\n            }\n          }\n        "];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -2038,6 +2076,10 @@ export function graphql(source: "\n        query ItemResolverGetItemVariants($id
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n        mutation ItemResolverCreateItem($input: CreateItemInput!) {\n          createItem(input: $input) {\n            item {\n              id\n              name\n            }\n          }\n        }\n      "): (typeof documents)["\n        mutation ItemResolverCreateItem($input: CreateItemInput!) {\n          createItem(input: $input) {\n            item {\n              id\n              name\n            }\n          }\n        }\n      "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n        mutation ItemResolverCreateItemDirectAsUser($input: CreateItemInput!) {\n          createItem(input: $input) {\n            item {\n              id\n            }\n          }\n        }\n      "): (typeof documents)["\n        mutation ItemResolverCreateItemDirectAsUser($input: CreateItemInput!) {\n          createItem(input: $input) {\n            item {\n              id\n            }\n          }\n        }\n      "];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

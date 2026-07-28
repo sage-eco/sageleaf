@@ -352,6 +352,29 @@ describe('ItemResolver (integration)', () => {
     expect(res.data?.createItem?.item?.name).toBe('Test Item')
   })
 
+  test('non-admin cannot create an item directly without a changeID', async () => {
+    const userGql = new GraphQLTestClient(app)
+    await userGql.signIn('user', 'password')
+    const res = await userGql.send(
+      graphql(`
+        mutation ItemResolverCreateItemDirectAsUser($input: CreateItemInput!) {
+          createItem(input: $input) {
+            item {
+              id
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          name: 'Should Not Be Created Directly',
+        },
+      },
+    )
+    expect(res.data?.createItem).toBeFalsy()
+    expect(res.errors).toBeDefined()
+  })
+
   test('should update an item', async () => {
     const res = await gql.send(
       graphql(`

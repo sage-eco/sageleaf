@@ -21,7 +21,7 @@ import {
   isUsingChange,
 } from '@src/changes/change-ext.model'
 import { Change, ChangeEdits, ChangeStatus } from '@src/changes/change.entity'
-import { MergeInput, UpdateChangeInput } from '@src/changes/change.model'
+import { MergeInput } from '@src/changes/change.model'
 import { Source } from '@src/changes/source.entity'
 import { BadRequestErr, NotFoundErr } from '@src/common/exceptions'
 import { isExcludedFromDiff } from '@src/common/exclude-from-diff.decorator'
@@ -94,11 +94,14 @@ export class EditService {
     if (id) {
       const change = await this.em.findOne(
         Change,
-        { id, user: userID },
+        { id },
         { populate: ['edits', 'user', 'sources'] },
       )
       if (!change) {
         throw NotFoundErr(`Change with ID "${id}" not found`)
+      }
+      if (!this.authUser.sameUserOrAdmin(change.user.id)) {
+        throw BadRequestErr('You can only edit your own changes')
       }
       return change
     }
@@ -135,34 +138,6 @@ export class EditService {
       )
       for (const source of sources) {
         change.sources.add(ref(source.id))
-      }
-    }
-
-    await this.em.persist(change).flush()
-    return change
-  }
-
-  async update(input: UpdateChangeInput) {
-    const change = await this.findOne(input.id)
-    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
-      throw BadRequestErr('You can only update your own changes')
-    }
-
-    if (input.title) change.title = input.title
-    if (input.description) change.description = input.description
-    if (input.status) change.status = input.status
-    if (input.sources) {
-      const removed = change.sources.filter((source) => !input.sources!.includes(source.id))
-      for (const source of removed) {
-        change.sources.remove(source)
-      }
-      for (const sourceID of input.sources) {
-        if (!change.sources.contains(ref(sourceID))) {
-          const source = await this.em.findOne(Source, { id: sourceID })
-          if (source) {
-            change.sources.add(source)
-          }
-        }
       }
     }
 
@@ -691,6 +666,18 @@ export class EditService {
   }
 
   /**
+   * Guards the direct (non-Change) branch of entity create() methods - only admins may create
+   * entities without going through the Change/staged-edit workflow.
+   *
+   * Use this as the first statement inside `if (!isUsingChange(input))` in create() methods.
+   */
+  assertDirectCreateAllowed(): void {
+    if (!this.authUser.admin()) {
+      throw BadRequestErr('Admin privileges are required to directly create')
+    }
+  }
+
+  /**
    * Loads the editable entity context for mutations that may run directly or through a change.
    *
    * Direct edits require admin privileges and return the persisted entity. Change edits resolve an
@@ -1052,9 +1039,12 @@ export class EditService {
    * Use this from resolver endpoints that trigger merge directly by change identifier.
    */
   async mergeID(changeID: string) {
-    const change = await this.em.findOne(Change, { id: changeID }, { populate: ['edits'] })
+    const change = await this.em.findOne(Change, { id: changeID }, { populate: ['edits', 'user'] })
     if (!change) {
       throw NotFoundErr(`Change with ID "${changeID}" not found`)
+    }
+    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
+      throw BadRequestErr('You can only merge your own changes')
     }
     if (change.status !== ChangeStatus.APPROVED) {
       throw BadRequestErr(`Change with ID "${changeID}" is not approved and cannot be merged`)

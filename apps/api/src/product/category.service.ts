@@ -139,6 +139,7 @@ export class CategoryService implements IEntityService<Category> {
   async create(input: CreateCategoryInput, userID: string) {
     const category = new Category()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(category, input)
       await this.editService.createHistory(
         Category.name,

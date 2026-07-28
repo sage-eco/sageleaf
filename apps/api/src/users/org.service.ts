@@ -56,6 +56,7 @@ export class OrgService implements IEntityService<Org> {
     }
     const org = new Org()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(org, input)
       await this.editService.createHistory(
         Org.name,

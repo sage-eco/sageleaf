@@ -329,6 +329,7 @@ export class VariantService implements IEntityService<Variant> {
   async create(input: CreateVariantInput, userID: string) {
     const variant = new Variant()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(variant, input)
       await this.editService.createHistory(
         Variant.name,

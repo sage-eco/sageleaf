@@ -368,6 +368,7 @@ export class ItemService implements IEntityService<Item> {
   async create(input: CreateItemInput, userID: string) {
     const item = new Item()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(item, input)
       await this.editService.createHistory(
         Item.name,

@@ -67,6 +67,7 @@ export class ProcessService implements IEntityService<Process> {
   async create(input: CreateProcessInput, userID: string) {
     const process = new Process()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(process, input)
       await this.editService.createHistory(
         Process.name,

@@ -18,7 +18,7 @@ import {
   TestVariantSeeder,
   VARIANT_IDS,
 } from '@src/db/seeds/TestVariantSeeder'
-import { UserSeeder } from '@src/db/seeds/UserSeeder'
+import { NORMAL_USER_ID, UserSeeder } from '@src/db/seeds/UserSeeder'
 import { clearDatabase } from '@src/db/test.utils'
 import { ItemsTags } from '@src/product/item.entity'
 import { User } from '@src/users/users.entity'
@@ -688,5 +688,119 @@ describe('ChangeResolver (integration)', () => {
       },
     )
     expect(res.data?.deleteChange?.success).toBe(true)
+  })
+
+  describe('Change ownership authorization', () => {
+    let userGql: GraphQLTestClient
+    let adminOwnedChangeID: string
+    let userOwnedChangeID: string
+
+    beforeAll(async () => {
+      userGql = new GraphQLTestClient(app)
+      await userGql.signIn('user', 'password')
+
+      const adminChange = await changeService.create({ title: 'Admin-owned change' }, user.id)
+      adminOwnedChangeID = adminChange.id
+
+      const userChange = await changeService.create({ title: 'User-owned change' }, NORMAL_USER_ID!)
+      userOwnedChangeID = userChange.id
+    })
+
+    test('non-owner non-admin cannot update another user change', async () => {
+      const res = await userGql.send(
+        graphql(`
+          mutation ChangeOwnershipUpdateAsNonOwner($input: UpdateChangeInput!) {
+            updateChange(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { input: { id: adminOwnedChangeID, title: 'Hijacked' } },
+      )
+      expect(res.data?.updateChange).toBeFalsy()
+      expect(res.errors).toBeDefined()
+    })
+
+    test('non-owner non-admin cannot delete another user change', async () => {
+      const res = await userGql.send(
+        graphql(`
+          mutation ChangeOwnershipDeleteAsNonOwner($id: ID!) {
+            deleteChange(id: $id) {
+              success
+            }
+          }
+        `),
+        { id: adminOwnedChangeID },
+      )
+      expect(res.data?.deleteChange).toBeFalsy()
+      expect(res.errors).toBeDefined()
+    })
+
+    test('non-owner non-admin cannot discard an edit on another user change', async () => {
+      const res = await userGql.send(
+        graphql(`
+          mutation ChangeOwnershipDiscardAsNonOwner($changeID: ID!, $editID: ID!) {
+            discardEdit(changeID: $changeID, editID: $editID) {
+              success
+            }
+          }
+        `),
+        { changeID: adminOwnedChangeID, editID: 'nonexistent-edit-id' },
+      )
+      expect(res.data?.discardEdit).toBeFalsy()
+      expect(res.errors).toBeDefined()
+    })
+
+    test('non-owner non-admin cannot merge another user change', async () => {
+      const res = await userGql.send(
+        graphql(`
+          mutation ChangeOwnershipMergeAsNonOwner($id: ID!) {
+            mergeChange(id: $id) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { id: adminOwnedChangeID },
+      )
+      expect(res.data?.mergeChange).toBeFalsy()
+      expect(res.errors).toBeDefined()
+    })
+
+    test('admin can update another user change (bypass)', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation ChangeOwnershipUpdateAsAdmin($input: UpdateChangeInput!) {
+            updateChange(input: $input) {
+              change {
+                id
+                title
+              }
+            }
+          }
+        `),
+        { input: { id: userOwnedChangeID, title: 'Edited by admin' } },
+      )
+      expect(res.errors).toBeUndefined()
+      expect(res.data?.updateChange?.change?.title).toBe('Edited by admin')
+    })
+
+    test('admin can delete another user change (bypass)', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation ChangeOwnershipDeleteAsAdmin($id: ID!) {
+            deleteChange(id: $id) {
+              success
+            }
+          }
+        `),
+        { id: userOwnedChangeID },
+      )
+      expect(res.errors).toBeUndefined()
+      expect(res.data?.deleteChange?.success).toBe(true)
+    })
   })
 })

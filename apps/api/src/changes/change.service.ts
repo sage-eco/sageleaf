@@ -273,9 +273,8 @@ export class ChangeService {
   }
 
   async update(input: UpdateChangeInput) {
-    const userID = this.authUser.userID()
     const change = await this.findOne(input.id)
-    if (change.user.id !== userID) {
+    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
       throw BadRequestErr('You can only update your own changes')
     }
 
@@ -303,6 +302,9 @@ export class ChangeService {
 
   async remove(id: string) {
     const change = await this.findOne(id)
+    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
+      throw BadRequestErr('You can only delete your own changes')
+    }
     await this.em.remove(change).flush()
   }
 
@@ -325,6 +327,9 @@ export class ChangeService {
     const change = await this.findOne(changeID)
     if (!change) {
       throw NotFoundErr('Change not found')
+    }
+    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
+      throw BadRequestErr('You can only discard edits on your own changes')
     }
     const edit = change.edits.find((e) => e.entityID === editID)
     if (!edit) {

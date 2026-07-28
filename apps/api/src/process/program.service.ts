@@ -140,6 +140,7 @@ export class ProgramService implements IEntityService<Program> {
   async create(input: CreateProgramInput, userID: string) {
     const program = new Program()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(program, input)
       await this.editService.createHistory(
         Program.name,

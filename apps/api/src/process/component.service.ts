@@ -151,6 +151,7 @@ export class ComponentService implements IEntityService<Component> {
   async create(input: CreateComponentInput, userID: string) {
     const component = new Component()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(component, input)
       await this.editService.createHistory(
         Component.name,
