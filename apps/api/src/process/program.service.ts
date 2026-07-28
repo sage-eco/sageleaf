@@ -153,7 +153,7 @@ export class ProgramService implements IEntityService<Program> {
     const change = await this.editService.findOneOrCreate(input.changeID, input.change, userID)
     await this.setFields(program, input, change)
     await this.editService.createEntityEdit(change, program)
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return { program, change }
   }
@@ -189,7 +189,7 @@ export class ProgramService implements IEntityService<Program> {
     const currentProgram = await this.editService.findOneForChange(this.em, change, Program, {
       id: input.id,
     })
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return { program, change, currentProgram: currentProgram ?? undefined }
   }

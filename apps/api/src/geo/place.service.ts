@@ -119,7 +119,7 @@ export class PlaceService implements IEntityService<Place> {
     const change = await this.editService.findOneOrCreate(input.changeID, input.change, userID)
     await this.setFields(place, input, change)
     await this.editService.createEntityEdit(change, place)
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return { place, change }
   }
@@ -153,7 +153,7 @@ export class PlaceService implements IEntityService<Place> {
     const currentPlace = await this.editService.findOneForChange(this.em, change, Place, {
       id: input.id,
     })
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return { place, change, currentPlace: currentPlace ?? undefined }
   }

@@ -65,18 +65,6 @@ export class ChangeService {
     private readonly windmill: WindmillService,
   ) {}
 
-  private async triggerReviewJob(change: Change): Promise<void> {
-    const jobId = await this.windmill.runFlow('f/changes/review_change', { change_id: change.id })
-    const job: StoredJob = {
-      id: jobId,
-      type: 'REVIEW',
-      status: 'queued',
-      updatedAt: new Date().toISOString(),
-    }
-    change.metadata = { ...change.metadata, jobs: [...(change.metadata?.jobs ?? []), job] }
-    await this.em.persist(change).flush()
-  }
-
   async find(opts: CursorOptions<Change>) {
     const changes = await this.em.find(Change, opts.where, opts.options)
     const count = await this.em.count(Change, opts.where)
@@ -310,9 +298,6 @@ export class ChangeService {
     }
 
     await this.em.persist(change).flush()
-    if (input.status === ChangeStatus.PROPOSED) {
-      await this.triggerReviewJob(change)
-    }
     return change
   }
 
