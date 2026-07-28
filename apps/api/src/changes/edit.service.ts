@@ -24,6 +24,7 @@ import { Change, ChangeEdits, ChangeStatus, StoredJob } from '@src/changes/chang
 import { MergeInput, UpdateChangeInput } from '@src/changes/change.model'
 import { Source } from '@src/changes/source.entity'
 import { BadRequestErr, NotFoundErr } from '@src/common/exceptions'
+import { isExcludedFromDiff } from '@src/common/exclude-from-diff.decorator'
 import { MetaService } from '@src/common/meta.service'
 import { User } from '@src/users/users.entity'
 import { WindmillService } from '@src/windmill/windmill.service'
@@ -1309,6 +1310,12 @@ export class EditService {
         case '1:1':
           flattenToId.push(rel.name)
           break
+      }
+    })
+
+    meta.props.forEach((prop) => {
+      if (isExcludedFromDiff(meta.prototype, prop.name)) {
+        changeOmit.push(prop.name)
       }
     })
 

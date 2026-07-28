@@ -274,6 +274,25 @@ describe('MCP Server (integration)', () => {
     expect(proposePayload.entity.name).toBe('MCP Test Item')
     const itemID = proposePayload.entity.id
 
+    const proposeCategoryRes = await mcpRequest({
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: {
+        name: 'propose_edit',
+        arguments: {
+          model: 'Category',
+          mode: 'create',
+          changeID,
+          data: { name: 'MCP Test Category' },
+        },
+      },
+      id: 1,
+    })
+    const proposeCategoryEvent = parseSSE(proposeCategoryRes.text)[0]
+    expect(proposeCategoryEvent.result.isError).toBeFalsy()
+    const proposeCategoryPayload = JSON.parse(proposeCategoryEvent.result.content[0].text)
+    const categoryID = proposeCategoryPayload.entity.id
+
     const refsRes = await mcpRequest({
       jsonrpc: '2.0',
       method: 'tools/call',
@@ -283,12 +302,17 @@ describe('MCP Server (integration)', () => {
           model: 'Item',
           id: itemID,
           changeID,
-          refs: [{ refModel: 'Category', refField: 'categories', refs: [] }],
+          refs: [{ refModel: 'Category', refField: 'categories', refs: [categoryID] }],
         },
       },
       id: 1,
     })
     expect(refsRes.status).toBe(200)
+    const refsEvent = parseSSE(refsRes.text)[0]
+    expect(refsEvent.result.isError).toBeFalsy()
+    const refsPayload = JSON.parse(refsEvent.result.content[0].text)
+    expect(refsPayload.results[0].ok).toBe(true)
+    expect(refsPayload.results[0].entity.id).toBeDefined()
 
     // Move the change to PROPOSED - further propose_edit/propose_refs calls should be locked out
     const editChangeRes = await mcpRequest({

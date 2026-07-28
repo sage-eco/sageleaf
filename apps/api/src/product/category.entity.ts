@@ -13,6 +13,7 @@ import {
 } from '@mikro-orm/core'
 import type { Ref } from '@mikro-orm/core'
 
+import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
 import type { TranslatedField } from '@src/common/i18n'
 import { type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
@@ -41,9 +42,11 @@ export class Category extends IDCreatedUpdated {
   @Property({ nullable: true })
   imageURL?: string
 
+  @ExcludeFromDiff()
   @Property({ type: 'json' })
   rank?: Rank
 
+  @ExcludeFromDiff()
   @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
   rankOrder!: number
 

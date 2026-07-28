@@ -12,6 +12,7 @@ import type { Opt } from '@mikro-orm/core'
 
 import { Account } from '@src/auth/account.entity'
 import { Session } from '@src/auth/session.entity'
+import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
 import { type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Org } from '@src/users/org.entity'
@@ -71,9 +72,11 @@ export class User extends IDCreatedUpdated {
   @Property()
   role?: string
 
+  @ExcludeFromDiff()
   @Property({ type: 'json' })
   rank?: Rank
 
+  @ExcludeFromDiff()
   @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
   rankOrder!: number
 

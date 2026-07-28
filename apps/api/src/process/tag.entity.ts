@@ -11,6 +11,7 @@ import {
 import { JSONSchemaType } from 'ajv/dist/2020'
 import { z } from 'zod/v4'
 
+import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
 import { type TranslatedField } from '@src/common/i18n'
 import {
   AjvTemplateSchema,
@@ -116,9 +117,11 @@ export class Tag extends IDCreatedUpdated {
   @Property({ type: 'json' })
   rules?: TagRules
 
+  @ExcludeFromDiff()
   @Property({ type: 'json' })
   rank?: Rank
 
+  @ExcludeFromDiff()
   @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
   rankOrder!: number
 

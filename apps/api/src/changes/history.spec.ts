@@ -1,4 +1,4 @@
-import { MikroORM } from '@mikro-orm/postgresql'
+import { MikroORM, wrap } from '@mikro-orm/postgresql'
 import { INestApplication } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppTestModule } from '@test/app-test.module'
@@ -6,6 +6,7 @@ import { graphql } from '@test/gql'
 import { ChangeStatus } from '@test/gql/types.generated'
 import { GraphQLTestClient } from '@test/graphql.utils'
 
+import { EditService } from '@src/changes/edit.service'
 import { BaseSeeder } from '@src/db/seeds/BaseSeeder'
 import { CATEGORY_IDS, TestCategorySeeder } from '@src/db/seeds/TestCategorySeeder'
 import { TestMaterialSeeder } from '@src/db/seeds/TestMaterialSeeder'
@@ -23,6 +24,7 @@ describe('History via Change/Merge flow (integration)', () => {
   let app: INestApplication
   let gql: GraphQLTestClient
   let orm: MikroORM
+  let editService: EditService
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,6 +37,7 @@ describe('History via Change/Merge flow (integration)', () => {
     gql = new GraphQLTestClient(app)
 
     orm = module.get<MikroORM>(MikroORM)
+    editService = module.get<EditService>(EditService)
 
     await clearDatabase(orm, 'public', ['users'])
     await orm.seeder.seed(
@@ -463,6 +466,17 @@ describe('History via Change/Merge flow (integration)', () => {
           )
         }
       }
+    })
+
+    // --- Scenario E: @ExcludeFromDiff() omits rank/rankOrder from the diff POJO ---
+
+    test('E: entityToChangePOJO omits rank and rankOrder', async () => {
+      const em = orm.em.fork()
+      const variant = await em.findOneOrFail(Variant, variantID)
+      wrap(variant).assign({ rank: { order: 5 } })
+      const pojo = editService.entityToChangePOJO(Variant, variant as any) as any
+      expect(pojo).not.toHaveProperty('rank')
+      expect(pojo).not.toHaveProperty('rankOrder')
     })
   })
 
