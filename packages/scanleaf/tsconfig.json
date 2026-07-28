@@ -6,7 +6,7 @@
     "moduleResolution": "bundler",
     "strict": true,
     "declaration": true,
-    "declarationDir": "./dist-js",
+    "rootDir": "./guest-js",
     "outDir": "./dist-js",
     "skipLibCheck": true
   },

@@ -124,6 +124,13 @@
         "dependsOn": [
           "build"
         ]
+      },
+      "typecheck": {
+        "inputs": [
+          "{projectRoot}/tsconfig.json",
+          "{projectRoot}/**/*.ts",
+          "{projectRoot}/**/*.vue"
+        ]
       }
     }
   }
