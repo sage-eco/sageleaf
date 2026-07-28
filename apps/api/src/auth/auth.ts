@@ -17,7 +17,6 @@ export const configureAuth = (orm: MikroORM) => {
   const baseDomain = getBaseDomain()
   return betterAuth({
     basePath: '/auth',
-    disabledPaths: ['/token'],
     database: {
       db: new Kysely({
         dialect: new KyselyKnexDialect({
