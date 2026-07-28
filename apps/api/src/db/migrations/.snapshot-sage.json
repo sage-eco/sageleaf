@@ -5282,6 +5282,15 @@
       "schema": "public",
       "indexes": [
         {
+          "keyName": "changes_updated_at_idx",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "create index \"changes_updated_at_idx\" on \"changes\" (updated_at desc, id desc)"
+        },
+        {
           "keyName": "changes_pkey",
           "columnNames": [
             "id"

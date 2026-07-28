@@ -252,6 +252,46 @@ describe('ChangeResolver (integration)', () => {
     expect(res.data?.changes.totalCount).toBeGreaterThanOrEqual(1)
   })
 
+  test('should default-order changes by updatedAt descending', async () => {
+    const older = await changeService.create(
+      { title: 'Older change', description: 'Should sort after the newer one' },
+      user.id,
+    )
+    await orm.em
+      .fork()
+      .nativeUpdate('Change', { id: older.id }, { updatedAt: new Date(Date.now() - 60_000) })
+    const newer = await changeService.create(
+      { title: 'Newer change', description: 'Should sort before the older one' },
+      user.id,
+    )
+
+    const res = await gql.send(
+      graphql(`
+        query ChangeResolverListChangesOrdered($first: Int) {
+          changes(first: $first) {
+            nodes {
+              id
+              updatedAt
+            }
+          }
+        }
+      `),
+      { first: 50 },
+    )
+
+    const ids = res.data?.changes.nodes?.map((n) => n.id) ?? []
+    const olderIdx = ids.indexOf(older.id)
+    const newerIdx = ids.indexOf(newer.id)
+    expect(olderIdx).toBeGreaterThanOrEqual(0)
+    expect(newerIdx).toBeGreaterThanOrEqual(0)
+    expect(newerIdx).toBeLessThan(olderIdx)
+
+    const timestamps = (res.data?.changes.nodes ?? []).map((n) => new Date(n.updatedAt).getTime())
+    for (let i = 1; i < timestamps.length; i++) {
+      expect(timestamps[i]).toBeLessThanOrEqual(timestamps[i - 1])
+    }
+  })
+
   test('should query a single change', async () => {
     const res = await gql.send(
       graphql(`

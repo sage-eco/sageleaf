@@ -165,11 +165,11 @@ export class ChangesArgs extends PaginationBasicArgs {
   userID?: string
 
   orderBy(): string[] {
-    return ['id']
+    return ['updatedAt']
   }
 
   orderDir(): OrderDirection[] {
-    return [OrderDirection.ASC]
+    return [OrderDirection.DESC]
   }
 }
 
