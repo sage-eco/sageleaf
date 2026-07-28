@@ -9,7 +9,7 @@ import { KyselyKnexDialect, PGColdDialect } from 'kysely-knex'
 import { DateCoercionKyselyPlugin } from '@src/auth/date-coercion-kysely.plugin'
 import { getApiOrigin } from '@src/auth/oauth.constants'
 import { reservedUsernames } from '@src/auth/reserved-usernames'
-import { getBaseDomain, isProd } from '@src/common/common.utils'
+import { getBaseDomain, getTrustedProxies, isDev, isProd } from '@src/common/common.utils'
 
 export const configureAuth = (orm: MikroORM) => {
   const conn = orm.em.getConnection()
@@ -269,23 +269,13 @@ export const configureAuth = (orm: MikroORM) => {
           }
         : undefined,
     },
-    trustedOrigins: isProd()
-      ? [
-          `https://${baseDomain}`,
-          `https://science.${baseDomain}`,
-          'http://localhost:*',
-          'http://127.0.0.1:*',
-          'https://tauri.localhost',
-          'http://tauri.localhost',
-          'tauri://localhost',
-        ]
-      : [
-          'http://localhost:*',
-          'http://127.0.0.1:*',
-          'https://tauri.localhost',
-          'http://tauri.localhost',
-          'tauri://localhost',
-        ],
+    trustedOrigins: [
+      ...(isProd() ? [`https://${baseDomain}`, `https://science.${baseDomain}`] : []),
+      ...(isDev() ? ['http://localhost:*', 'http://127.0.0.1:*'] : []),
+      'https://tauri.localhost',
+      'http://tauri.localhost',
+      'tauri://localhost',
+    ],
     advanced: {
       cookiePrefix: 'sage',
       crossSubDomainCookies: {
@@ -297,6 +287,9 @@ export const configureAuth = (orm: MikroORM) => {
         httpOnly: true,
         sameSite: 'none',
         partitioned: true,
+      },
+      ipAddress: {
+        trustedProxies: getTrustedProxies(),
       },
     },
     hooks: {},
