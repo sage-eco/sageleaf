@@ -184,7 +184,9 @@ export class ComponentService implements IEntityService<Component> {
       {
         id: input.id,
       },
-      { populate: ['materials', 'tags', 'componentTags', 'componentSources'] },
+      {
+        populate: ['materials', 'tags', 'componentTags', 'componentSources', 'componentMaterials'],
+      },
     )
     if (!component) {
       throw new Error(`Component with ID "${input.id}" not found`)

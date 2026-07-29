@@ -847,7 +847,8 @@ export class EditService {
         `Edit for entity "${entity.constructor.name}" with ID "${entity.id}" not found`,
       )
     }
-    edit.changes = this.entityToChangePOJO(entity.constructor.name, entity)
+    const fullPojo = this.entityToChangePOJO(entity.constructor.name, entity)
+    edit.changes = this.diffChangePOJO(edit.original as Record<string, any> | undefined, fullPojo)
   }
 
   /**
@@ -1117,6 +1118,31 @@ export class EditService {
       }
 
       for (const edit of otherEdits) {
+        const editMeta = this.em.getMetadata().get(edit.entityName)
+        const { flattenArrayRefs } = this.categorizePOJORelations(editMeta)
+        const conflictPopulate = flattenArrayRefs.map((r) => r.name)
+        const currentEntity = await this.em.findOne(
+          edit.entityName,
+          { id: edit.entityID! } as any,
+          conflictPopulate.length ? ({ populate: conflictPopulate } as any) : undefined,
+        )
+        if (!currentEntity) {
+          throw NotFoundErr(`${edit.entityName} with ID "${edit.entityID}" not found`)
+        }
+        const currentPOJO = this.entityToChangePOJO(
+          edit.entityName,
+          currentEntity as BaseEntity & { id: string },
+        )
+
+        if (edit.original && edit.changes) {
+          const conflict = this.findEditConflict(edit, currentPOJO)
+          if (conflict) {
+            throw BadRequestErr(
+              `Cannot merge edit for ${edit.entityName} "${edit.entityID}": ${conflict}`,
+            )
+          }
+        }
+
         if (edit.original && !edit.changes) {
           await this.applyEntityDelete(edit.entityName, edit.entityID!)
         } else if (edit.original && edit.changes) {
@@ -1132,8 +1158,10 @@ export class EditService {
           historyItems.push({
             name: edit.entityName,
             userID: change.user.id,
-            original: edit.original,
-            changes: edit.changes,
+            original: currentPOJO,
+            changes: edit.original
+              ? { ...currentPOJO, ...(edit.changes as Record<string, any>) }
+              : edit.changes,
           })
         }
       }
@@ -1191,6 +1219,62 @@ export class EditService {
       original,
       changes,
     })
+  }
+
+  /**
+   * Computes the minimal set of fields that changed between a before/after change POJO snapshot.
+   *
+   * `id` is always included since downstream consumers (changePOJOToEntity, applyEntityUpdate,
+   * History resolvers) key off `pojo.id`.
+   *
+   * Use this to store `edit.changes` as a diff against `edit.original` rather than a full snapshot.
+   */
+  private diffChangePOJO(
+    before: Record<string, any> | undefined,
+    after: Record<string, any>,
+  ): Record<string, any> {
+    const diff: Record<string, any> = { id: after.id }
+    for (const [key, val] of Object.entries(after)) {
+      if (key === 'id') continue
+      if (!before || !_.isEqual(before[key], val)) {
+        diff[key] = val
+      }
+    }
+    return diff
+  }
+
+  /**
+   * Reconstructs the full proposed entity state for an edit by overlaying its diff `changes` onto its
+   * full `original` snapshot.
+   *
+   * Use this wherever downstream code needs the complete proposed entity rather than the raw stored
+   * diff (e.g. building input models, delete-reference conflict checks).
+   */
+  effectiveChanges(edit: ChangeEdits): Record<string, any> | undefined {
+    if (!edit.changes) return undefined
+    return edit.original
+      ? { ...(edit.original as Record<string, any>), ...(edit.changes as Record<string, any>) }
+      : (edit.changes as Record<string, any>)
+  }
+
+  /**
+   * Detects whether a field this update edit touches has drifted in the database since `edit.original`
+   * was captured, by comparing `currentPOJO` (a fresh serialization of the live entity) against
+   * `edit.original` restricted to the keys present in `edit.changes`.
+   *
+   * Use this from both merge (to reject a stale merge) and the `edits` GraphQL resolver (to surface
+   * `conflict`/`conflictDesc`) so both agree on the same definition of "conflict."
+   */
+  findEditConflict(edit: ChangeEdits, currentPOJO: Record<string, any>): string | undefined {
+    if (!edit.original || !edit.changes) return undefined
+    const original = edit.original as Record<string, any>
+    const changedKeys = Object.keys(edit.changes as Record<string, any>).filter((k) => k !== 'id')
+    for (const key of changedKeys) {
+      if (!_.isEqual(currentPOJO[key], original[key])) {
+        return `field "${key}" was changed to a different value since this edit was created`
+      }
+    }
+    return undefined
   }
 
   entityToChangePOJO(
@@ -1404,7 +1488,7 @@ export class EditService {
   ): boolean {
     if (!edit.changes) return false
     const meta = this.em.getMetadata().get(edit.entityName)
-    const changes = edit.changes as Record<string, any>
+    const changes = this.effectiveChanges(edit) as Record<string, any>
     const { flattenArrayRefs, flattenToId } = this.categorizePOJORelations(meta)
 
     for (const field of flattenToId) {

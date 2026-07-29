@@ -15,6 +15,9 @@ export default defineConfig({
     globals: true,
     // TODO(CAJ2): Only disable for integration (database) tests, or find a way to use parallel databases
     fileParallelism: false,
+    // Integration tests hit a real Postgres instance through a full Nest app; the default 5s can be
+    // exceeded under load from the full sequential suite even when individual files are healthy.
+    testTimeout: 20_000,
     globalSetup: 'test/setup.ts',
     deps: {
       interopDefault: true,
