@@ -740,6 +740,14 @@ type Edit {
   """The raw JSON of the proposed entity changes"""
   changesJSON: JSONObject
 
+  """
+  True if a field this edit modifies has changed in the database since this edit was created
+  """
+  conflict: Boolean!
+
+  """Description of the conflict, if any"""
+  conflictDesc: String
+
   """Input values for creating a new entity, copying existing values"""
   copyInput: JSONObject
 

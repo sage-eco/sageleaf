@@ -83,6 +83,18 @@ export class Edit extends BaseModel {
     description: 'Input values for creating a new entity, copying existing values',
   })
   copyInput?: JSONObject
+
+  @Field(() => Boolean, {
+    description:
+      'True if a field this edit modifies has changed in the database since this edit was created',
+  })
+  conflict!: boolean
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Description of the conflict, if any',
+  })
+  conflictDesc?: string
 }
 
 @ObjectType()

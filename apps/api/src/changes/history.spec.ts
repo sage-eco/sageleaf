@@ -6,11 +6,12 @@ import { graphql } from '@test/gql'
 import { ChangeStatus } from '@test/gql/types.generated'
 import { GraphQLTestClient } from '@test/graphql.utils'
 
+import { ChangeEdits } from '@src/changes/change.entity'
 import { EditService } from '@src/changes/edit.service'
 import { BaseSeeder } from '@src/db/seeds/BaseSeeder'
 import { CATEGORY_IDS, TestCategorySeeder } from '@src/db/seeds/TestCategorySeeder'
 import { TestMaterialSeeder } from '@src/db/seeds/TestMaterialSeeder'
-import { REGION_IDS, TestProcessSeeder } from '@src/db/seeds/TestProcessSeeder'
+import { ORG_IDS, REGION_IDS, TestProcessSeeder } from '@src/db/seeds/TestProcessSeeder'
 import { TestTagSeeder } from '@src/db/seeds/TestTagSeeder'
 import { ITEM_IDS, TestVariantSeeder, VARIANT_IDS } from '@src/db/seeds/TestVariantSeeder'
 import { UserSeeder } from '@src/db/seeds/UserSeeder'
@@ -589,6 +590,379 @@ describe('History via Change/Merge flow (integration)', () => {
       expect(variant).toBeDefined()
       const itemIDs = variant!.items.getItems().map((i) => i.id)
       expect(itemIDs).toContain(newItemID)
+    })
+  })
+
+  describe('updateEntityEdit stores a minimal diff', () => {
+    const variantID = VARIANT_IDS[2]
+    let changeID: string
+
+    test('should update only the code field within a new Change', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation DiffSpecUpdateVariant($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              variant {
+                id
+              }
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: variantID,
+            code: 'DIFF-TEST-CODE',
+            change: { title: 'Diff spec change', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(res.errors).toBeUndefined()
+      changeID = res.data!.updateVariant!.change!.id
+    })
+
+    test('edit.changes contains only id and code, edit.original is a full snapshot', async () => {
+      const em = orm.em.fork()
+      const edit = await em.findOneOrFail(ChangeEdits, {
+        change: changeID,
+        entityName: 'Variant',
+        entityID: variantID,
+      })
+      expect(edit.changes).toEqual({ id: variantID, code: 'DIFF-TEST-CODE' })
+      expect(edit.original).toBeDefined()
+      expect(edit.original).toHaveProperty('name')
+      expect(edit.original).toHaveProperty('code')
+    })
+
+    test('approve and merge the change', async () => {
+      await gql.send(
+        graphql(`
+          mutation DiffSpecApprove($input: UpdateChangeInput!) {
+            updateChange(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { input: { id: changeID, status: ChangeStatus.Approved } },
+      )
+      const mergeRes = await gql.send(
+        graphql(`
+          mutation DiffSpecMerge($id: ID!) {
+            mergeChange(id: $id) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { id: changeID },
+      )
+      expect(mergeRes.errors).toBeUndefined()
+    })
+
+    test('History row after merge contains the full merged state, not just the diff', async () => {
+      const em = orm.em.fork()
+      const history = await em.findOne(
+        VariantHistory,
+        { variant: variantID },
+        { orderBy: { datetime: 'DESC' } },
+      )
+      expect(history).toBeDefined()
+      const changes = history!.changes as any
+      const original = history!.original as any
+      expect(changes.code).toBe('DIFF-TEST-CODE')
+      // Untouched fields carry over from original into the merged History snapshot
+      expect(changes.name).toEqual(original.name)
+    })
+  })
+
+  describe('Variant update touching only variantItems still snapshots variantOrgs in original (regression)', () => {
+    const variantID = VARIANT_IDS[3]
+    let setupChangeID: string
+    let changeID: string
+
+    test('setup: add an Org to the Variant and merge', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation OrgsRegressionSetup($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: variantID,
+            addOrgs: [{ id: ORG_IDS[0] }],
+            change: { title: 'Orgs regression setup', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(res.errors).toBeUndefined()
+      setupChangeID = res.data!.updateVariant!.change!.id
+
+      await gql.send(
+        graphql(`
+          mutation OrgsRegressionSetupApprove($input: UpdateChangeInput!) {
+            updateChange(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { input: { id: setupChangeID, status: ChangeStatus.Approved } },
+      )
+      const mergeRes = await gql.send(
+        graphql(`
+          mutation OrgsRegressionSetupMerge($id: ID!) {
+            mergeChange(id: $id) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { id: setupChangeID },
+      )
+      expect(mergeRes.errors).toBeUndefined()
+    })
+
+    test('start a new change touching only variantItems', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation OrgsRegressionUpdate($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: variantID,
+            addItems: [{ id: ITEM_IDS[3] }],
+            change: { title: 'Orgs regression change', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(res.errors).toBeUndefined()
+      changeID = res.data!.updateVariant!.change!.id
+    })
+
+    test('edit.original includes variantOrgs, edit.changes does not', async () => {
+      const em = orm.em.fork()
+      const edit = await em.findOneOrFail(ChangeEdits, {
+        change: changeID,
+        entityName: 'Variant',
+        entityID: variantID,
+      })
+      const original = edit.original as any
+      expect(original).toHaveProperty('variantOrgs')
+      expect(Array.isArray(original.variantOrgs)).toBe(true)
+      expect(original.variantOrgs.length).toBeGreaterThanOrEqual(1)
+      expect(edit.changes).not.toHaveProperty('variantOrgs')
+
+      const effective = editService.effectiveChanges(edit) as any
+      expect(effective).toHaveProperty('variantOrgs')
+      expect(effective.variantOrgs.length).toBeGreaterThanOrEqual(1)
+    })
+  })
+
+  describe('merge() rejects when a touched field has drifted in the database', () => {
+    const variantID = VARIANT_IDS[4]
+    let changeID: string
+
+    test('start a change updating the code field', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation ConflictSpecUpdate($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: variantID,
+            code: 'CONFLICT-NEW-CODE',
+            change: { title: 'Conflict spec change', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(res.errors).toBeUndefined()
+      changeID = res.data!.updateVariant!.change!.id
+    })
+
+    test('approve the change', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation ConflictSpecApprove($input: UpdateChangeInput!) {
+            updateChange(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { input: { id: changeID, status: ChangeStatus.Approved } },
+      )
+      expect(res.errors).toBeUndefined()
+    })
+
+    test('directly drift the code field in the database', async () => {
+      const em = orm.em.fork()
+      const variant = await em.findOneOrFail(Variant, variantID)
+      variant.code = 'DRIFTED-CODE'
+      await em.flush()
+    })
+
+    test('merge is rejected with a conflict error and leaves the drifted value intact', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation ConflictSpecMerge($id: ID!) {
+            mergeChange(id: $id) {
+              change {
+                id
+                status
+              }
+            }
+          }
+        `),
+        { id: changeID },
+      )
+      expect(res.errors).toBeDefined()
+      expect(res.errors?.[0]?.message).toContain('code')
+
+      const em = orm.em.fork()
+      const variant = await em.findOneOrFail(Variant, variantID)
+      expect(variant.code).toBe('DRIFTED-CODE')
+      const change = await em.findOneOrFail(ChangeEdits, {
+        change: changeID,
+        entityName: 'Variant',
+        entityID: variantID,
+      })
+      expect(change).toBeDefined()
+    })
+  })
+
+  describe('GraphQL edits query surfaces conflict/conflictDesc', () => {
+    const variantID = VARIANT_IDS[5]
+    let changeID: string
+    let editID: string
+
+    test('start a change updating the code field', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation ConflictQuerySpecUpdate($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              variant {
+                id
+              }
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: variantID,
+            code: 'QUERY-CONFLICT-NEW-CODE',
+            change: { title: 'Conflict query spec change', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(res.errors).toBeUndefined()
+      changeID = res.data!.updateVariant!.change!.id
+      editID = variantID
+    })
+
+    test('directly drift the code field in the database', async () => {
+      const em = orm.em.fork()
+      const variant = await em.findOneOrFail(Variant, variantID)
+      variant.code = 'QUERY-DRIFTED-CODE'
+      await em.flush()
+    })
+
+    test('edits query reports conflict: true with a descriptive conflictDesc', async () => {
+      const res = await gql.send(
+        graphql(`
+          query ConflictQuerySpecEdits($changeId: ID!, $editId: ID!) {
+            change(id: $changeId) {
+              edits(first: 10, id: $editId) {
+                nodes {
+                  id
+                  conflict
+                  conflictDesc
+                }
+              }
+            }
+          }
+        `),
+        { changeId: changeID, editId: editID },
+      )
+      expect(res.errors).toBeUndefined()
+      const edit = res.data?.change?.edits?.nodes?.[0]
+      expect(edit?.conflict).toBe(true)
+      expect(edit?.conflictDesc).toContain('code')
+    })
+  })
+
+  describe('Category update snapshots tree collections in original (regression)', () => {
+    // 'electronics' — has a parent edge to root, an ancestor (root), and several children/descendants
+    const categoryID = CATEGORY_IDS[1]
+    let changeID: string
+
+    test('start a change updating only the Category name', async () => {
+      const res = await gql.send(
+        graphql(`
+          mutation CategoryTreeRegressionUpdate($input: UpdateCategoryInput!) {
+            updateCategory(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: categoryID,
+            name: 'Electronics Updated',
+            change: { title: 'Category tree regression change', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(res.errors).toBeUndefined()
+      changeID = res.data!.updateCategory!.change!.id
+    })
+
+    test('edit.original includes ancestors, descendants, parents, and children', async () => {
+      const em = orm.em.fork()
+      const edit = await em.findOneOrFail(ChangeEdits, {
+        change: changeID,
+        entityName: 'Category',
+        entityID: categoryID,
+      })
+      const original = edit.original as any
+      for (const field of ['ancestors', 'descendants', 'parents', 'children']) {
+        expect(original).toHaveProperty(field)
+        expect(Array.isArray(original[field])).toBe(true)
+        expect(original[field].length).toBeGreaterThanOrEqual(1)
+      }
+      // The diff only touched name/nameTr — the tree fields must not appear in edit.changes
+      for (const field of ['ancestors', 'descendants', 'parents', 'children']) {
+        expect(edit.changes).not.toHaveProperty(field)
+      }
     })
   })
 })

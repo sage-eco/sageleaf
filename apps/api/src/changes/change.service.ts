@@ -100,9 +100,10 @@ export class ChangeService {
       const editModel = (await this.transform.entityToModel(EditModel, edit)) as EditModel
       editModel.originalJSON = edit.original
       editModel.changesJSON = edit.changes
+      const effectiveChanges = this.editService.effectiveChanges(edit)
       const changesEntity =
-        edit.changes && edit.entityID
-          ? await this.editService.changePOJOToEntity(edit.entityName, edit.changes)
+        effectiveChanges && edit.entityID
+          ? await this.editService.changePOJOToEntity(edit.entityName, effectiveChanges)
           : null
       const svcResult1 = changesEntity
         ? this.metaService.findSchemaService(changesEntity.constructor)
@@ -122,6 +123,7 @@ export class ChangeService {
           editModel.copyInput = copyInput
         }
       }
+      await this.setEditConflict(editModel, edit)
       return [editModel]
     }
     return Promise.all(
@@ -130,9 +132,10 @@ export class ChangeService {
         const editModel = (await this.transform.entityToModel(EditModel, edit)) as EditModel
         editModel.originalJSON = edit.original
         editModel.changesJSON = edit.changes
+        const effectiveChanges = this.editService.effectiveChanges(edit)
         const changesEntity =
-          edit.changes && edit.entityID
-            ? await this.editService.changePOJOToEntity(edit.entityName, edit.changes)
+          effectiveChanges && edit.entityID
+            ? await this.editService.changePOJOToEntity(edit.entityName, effectiveChanges)
             : null
         const svcResult2 = changesEntity
           ? this.metaService.findSchemaService(changesEntity.constructor)
@@ -152,9 +155,32 @@ export class ChangeService {
             editModel.copyInput = copyInput
           }
         }
+        await this.setEditConflict(editModel, edit)
         return editModel
       }),
     )
+  }
+
+  private async setEditConflict(editModel: EditModel, edit: ChangeEdits) {
+    editModel.conflict = false
+    if (edit.original && edit.changes && edit.entityID) {
+      const entityServiceResult = this.metaService.findEntityService(edit.entityName)
+      if (entityServiceResult) {
+        const [, entityService] = entityServiceResult
+        const currentEntity = await entityService.findOneByID(edit.entityID)
+        if (currentEntity) {
+          const currentPOJO = this.editService.entityToChangePOJO(
+            edit.entityName,
+            currentEntity as any,
+          )
+          const conflictDesc = this.editService.findEditConflict(edit, currentPOJO)
+          if (conflictDesc) {
+            editModel.conflict = true
+            editModel.conflictDesc = conflictDesc
+          }
+        }
+      }
+    }
   }
 
   async directEdit(id?: string, entityName?: string, changeID?: string) {

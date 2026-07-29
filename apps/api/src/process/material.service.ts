@@ -26,7 +26,11 @@ export class MaterialService implements IEntityService<Material> {
   }
 
   async findOneByID(id: string) {
-    return await this.em.findOne(Material, { id }, { populate: ['parents', 'children'] })
+    return await this.em.findOne(
+      Material,
+      { id },
+      { populate: ['parents', 'children', 'ancestors', 'descendants'] },
+    )
   }
 
   async findManyByID(ids: string[]) {

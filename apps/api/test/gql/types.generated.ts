@@ -880,6 +880,10 @@ export type Edit = {
   changes?: Maybe<EditModel>;
   /** The raw JSON of the proposed entity changes */
   changesJSON?: Maybe<Scalars['JSONObject']['output']>;
+  /** True if a field this edit modifies has changed in the database since this edit was created */
+  conflict: Scalars['Boolean']['output'];
+  /** Description of the conflict, if any */
+  conflictDesc?: Maybe<Scalars['String']['output']>;
   /** Input values for creating a new entity, copying existing values */
   copyInput?: Maybe<Scalars['JSONObject']['output']>;
   /** Input values for creating a new entity */
