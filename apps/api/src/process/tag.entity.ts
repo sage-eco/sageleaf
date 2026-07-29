@@ -1,7 +1,6 @@
 import {
   Collection,
   Entity,
-  Enum,
   Index,
   ManyToMany,
   OptionalProps,
@@ -96,7 +95,7 @@ export class Tag extends IDCreatedUpdated {
   @Property({ type: 'json' })
   name!: TranslatedField
 
-  @Enum(() => TagType)
+  @Property({ type: 'text' })
   type!: TagType
 
   @Property({ type: 'json' })
