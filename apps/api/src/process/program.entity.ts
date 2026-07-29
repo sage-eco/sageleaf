@@ -15,6 +15,7 @@ import {
 import type { Ref } from '@mikro-orm/core'
 import { z } from 'zod/v4'
 
+import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
 import type { TranslatedField } from '@src/common/i18n'
 import { ExternalLinkSchema } from '@src/common/link.schema'
 import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
@@ -64,9 +65,11 @@ export class Program extends IDCreatedUpdated {
   @Enum(() => ProgramStatus)
   status!: ProgramStatus
 
+  @ExcludeFromDiff()
   @Property({ type: 'json' })
   rank?: Rank
 
+  @ExcludeFromDiff()
   @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
   rankOrder!: number
 

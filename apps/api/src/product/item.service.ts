@@ -368,6 +368,7 @@ export class ItemService implements IEntityService<Item> {
   async create(input: CreateItemInput, userID: string) {
     const item = new Item()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(item, input)
       await this.editService.createHistory(
         Item.name,
@@ -381,7 +382,7 @@ export class ItemService implements IEntityService<Item> {
     const change = await this.editService.findOneOrCreate(input.changeID, input.change, userID)
     await this.setFields(item, input, change)
     await this.editService.createEntityEdit(change, item)
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return { item, change }
   }
@@ -417,7 +418,7 @@ export class ItemService implements IEntityService<Item> {
     const currentItem = await this.editService.findOneForChange(this.em, change, Item, {
       id: input.id,
     })
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return { item, change, currentItem: currentItem ?? undefined }
   }

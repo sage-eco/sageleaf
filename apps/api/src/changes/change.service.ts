@@ -65,18 +65,6 @@ export class ChangeService {
     private readonly windmill: WindmillService,
   ) {}
 
-  private async triggerReviewJob(change: Change): Promise<void> {
-    const jobId = await this.windmill.runFlow('f/changes/review_change', { change_id: change.id })
-    const job: StoredJob = {
-      id: jobId,
-      type: 'REVIEW',
-      status: 'queued',
-      updatedAt: new Date().toISOString(),
-    }
-    change.metadata = { ...change.metadata, jobs: [...(change.metadata?.jobs ?? []), job] }
-    await this.em.persist(change).flush()
-  }
-
   async find(opts: CursorOptions<Change>) {
     const changes = await this.em.find(Change, opts.where, opts.options)
     const count = await this.em.count(Change, opts.where)
@@ -285,9 +273,8 @@ export class ChangeService {
   }
 
   async update(input: UpdateChangeInput) {
-    const userID = this.authUser.userID()
     const change = await this.findOne(input.id)
-    if (change.user.id !== userID) {
+    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
       throw BadRequestErr('You can only update your own changes')
     }
 
@@ -310,14 +297,14 @@ export class ChangeService {
     }
 
     await this.em.persist(change).flush()
-    if (input.status === ChangeStatus.PROPOSED) {
-      await this.triggerReviewJob(change)
-    }
     return change
   }
 
   async remove(id: string) {
     const change = await this.findOne(id)
+    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
+      throw BadRequestErr('You can only delete your own changes')
+    }
     await this.em.remove(change).flush()
   }
 
@@ -340,6 +327,9 @@ export class ChangeService {
     const change = await this.findOne(changeID)
     if (!change) {
       throw NotFoundErr('Change not found')
+    }
+    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
+      throw BadRequestErr('You can only discard edits on your own changes')
     }
     const edit = change.edits.find((e) => e.entityID === editID)
     if (!edit) {

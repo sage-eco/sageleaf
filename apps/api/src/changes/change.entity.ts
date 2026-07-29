@@ -3,6 +3,7 @@ import {
   Collection,
   Entity,
   Enum,
+  Index,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -54,6 +55,10 @@ export interface ChangeMetadata {
 }
 
 @Entity({ tableName: 'changes', schema: 'public' })
+@Index({
+  name: 'changes_updated_at_idx',
+  expression: `create index "changes_updated_at_idx" on "changes" (updated_at desc, id desc)`,
+})
 export class Change extends IDCreatedUpdated {
   @Property()
   title?: string

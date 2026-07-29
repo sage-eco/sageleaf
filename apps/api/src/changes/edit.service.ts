@@ -20,13 +20,13 @@ import {
   IChangeInputWithLang,
   isUsingChange,
 } from '@src/changes/change-ext.model'
-import { Change, ChangeEdits, ChangeStatus, StoredJob } from '@src/changes/change.entity'
-import { MergeInput, UpdateChangeInput } from '@src/changes/change.model'
+import { Change, ChangeEdits, ChangeStatus } from '@src/changes/change.entity'
+import { MergeInput } from '@src/changes/change.model'
 import { Source } from '@src/changes/source.entity'
 import { BadRequestErr, NotFoundErr } from '@src/common/exceptions'
+import { isExcludedFromDiff } from '@src/common/exclude-from-diff.decorator'
 import { MetaService } from '@src/common/meta.service'
 import { User } from '@src/users/users.entity'
-import { WindmillService } from '@src/windmill/windmill.service'
 
 export interface IEntityService {
   findOneByID<T extends BaseEntity>(id: string): Promise<T | null>
@@ -41,32 +41,11 @@ export class EditService {
     private readonly em: EntityManager,
     private readonly authUser: AuthUserService,
     private readonly metaService: MetaService,
-    private readonly windmill: WindmillService,
   ) {}
 
-  private async triggerReviewJob(change: Change): Promise<void> {
-    const jobId = await this.windmill.runFlow('f/changes/review_change', { change_id: change.id })
-    const job: StoredJob = {
-      id: jobId,
-      type: 'REVIEW',
-      status: 'queued',
-      updatedAt: new Date().toISOString(),
-    }
-    change.metadata = { ...change.metadata, jobs: [...(change.metadata?.jobs ?? []), job] }
+  async persistChange(change: Change): Promise<void> {
     const fork = this.em.fork()
     await fork.persist(change).flush()
-  }
-
-  /**
-   * Persists and flushes the change, then triggers a Windmill review job if the change
-   * is in an active state (not DRAFT or MERGED).
-   */
-  async persistAndMaybeTriggerReview(change: Change): Promise<void> {
-    const fork = this.em.fork()
-    await fork.persist(change).flush()
-    if (change.status !== ChangeStatus.DRAFT && change.status !== ChangeStatus.MERGED) {
-      await this.triggerReviewJob(change)
-    }
   }
 
   /**
@@ -115,11 +94,14 @@ export class EditService {
     if (id) {
       const change = await this.em.findOne(
         Change,
-        { id, user: userID },
+        { id },
         { populate: ['edits', 'user', 'sources'] },
       )
       if (!change) {
         throw NotFoundErr(`Change with ID "${id}" not found`)
+      }
+      if (!this.authUser.sameUserOrAdmin(change.user.id)) {
+        throw BadRequestErr('You can only edit your own changes')
       }
       return change
     }
@@ -156,34 +138,6 @@ export class EditService {
       )
       for (const source of sources) {
         change.sources.add(ref(source.id))
-      }
-    }
-
-    await this.em.persist(change).flush()
-    return change
-  }
-
-  async update(input: UpdateChangeInput) {
-    const change = await this.findOne(input.id)
-    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
-      throw BadRequestErr('You can only update your own changes')
-    }
-
-    if (input.title) change.title = input.title
-    if (input.description) change.description = input.description
-    if (input.status) change.status = input.status
-    if (input.sources) {
-      const removed = change.sources.filter((source) => !input.sources!.includes(source.id))
-      for (const source of removed) {
-        change.sources.remove(source)
-      }
-      for (const sourceID of input.sources) {
-        if (!change.sources.contains(ref(sourceID))) {
-          const source = await this.em.findOne(Source, { id: sourceID })
-          if (source) {
-            change.sources.add(source)
-          }
-        }
       }
     }
 
@@ -712,6 +666,18 @@ export class EditService {
   }
 
   /**
+   * Guards the direct (non-Change) branch of entity create() methods - only admins may create
+   * entities without going through the Change/staged-edit workflow.
+   *
+   * Use this as the first statement inside `if (!isUsingChange(input))` in create() methods.
+   */
+  assertDirectCreateAllowed(): void {
+    if (!this.authUser.admin()) {
+      throw BadRequestErr('Admin privileges are required to directly create')
+    }
+  }
+
+  /**
    * Loads the editable entity context for mutations that may run directly or through a change.
    *
    * Direct edits require admin privileges and return the persisted entity. Change edits resolve an
@@ -820,7 +786,7 @@ export class EditService {
       } else if (edit.changes) {
         edit.changes = undefined // Turn the edit into a delete
       }
-      await this.persistAndMaybeTriggerReview(change)
+      await this.persistChange(change)
       return { id: input.id }
     }
     // If not, check if it exists in the database
@@ -835,7 +801,7 @@ export class EditService {
     newEdit.userID = userID
     newEdit.original = this.entityToChangePOJO(meta.name, entity as BaseEntity & { id: string })
     change.edits.add(newEdit)
-    await this.persistAndMaybeTriggerReview(change)
+    await this.persistChange(change)
     return { id: input.id }
   }
 
@@ -1073,9 +1039,12 @@ export class EditService {
    * Use this from resolver endpoints that trigger merge directly by change identifier.
    */
   async mergeID(changeID: string) {
-    const change = await this.em.findOne(Change, { id: changeID }, { populate: ['edits'] })
+    const change = await this.em.findOne(Change, { id: changeID }, { populate: ['edits', 'user'] })
     if (!change) {
       throw NotFoundErr(`Change with ID "${changeID}" not found`)
+    }
+    if (!this.authUser.sameUserOrAdmin(change.user.id)) {
+      throw BadRequestErr('You can only merge your own changes')
     }
     if (change.status !== ChangeStatus.APPROVED) {
       throw BadRequestErr(`Change with ID "${changeID}" is not approved and cannot be merged`)
@@ -1309,6 +1278,12 @@ export class EditService {
         case '1:1':
           flattenToId.push(rel.name)
           break
+      }
+    })
+
+    meta.props?.forEach((prop) => {
+      if (isExcludedFromDiff(meta.prototype, prop.name)) {
+        changeOmit.push(prop.name)
       }
     })
 

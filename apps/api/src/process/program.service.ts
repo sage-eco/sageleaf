@@ -140,6 +140,7 @@ export class ProgramService implements IEntityService<Program> {
   async create(input: CreateProgramInput, userID: string) {
     const program = new Program()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(program, input)
       await this.editService.createHistory(
         Program.name,
@@ -153,7 +154,7 @@ export class ProgramService implements IEntityService<Program> {
     const change = await this.editService.findOneOrCreate(input.changeID, input.change, userID)
     await this.setFields(program, input, change)
     await this.editService.createEntityEdit(change, program)
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return { program, change }
   }
@@ -189,7 +190,7 @@ export class ProgramService implements IEntityService<Program> {
     const currentProgram = await this.editService.findOneForChange(this.em, change, Program, {
       id: input.id,
     })
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return { program, change, currentProgram: currentProgram ?? undefined }
   }

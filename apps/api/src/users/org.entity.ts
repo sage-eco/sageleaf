@@ -13,6 +13,7 @@ import {
   type Ref,
 } from '@mikro-orm/core'
 
+import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
 import { defaultTranslatedField, type TranslatedField } from '@src/common/i18n'
 import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
@@ -50,9 +51,11 @@ export class Org extends IDCreatedUpdated {
   @Property({ fieldName: 'name_translations', type: 'json' })
   nameTr: TranslatedField = defaultTranslatedField()
 
+  @ExcludeFromDiff()
   @Property({ type: 'json' })
   rank?: Rank
 
+  @ExcludeFromDiff()
   @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
   rankOrder!: number
 

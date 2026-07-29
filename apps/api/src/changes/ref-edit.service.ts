@@ -312,7 +312,7 @@ export class RefEditService {
         { id },
         { populate: definition.populate } as never,
       )) as TRoot | null
-      await this.editService.persistAndMaybeTriggerReview(change)
+      await this.editService.persistChange(change)
       await this.editService.checkMerge(change, input)
     } else {
       await this.editService.createHistory(

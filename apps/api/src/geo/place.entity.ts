@@ -13,6 +13,7 @@ import {
 } from '@mikro-orm/core'
 import type { Ref } from '@mikro-orm/core'
 
+import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
 import type { TranslatedField } from '@src/common/i18n'
 import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { CreatedUpdated } from '@src/db/base.entity'
@@ -52,9 +53,11 @@ export class Place extends CreatedUpdated {
   @Property({ type: 'json' })
   osm?: {}
 
+  @ExcludeFromDiff()
   @Property({ type: 'json' })
   rank?: Rank
 
+  @ExcludeFromDiff()
   @Property({ type: 'double precision', generated: `(${RANK_ORDER_SQL}) stored`, nullable: false })
   rankOrder!: number
 

@@ -2,7 +2,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z, ZodError } from 'zod/v4'
 
 import { EditModelType, RefModelType } from '@src/changes/change.enum'
-import { Change } from '@src/changes/change.model'
 import { AddRefInput } from '@src/changes/ref-edit.model'
 import { assertChangeIsDraft, errorResult, McpToolContext, textResult } from '@src/mcp/mcp.types'
 import { MODEL_BY_EDIT_TYPE } from '@src/mcp/tools/propose-edit.tool'
@@ -63,12 +62,8 @@ export function registerProposeRefsTool(server: McpServer, ctx: McpToolContext) 
           const output = await ctx.refEditService.addRef(model, id, parsed, ctx.userID)
           results.push({
             ok: true,
-            entity: output.model
-              ? await ctx.transform.entityToModel(modelClass, output.model as any)
-              : undefined,
-            change: output.change
-              ? await ctx.transform.entityToModel(Change, output.change as any)
-              : undefined,
+            entity: output.model,
+            change: output.change,
           })
         } catch (error) {
           if (error instanceof ZodError) {

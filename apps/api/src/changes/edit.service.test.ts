@@ -8,7 +8,7 @@ function makeService(metaMap: Record<string, any>) {
     getMetadata: () => ({ get: (name: string) => metaMap[name] }),
     getReference: (_entity: any, id: string) => ({ id }),
   } as any
-  return new EditService(em, {} as any, {} as any, {} as any)
+  return new EditService(em, {} as any, {} as any)
 }
 
 // Minimal entity stub
@@ -248,7 +248,7 @@ describe('EditService.changePOJOToEntity', () => {
         },
       ],
     } as any
-    return new EditService(em, {} as any, metaService, {} as any)
+    return new EditService(em, {} as any, metaService)
   }
 
   test('m:1 non-primary string ID → restored to {id: string}', async () => {
@@ -428,7 +428,7 @@ describe('EditService.changePOJOToEntity', () => {
     const metaService = {
       findEntityService: () => [null, { findOneByID: async () => null }],
     } as any
-    const svc = new EditService(em, {} as any, metaService, {} as any)
+    const svc = new EditService(em, {} as any, metaService)
     const result = (await svc.changePOJOToEntity('Variant', {
       id: 'draft-id',
       name: 'Draft',
@@ -444,7 +444,7 @@ describe('EditService.changePOJOToEntity', () => {
       getReference: (_entity: any, id: string) => ({ id }),
     } as any
     const metaService = { findEntityService: () => null } as any
-    const svc = new EditService(em, {} as any, metaService, {} as any)
+    const svc = new EditService(em, {} as any, metaService)
     await expect(svc.changePOJOToEntity('Variant', { id: 'v1' })).rejects.toThrow()
   })
 
@@ -454,7 +454,7 @@ describe('EditService.changePOJOToEntity', () => {
       getReference: (_entity: any, id: string) => ({ id }),
     } as any
     const metaService = { findEntityService: () => null } as any
-    const svc = new EditService(em, {} as any, metaService, {} as any)
+    const svc = new EditService(em, {} as any, metaService)
     await expect(svc.changePOJOToEntity('Variant', { id: 'v1' })).rejects.toThrow()
   })
 })

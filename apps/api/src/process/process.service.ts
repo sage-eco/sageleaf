@@ -67,6 +67,7 @@ export class ProcessService implements IEntityService<Process> {
   async create(input: CreateProcessInput, userID: string) {
     const process = new Process()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(process, input)
       await this.editService.createHistory(
         Process.name,
@@ -83,7 +84,7 @@ export class ProcessService implements IEntityService<Process> {
     const change = await this.editService.findOneOrCreate(input.changeID, input.change, userID)
     await this.setFields(process, input, change)
     await this.editService.createEntityEdit(change, process)
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return {
       process,
@@ -125,7 +126,7 @@ export class ProcessService implements IEntityService<Process> {
     const currentProcess = await this.editService.findOneForChange(this.em, change, Process, {
       id: input.id,
     })
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return {
       process,

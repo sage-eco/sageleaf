@@ -254,9 +254,12 @@ export class TransformService {
         orderByField === 'relevance'
           ? JSON.stringify({ order: (item as any).rankOrder ?? 0, id: (item as any).id })
           : (item as any)[orderByField]
-      const cid = Buffer.from(
-        _.isString(itemOrderField) ? itemOrderField : itemOrderField.id,
-      ).toString('base64')
+      const cursorValue = _.isString(itemOrderField)
+        ? itemOrderField
+        : itemOrderField instanceof Date
+          ? itemOrderField.toISOString()
+          : itemOrderField.id
+      const cid = Buffer.from(cursorValue).toString('base64')
       edges.push({ cursor: cid, node: cls })
     }
     const pageSize = options.first || options.last || DEFAULT_PAGE_SIZE

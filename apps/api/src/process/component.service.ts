@@ -151,6 +151,7 @@ export class ComponentService implements IEntityService<Component> {
   async create(input: CreateComponentInput, userID: string) {
     const component = new Component()
     if (!isUsingChange(input)) {
+      this.editService.assertDirectCreateAllowed()
       await this.setFields(component, input)
       await this.editService.createHistory(
         Component.name,
@@ -167,7 +168,7 @@ export class ComponentService implements IEntityService<Component> {
     const change = await this.editService.findOneOrCreate(input.changeID, input.change, userID)
     await this.setFields(component, input, change)
     await this.editService.createEntityEdit(change, component)
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return {
       component,
@@ -209,7 +210,7 @@ export class ComponentService implements IEntityService<Component> {
     const currentComponent = await this.editService.findOneForChange(this.em, change, Component, {
       id: input.id,
     })
-    await this.editService.persistAndMaybeTriggerReview(change)
+    await this.editService.persistChange(change)
     await this.editService.checkMerge(change, input)
     return {
       component,
