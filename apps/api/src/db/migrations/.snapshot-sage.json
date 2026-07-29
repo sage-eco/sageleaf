@@ -2450,16 +2450,7 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "enumItems": [
-            "PLACE",
-            "ITEM",
-            "VARIANT",
-            "COMPONENT",
-            "PROCESS",
-            "PROGRAM",
-            "ORG"
-          ],
-          "mappedType": "enum"
+          "mappedType": "text"
         },
         "desc": {
           "name": "desc",
