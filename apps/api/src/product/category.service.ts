@@ -41,7 +41,11 @@ export class CategoryService implements IEntityService<Category> {
   }
 
   async findOneByID(id: string) {
-    return await this.em.findOne(Category, { id }, { populate: ['parents', 'children'] })
+    return await this.em.findOne(
+      Category,
+      { id },
+      { populate: ['parents', 'children', 'ancestors', 'descendants'] },
+    )
   }
 
   async findManyByID(ids: string[]) {
@@ -169,6 +173,7 @@ export class CategoryService implements IEntityService<Category> {
       {
         id: input.id,
       },
+      { populate: ['parents', 'children', 'ancestors', 'descendants'] },
     )
     if (!category) {
       throw new Error(`Category with ID "${input.id}" not found`)

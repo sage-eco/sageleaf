@@ -6,6 +6,7 @@ import { CreateChangeInput } from '@src/changes/change-ext.model'
 import { RefModelTypeSchema } from '@src/changes/change-type.schema'
 import { ChangeEdits, Change as ChangeEntity, ChangeStatus } from '@src/changes/change.entity'
 import { Change, Edit, UpdateChangeInput } from '@src/changes/change.model'
+import { EditService } from '@src/changes/edit.service'
 import { AddRefInput, RemoveRefInput } from '@src/changes/ref-edit.model'
 import { ZJSONObject } from '@src/common/z.schema'
 import { TransformInput, ZService } from '@src/common/z.service'
@@ -151,7 +152,10 @@ export class ChangeSchemaService {
   AddRefSchema = AddRefInputSchema
   RemoveRefSchema = RemoveRefInputSchema
 
-  constructor(private readonly zService: ZService) {
+  constructor(
+    private readonly zService: ZService,
+    private readonly editService: EditService,
+  ) {
     const ChangeTransform = z.transform((input: TransformInput) => {
       const entity = input.input as ChangeEntity
       const model = new Change()
@@ -179,10 +183,11 @@ export class ChangeSchemaService {
           entity.original,
         )) as typeof model.original
       }
-      if (entity.changes) {
+      const effectiveChanges = this.editService.effectiveChanges(entity)
+      if (effectiveChanges) {
         model.changes = (await this.zService.objectToModel(
           entity.entityName,
-          entity.changes,
+          effectiveChanges,
         )) as typeof model.changes
       }
       return model

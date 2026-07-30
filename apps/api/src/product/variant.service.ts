@@ -57,7 +57,14 @@ export class VariantService implements IEntityService<Variant> {
       Variant,
       { id },
       {
-        populate: ['variantSources', 'variantItems', 'variantTags', 'variantComponents', 'orgs'],
+        populate: [
+          'variantSources',
+          'variantItems',
+          'variantTags',
+          'variantComponents',
+          'variantOrgs',
+          'orgs',
+        ],
       },
     )
   }
@@ -363,7 +370,9 @@ export class VariantService implements IEntityService<Variant> {
           'components',
           'variantComponents',
           'tags',
+          'variantTags',
           'orgs',
+          'variantOrgs',
           'sources',
           'variantSources',
         ],

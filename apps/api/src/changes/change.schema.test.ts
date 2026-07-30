@@ -9,7 +9,7 @@ describe('ChangeSchemaService', () => {
 
   beforeEach(() => {
     const zService = new ZService({ get: () => undefined } as any)
-    service = new ChangeSchemaService(zService)
+    service = new ChangeSchemaService(zService, {} as any)
   })
 
   describe('parseCreateInput', () => {
