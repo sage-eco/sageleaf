@@ -26,7 +26,7 @@ type Documents = {
     "\n    query RefPlaceQuery($id: ID!) {\n      place(id: $id) {\n        ...ListPlaceFragment\n      }\n    }\n  ": typeof types.RefPlaceQueryDocument,
     "\n    query RefMaterialQuery($id: ID!) {\n      material(id: $id) {\n        ...ListMaterialFragment\n      }\n    }\n  ": typeof types.RefMaterialQueryDocument,
     "\n  fragment ListCategoryFragment on Category {\n    id\n    name_req: name\n    descShort\n    imageURL\n    parents(first: 1) {\n      nodes {\n        id\n        name\n      }\n    }\n  }\n": typeof types.ListCategoryFragmentFragmentDoc,
-    "\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n    createdAt\n    user {\n      id\n      name\n      username\n    }\n  }\n": typeof types.ListChangeFragmentFragmentDoc,
+    "\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n    createdAt\n    updatedAt\n    user {\n      id\n      name\n      username\n    }\n  }\n": typeof types.ListChangeFragmentFragmentDoc,
     "\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n    primaryMaterial {\n      id\n      name\n    }\n    materials {\n      material {\n        id\n        name\n      }\n    }\n    tags(first: 3) {\n      nodes {\n        id\n        name\n      }\n    }\n    region {\n      id\n      name\n    }\n  }\n": typeof types.ListComponentFragmentFragmentDoc,
     "\n  fragment ListItemFragment on Item {\n    id\n    name\n    desc\n    imageURL\n    categories(first: 3) {\n      nodes {\n        id\n        name\n      }\n    }\n  }\n": typeof types.ListItemFragmentFragmentDoc,
     "\n  fragment ListMaterialFragment on Material {\n    id\n    name\n    desc\n    shape\n    technical\n    synonyms\n  }\n": typeof types.ListMaterialFragmentFragmentDoc,
@@ -51,7 +51,7 @@ const documents: Documents = {
     "\n    query RefPlaceQuery($id: ID!) {\n      place(id: $id) {\n        ...ListPlaceFragment\n      }\n    }\n  ": types.RefPlaceQueryDocument,
     "\n    query RefMaterialQuery($id: ID!) {\n      material(id: $id) {\n        ...ListMaterialFragment\n      }\n    }\n  ": types.RefMaterialQueryDocument,
     "\n  fragment ListCategoryFragment on Category {\n    id\n    name_req: name\n    descShort\n    imageURL\n    parents(first: 1) {\n      nodes {\n        id\n        name\n      }\n    }\n  }\n": types.ListCategoryFragmentFragmentDoc,
-    "\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n    createdAt\n    user {\n      id\n      name\n      username\n    }\n  }\n": types.ListChangeFragmentFragmentDoc,
+    "\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n    createdAt\n    updatedAt\n    user {\n      id\n      name\n      username\n    }\n  }\n": types.ListChangeFragmentFragmentDoc,
     "\n  fragment ListComponentFragment on Component {\n    id\n    name\n    desc\n    imageURL\n    primaryMaterial {\n      id\n      name\n    }\n    materials {\n      material {\n        id\n        name\n      }\n    }\n    tags(first: 3) {\n      nodes {\n        id\n        name\n      }\n    }\n    region {\n      id\n      name\n    }\n  }\n": types.ListComponentFragmentFragmentDoc,
     "\n  fragment ListItemFragment on Item {\n    id\n    name\n    desc\n    imageURL\n    categories(first: 3) {\n      nodes {\n        id\n        name\n      }\n    }\n  }\n": types.ListItemFragmentFragmentDoc,
     "\n  fragment ListMaterialFragment on Material {\n    id\n    name\n    desc\n    shape\n    technical\n    synonyms\n  }\n": types.ListMaterialFragmentFragmentDoc,
@@ -129,7 +129,7 @@ export function graphql(source: "\n  fragment ListCategoryFragment on Category {
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n    createdAt\n    user {\n      id\n      name\n      username\n    }\n  }\n"): (typeof documents)["\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n    createdAt\n    user {\n      id\n      name\n      username\n    }\n  }\n"];
+export function graphql(source: "\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n    createdAt\n    updatedAt\n    user {\n      id\n      name\n      username\n    }\n  }\n"): (typeof documents)["\n  fragment ListChangeFragment on Change {\n    id\n    title\n    description\n    status\n    createdAt\n    updatedAt\n    user {\n      id\n      name\n      username\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

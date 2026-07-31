@@ -1,11 +1,12 @@
 import { oauthProviderClient } from '@better-auth/oauth-provider/client'
+import { adminClient } from 'better-auth/client/plugins'
 import { createAuthClient } from 'better-auth/vue'
 
 export const useAuthClient = () => {
   const config = useRuntimeConfig()
   return createAuthClient({
     baseURL: config.public.apiurl + '/auth',
-    plugins: [oauthProviderClient()],
+    plugins: [oauthProviderClient(), adminClient()],
   })
 }
 
@@ -16,11 +17,16 @@ export const useAuth = () => {
   })
 
   const isAuthenticated = computed(() => !!sessionData.value?.data?.user)
+  const isAdmin = computed(() => {
+    const role = sessionData.value?.data?.user?.role
+    return Array.isArray(role) ? role.includes('admin') : role === 'admin'
+  })
 
   return {
     client,
     sessionData,
     isAuthenticated,
+    isAdmin,
     ...rest,
   }
 }

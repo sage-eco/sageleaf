@@ -1,8 +1,58 @@
 <template>
   <Dialog v-model:open="open">
     <DialogContent class="max-h-[80vh] max-w-5xl! overflow-auto">
-      <DialogHeader class="flex flex-row items-center justify-between gap-2">
-        <DialogTitle>{{ data?.title || changeId }}</DialogTitle>
+      <DialogHeader class="flex flex-row items-start justify-between gap-2">
+        <div class="flex min-w-0 flex-1 flex-col gap-1">
+          <div v-if="!editingTitle" class="flex items-center gap-2">
+            <DialogTitle>{{ data?.title || changeId }}</DialogTitle>
+            <Button
+              v-if="data"
+              variant="ghost"
+              size="icon"
+              title="Edit title"
+              @click="startEditTitle"
+            >
+              <Pencil :size="14" />
+            </Button>
+          </div>
+          <div v-else class="flex items-center gap-2">
+            <FormInput v-model="titleDraft" class="flex-1" placeholder="Title" />
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Save title"
+              :disabled="!canSaveTitle"
+              @click="saveTitle"
+            >
+              <Check :size="14" />
+            </Button>
+            <Button variant="ghost" size="icon" title="Cancel" @click="cancelTitleEdit">
+              <X :size="14" />
+            </Button>
+          </div>
+
+          <div v-if="!editingDescription" class="flex items-start gap-2">
+            <p v-if="data?.description" class="text-sm opacity-70">{{ data.description }}</p>
+            <Button
+              v-if="data"
+              variant="ghost"
+              size="icon"
+              title="Edit description"
+              @click="startEditDescription"
+            >
+              <Pencil :size="14" />
+            </Button>
+          </div>
+          <div v-else class="flex items-start gap-2">
+            <FormTextArea v-model="descriptionDraft" class="flex-1" placeholder="Description" />
+            <Button variant="ghost" size="icon" title="Save description" @click="saveDescription">
+              <Check :size="14" />
+            </Button>
+            <Button variant="ghost" size="icon" title="Cancel" @click="cancelDescriptionEdit">
+              <X :size="14" />
+            </Button>
+          </div>
+        </div>
         <Button
           v-if="changeId"
           variant="outline"
@@ -27,20 +77,30 @@
           </CardHeader>
           <CardContent class="flex flex-col gap-1 text-sm">
             <div v-if="data.title"><span class="font-semibold">Title:</span> {{ data.title }}</div>
-            <div v-if="data.description">
-              <span class="font-semibold">Description:</span>
-              {{ data.description }}
-            </div>
             <div v-if="data.user?.name">
               <span class="font-semibold">Created by:</span> {{ data.user.name }}
             </div>
-            <div v-if="data.createdAt">
+            <div v-if="data.createdAt" class="flex items-center gap-1">
               <span class="font-semibold">Created:</span>
-              {{ formatDate(data.createdAt) }}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <span class="cursor-default">{{ createdAgo }}</span>
+                  </TooltipTrigger>
+                  <TooltipContent>{{ formatDate(data.createdAt) }}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            <div v-if="data.updatedAt">
+            <div v-if="data.updatedAt" class="flex items-center gap-1">
               <span class="font-semibold">Updated:</span>
-              {{ formatDate(data.updatedAt) }}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <span class="cursor-default">{{ updatedAgo }}</span>
+                  </TooltipTrigger>
+                  <TooltipContent>{{ formatDate(data.updatedAt) }}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </CardContent>
         </Card>
@@ -156,7 +216,8 @@
 </template>
 
 <script setup lang="ts">
-import { ExternalLink } from '@lucide/vue'
+import { Check, ExternalLink, Pencil, X } from '@lucide/vue'
+import { useTimeAgo } from '@vueuse/core'
 
 import { graphql } from '~/gql'
 
@@ -208,6 +269,9 @@ const { result, load } = useLazyQuery(ChangeSummaryQuery, () => ({
 
 const data = computed(() => result.value?.change ?? null)
 const changeStatus = computed(() => data.value?.status ?? null)
+
+const createdAgo = useTimeAgo(computed(() => new Date(data.value?.createdAt ?? 0)))
+const updatedAgo = useTimeAgo(computed(() => new Date(data.value?.updatedAt ?? 0)))
 const {
   badgeClass: statusBadgeClass,
   borderClass: statusBorderClass,
@@ -234,10 +298,71 @@ const goToChange = () => {
   navigateTo(`/changes/${props.changeId}`)
 }
 
+const updateChangeMutation = graphql(`
+  mutation UpdateChangeFromSummaryDialog($input: UpdateChangeInput!) {
+    updateChange(input: $input) {
+      change {
+        id
+        title
+        description
+      }
+    }
+  }
+`)
+
+const { mutate: updateChangeMut } = useMutation(updateChangeMutation)
+
+const refresh = () => {
+  if (props.changeId) {
+    load(ChangeSummaryQuery, { id: props.changeId })
+  }
+}
+
+const editingTitle = ref(false)
+const titleDraft = ref('')
+const canSaveTitle = computed(() => titleDraft.value.trim().length > 0)
+
+const startEditTitle = () => {
+  titleDraft.value = data.value?.title ?? ''
+  editingTitle.value = true
+}
+
+const cancelTitleEdit = () => {
+  editingTitle.value = false
+}
+
+const saveTitle = async () => {
+  if (!props.changeId || !canSaveTitle.value) return
+  await updateChangeMut({ input: { id: props.changeId, title: titleDraft.value.trim() } })
+  editingTitle.value = false
+  refresh()
+}
+
+const editingDescription = ref(false)
+const descriptionDraft = ref('')
+
+const startEditDescription = () => {
+  descriptionDraft.value = data.value?.description ?? ''
+  editingDescription.value = true
+}
+
+const cancelDescriptionEdit = () => {
+  editingDescription.value = false
+}
+
+const saveDescription = async () => {
+  if (!props.changeId) return
+  await updateChangeMut({ input: { id: props.changeId, description: descriptionDraft.value } })
+  editingDescription.value = false
+  refresh()
+}
+
 watch(open, (val) => {
   if (val && props.changeId) {
     selectedEditId.value = null
     resetView()
+    editingTitle.value = false
+    editingDescription.value = false
     load(ChangeSummaryQuery, { id: props.changeId })
   }
 })

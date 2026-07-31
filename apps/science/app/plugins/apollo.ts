@@ -33,18 +33,28 @@ export default defineNuxtPlugin(({ hook }) => {
   const loadingLink = new ApolloLink((operation, forward) => {
     increment()
     return new Observable((observer) => {
+      let settled = false
+      const settle = () => {
+        if (!settled) {
+          settled = true
+          decrement()
+        }
+      }
       const sub = forward(operation).subscribe({
         next: (result) => observer.next(result),
         error: (err) => {
-          decrement()
+          settle()
           observer.error(err)
         },
         complete: () => {
-          decrement()
+          settle()
           observer.complete()
         },
       })
-      return () => sub.unsubscribe()
+      return () => {
+        settle()
+        sub.unsubscribe()
+      }
     })
   })
 
