@@ -5,6 +5,10 @@ import { z } from 'zod/v4'
 import { LuxonDateTimeResolver } from '@src/common/datetime.model'
 import { CreatedUpdated, registerModel } from '@src/graphql/base.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { ComponentsConnection } from '@src/process/component.model'
+import { ProcessConnection } from '@src/process/process.model'
+import { ProgramsConnection } from '@src/process/program.model'
+import { VariantsConnection } from '@src/product/variant.model'
 
 @ObjectType({ description: "A geographic region based on the Who's On First dataset" })
 export class Region extends CreatedUpdated {
@@ -33,6 +37,18 @@ export class Region extends CreatedUpdated {
     description: 'Minimum map zoom level at which this region should be displayed',
   })
   minZoom?: number
+
+  @Field(() => ComponentsConnection, { description: 'Components associated with this region' })
+  components!: ComponentsConnection & {}
+
+  @Field(() => ProcessConnection, { description: 'Processes associated with this region' })
+  processes!: ProcessConnection & {}
+
+  @Field(() => ProgramsConnection, { description: 'Programs associated with this region' })
+  programs!: ProgramsConnection & {}
+
+  @Field(() => VariantsConnection, { description: 'Product variants associated with this region' })
+  variants!: VariantsConnection & {}
 }
 registerModel('Region', Region)
 
@@ -74,6 +90,26 @@ export class RegionSearchWithinArgs {
 
 @ArgsType()
 export class RegionsArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class RegionComponentsArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class RegionProcessesArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class RegionProgramsArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class RegionVariantsArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
 }
 

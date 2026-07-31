@@ -267,13 +267,13 @@ export class ComponentReuse {
 @ObjectType({ description: 'A program associated with a recycling, reduce, or reuse stream' })
 export class StreamProgram {
   @Field(() => Program)
-  program!: Program
+  program!: Program & {}
 
   @Field(() => Org, { nullable: true })
-  org?: Org
+  org?: Org & {}
 
   @Field(() => Place, { nullable: true })
-  place?: Place
+  place?: Place & {}
 }
 
 @ObjectType()

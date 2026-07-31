@@ -9,12 +9,20 @@ import { Region as RegionEntity } from '@src/geo/region.entity'
 import {
   CurrentRegion,
   Region,
+  RegionComponentsArgs,
+  RegionProcessesArgs,
+  RegionProgramsArgs,
   RegionsArgs,
   RegionsConnection,
   RegionSearchWithinArgs,
   RegionsSearchByPointArgs,
+  RegionVariantsArgs,
 } from '@src/geo/region.model'
 import { RegionService } from '@src/geo/region.service'
+import { Component, ComponentsConnection } from '@src/process/component.model'
+import { Process, ProcessConnection } from '@src/process/process.model'
+import { Program, ProgramsConnection } from '@src/process/program.model'
+import { Variant, VariantsConnection } from '@src/product/variant.model'
 
 @Resolver(() => Region)
 export class RegionResolver {
@@ -132,6 +140,34 @@ export class RegionResolver {
       { items: models, count: cursor.count },
       true,
     )
+  }
+
+  @ResolveField()
+  async components(@Parent() region: Region, @Args() args: RegionComponentsArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(RegionComponentsArgs, args)
+    const cursor = await this.regionService.components(region.id, filter)
+    return this.transform.entityToPaginated(Component, ComponentsConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField()
+  async processes(@Parent() region: Region, @Args() args: RegionProcessesArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(RegionProcessesArgs, args)
+    const cursor = await this.regionService.processes(region.id, filter)
+    return this.transform.entityToPaginated(Process, ProcessConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField()
+  async programs(@Parent() region: Region, @Args() args: RegionProgramsArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(RegionProgramsArgs, args)
+    const cursor = await this.regionService.programs(region.id, filter)
+    return this.transform.entityToPaginated(Program, ProgramsConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField()
+  async variants(@Parent() region: Region, @Args() args: RegionVariantsArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(RegionVariantsArgs, args)
+    const cursor = await this.regionService.variants(region.id, filter)
+    return this.transform.entityToPaginated(Variant, VariantsConnection, cursor, parsedArgs)
   }
 
   @Query(() => RegionsConnection, { name: 'searchRegionsByPoint' })

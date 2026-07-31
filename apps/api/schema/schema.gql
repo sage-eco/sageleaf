@@ -245,6 +245,9 @@ type Component implements Named {
   sources(after: String, before: String, first: Int, last: Int, type: String): ComponentSourcesConnection!
   tags(after: String, before: String, first: Int, last: Int): TagConnection!
   updatedAt: DateTime!
+
+  """Product variants that include this component"""
+  variants(after: String, before: String, first: Int, last: Int): VariantsConnection!
 }
 
 type ComponentEdge {
@@ -1190,6 +1193,15 @@ type Org implements Named {
   id: ID!
   name: String!
 
+  """Places belonging to this organization"""
+  places(after: String, before: String, first: Int, last: Int): PlacesConnection!
+
+  """Processes belonging to this organization"""
+  processes(after: String, before: String, first: Int, last: Int): ProcessConnection!
+
+  """Programs this organization participates in"""
+  programs(after: String, before: String, first: Int, last: Int): ProgramsConnection!
+
   """Similar organizations related to this organization"""
   related(limit: Int, offset: Int, query: String): OrgsConnection!
 
@@ -1199,6 +1211,9 @@ type Org implements Named {
 
   """Users that are members of this organization"""
   users(after: String, before: String, first: Int, last: Int): UserConnection!
+
+  """Product variants linked to this organization"""
+  variants(after: String, before: String, first: Int, last: Int): VariantsConnection!
 
   """URL of the organization's website"""
   websiteURL: String
@@ -1617,6 +1632,9 @@ enum RefModelType {
 type Region {
   """Bounding box as [minLon, minLat, maxLon, maxLat]"""
   bbox: [Float!]
+
+  """Components associated with this region"""
+  components(after: String, before: String, first: Int, last: Int): ComponentsConnection!
   country: Region
   county: Region
   createdAt: DateTime!
@@ -1629,9 +1647,18 @@ type Region {
 
   """The type of geographic entity (e.g. country, region, locality)"""
   placetype: String!
+
+  """Processes associated with this region"""
+  processes(after: String, before: String, first: Int, last: Int): ProcessConnection!
+
+  """Programs associated with this region"""
+  programs(after: String, before: String, first: Int, last: Int): ProgramsConnection!
   province: Region
   searchWithin(adminLevel: Int, limit: Int, offset: Int, query: String!): RegionsConnection!
   updatedAt: DateTime!
+
+  """Product variants associated with this region"""
+  variants(after: String, before: String, first: Int, last: Int): VariantsConnection!
 }
 
 type RegionEdge {
@@ -2475,6 +2502,9 @@ type Variant implements Named {
   Organizations associated with this variant (e.g. manufacturer, importer)
   """
   orgs(after: String, before: String, first: Int, last: Int): VariantOrgsConnection!
+
+  """Recycling or disposal processes specific to this variant"""
+  processes(after: String, before: String, first: Int, last: Int): ProcessConnection!
 
   """Recycling options for this variant, one entry per recycling stream"""
   recycle(regionID: ID): [VariantRecycle!]!

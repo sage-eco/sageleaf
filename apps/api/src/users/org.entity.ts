@@ -17,6 +17,7 @@ import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
 import { defaultTranslatedField, type TranslatedField } from '@src/common/i18n'
 import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
+import { Place } from '@src/geo/place.entity'
 import { Process } from '@src/process/process.entity'
 import { Program } from '@src/process/program.entity'
 import { Variant } from '@src/product/variant.entity'
@@ -70,6 +71,9 @@ export class Org extends IDCreatedUpdated {
 
   @OneToMany({ mappedBy: 'org' })
   processes = new Collection<Process>(this)
+
+  @OneToMany({ mappedBy: 'org' })
+  places = new Collection<Place>(this)
 
   @ManyToMany({ entity: () => Program, mappedBy: 'orgs' })
   programs = new Collection<Program>(this)

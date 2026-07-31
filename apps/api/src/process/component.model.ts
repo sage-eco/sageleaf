@@ -29,6 +29,7 @@ import {
 } from '@src/process/stream.model'
 import { TagConnection } from '@src/process/tag.model'
 import { ImagesConnection } from '@src/product/image.model'
+import { VariantsConnection } from '@src/product/variant.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User } from '@src/users/users.model'
 
@@ -115,6 +116,11 @@ export class Component extends IDCreatedUpdated implements Named {
   @Field(() => ImagesConnection, { description: 'Images associated with this component' })
   images!: ImagesConnection
 
+  @Field(() => VariantsConnection, {
+    description: 'Product variants that include this component',
+  })
+  variants!: VariantsConnection & {}
+
   @Field(() => ComponentsConnection, {
     description: 'Similar components related to this component',
   })
@@ -173,6 +179,11 @@ export class ComponentHistoryArgs extends PaginationBasicArgs {
 
 @ArgsType()
 export class ComponentTagsArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class ComponentVariantsArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
 }
 

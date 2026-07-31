@@ -22,6 +22,7 @@ import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Region } from '@src/geo/region.entity'
 import { Component } from '@src/process/component.entity'
+import { Process } from '@src/process/process.entity'
 import { Tag } from '@src/process/tag.entity'
 import { Item } from '@src/product/item.entity'
 import { Org } from '@src/users/org.entity'
@@ -113,6 +114,9 @@ export class Variant extends IDCreatedUpdated {
     orphanRemoval: true,
   })
   variantComponents = new Collection<VariantsComponents>(this)
+
+  @OneToMany({ mappedBy: 'variant' })
+  processes = new Collection<Process>(this)
 
   @OneToMany(() => VariantHistory, (history) => history.variant)
   history = new Collection<VariantHistory>(this)

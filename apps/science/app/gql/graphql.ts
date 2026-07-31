@@ -331,6 +331,8 @@ export type Component = Named & {
   sources: ComponentSourcesConnection;
   tags: TagConnection;
   updatedAt: Scalars['DateTime']['output'];
+  /** Product variants that include this component */
+  variants: VariantsConnection;
 };
 
 
@@ -408,6 +410,15 @@ export type ComponentSourcesArgs = {
 
 /** A physical component of a product variant, made of one or more materials */
 export type ComponentTagsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** A physical component of a product variant, made of one or more materials */
+export type ComponentVariantsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -884,6 +895,10 @@ export type Edit = {
   changes?: Maybe<EditModel>;
   /** The raw JSON of the proposed entity changes */
   changesJSON?: Maybe<Scalars['JSONObject']['output']>;
+  /** True if a field this edit modifies has changed in the database since this edit was created */
+  conflict: Scalars['Boolean']['output'];
+  /** Description of the conflict, if any */
+  conflictDesc?: Maybe<Scalars['String']['output']>;
   /** Input values for creating a new entity, copying existing values */
   copyInput?: Maybe<Scalars['JSONObject']['output']>;
   /** Input values for creating a new entity */
@@ -1736,6 +1751,12 @@ export type Org = Named & {
   /** The ID of the model */
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  /** Places belonging to this organization */
+  places: PlacesConnection;
+  /** Processes belonging to this organization */
+  processes: ProcessConnection;
+  /** Programs this organization participates in */
+  programs: ProgramsConnection;
   /** Similar organizations related to this organization */
   related: OrgsConnection;
   /** URL-friendly unique identifier for this organization */
@@ -1743,6 +1764,8 @@ export type Org = Named & {
   updatedAt: Scalars['DateTime']['output'];
   /** Users that are members of this organization */
   users: UserConnection;
+  /** Product variants linked to this organization */
+  variants: VariantsConnection;
   /** URL of the organization's website */
   websiteURL?: Maybe<Scalars['String']['output']>;
 };
@@ -1750,6 +1773,33 @@ export type Org = Named & {
 
 /** An organization or company on the platform */
 export type OrgHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** An organization or company on the platform */
+export type OrgPlacesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** An organization or company on the platform */
+export type OrgProcessesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** An organization or company on the platform */
+export type OrgProgramsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -1767,6 +1817,15 @@ export type OrgRelatedArgs = {
 
 /** An organization or company on the platform */
 export type OrgUsersArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** An organization or company on the platform */
+export type OrgVariantsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -2496,6 +2555,8 @@ export type Region = {
   __typename?: 'Region';
   /** Bounding box as [minLon, minLat, maxLon, maxLat] */
   bbox?: Maybe<Array<Scalars['Float']['output']>>;
+  /** Components associated with this region */
+  components: ComponentsConnection;
   country?: Maybe<Region>;
   county?: Maybe<Region>;
   createdAt: Scalars['DateTime']['output'];
@@ -2506,9 +2567,42 @@ export type Region = {
   name?: Maybe<Scalars['String']['output']>;
   /** The type of geographic entity (e.g. country, region, locality) */
   placetype: Scalars['String']['output'];
+  /** Processes associated with this region */
+  processes: ProcessConnection;
+  /** Programs associated with this region */
+  programs: ProgramsConnection;
   province?: Maybe<Region>;
   searchWithin: RegionsConnection;
   updatedAt: Scalars['DateTime']['output'];
+  /** Product variants associated with this region */
+  variants: VariantsConnection;
+};
+
+
+/** A geographic region based on the Who's On First dataset */
+export type RegionComponentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** A geographic region based on the Who's On First dataset */
+export type RegionProcessesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** A geographic region based on the Who's On First dataset */
+export type RegionProgramsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2518,6 +2612,15 @@ export type RegionSearchWithinArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
+};
+
+
+/** A geographic region based on the Who's On First dataset */
+export type RegionVariantsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type RegionEdge = {
@@ -3328,6 +3431,8 @@ export type Variant = Named & {
   name?: Maybe<Scalars['String']['output']>;
   /** Organizations associated with this variant (e.g. manufacturer, importer) */
   orgs: VariantOrgsConnection;
+  /** Recycling or disposal processes specific to this variant */
+  processes: ProcessConnection;
   /** Recycling options for this variant, one entry per recycling stream */
   recycle: Array<VariantRecycle>;
   /** Aggregated recyclability score for this variant */
@@ -3389,6 +3494,15 @@ export type VariantItemsArgs = {
 
 /** A specific variant or SKU of a product item, composed of physical components */
 export type VariantOrgsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** A specific variant or SKU of a product item, composed of physical components */
+export type VariantProcessesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;

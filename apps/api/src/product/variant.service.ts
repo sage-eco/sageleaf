@@ -98,6 +98,16 @@ export class VariantService implements IEntityService<Variant> {
     }
   }
 
+  async processes(variantID: string, opts: CursorOptions<Process>) {
+    opts.where.variant = variantID
+    const items = await this.em.find(Process, opts.where, opts.options)
+    const count = await this.em.count(Process, opts.where)
+    return {
+      items,
+      count,
+    }
+  }
+
   async orgs(variantID: string, opts: CursorOptions<VariantsOrgs>) {
     opts.where.variant = this.em.getReference(Variant, variantID)
     opts.options.populate = ['org']
