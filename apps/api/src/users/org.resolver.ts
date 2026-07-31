@@ -174,7 +174,7 @@ export class OrgResolver {
 
   @ResolveField(() => OrgHistoryConnection)
   async history(@Parent() org: Org, @Args() args: OrgHistoryArgs) {
-    const [, filter] = await this.transform.paginationArgs(OrgHistoryArgs, args)
+    const [parsedArgs, filter] = await this.transform.paginationArgs(OrgHistoryArgs, args)
     const cursor = await this.orgService.history(org.id, filter)
     const items = await Promise.all(
       cursor.items.map((h) => this.transform.entityToModel(OrgHistory, h)),
@@ -183,6 +183,8 @@ export class OrgResolver {
       OrgHistoryConnection,
       { items, count: cursor.count },
       true,
+      parsedArgs,
+      (node: any) => node.datetime?.toISO?.() ?? '',
     )
   }
 }

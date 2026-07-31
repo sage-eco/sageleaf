@@ -146,6 +146,11 @@ export class ProcessConnection extends Paginated(Process) {}
 @ArgsType()
 export class ProcessHistoryArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  // ProcessHistory's primary key is (process, datetime) — there's no `id`.
+  orderBy(): string[] {
+    return ['datetime']
+  }
 }
 
 @ArgsType()

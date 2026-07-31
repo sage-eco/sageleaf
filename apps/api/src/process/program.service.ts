@@ -198,12 +198,11 @@ export class ProgramService implements IEntityService<Program> {
   async history(programID: string, opts: CursorOptions<ProgramHistory>) {
     const items = await this.em.find(
       ProgramHistory,
-      { program: programID },
+      { program: programID, ...opts.where },
       {
         populate: ['user'],
-        orderBy: { datetime: 'ASC' },
+        orderBy: opts.options.orderBy,
         limit: opts.options.limit,
-        offset: opts.options.offset,
       },
     )
     const count = await this.em.count(ProgramHistory, { program: programID })

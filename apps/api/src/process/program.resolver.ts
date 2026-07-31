@@ -97,7 +97,7 @@ export class ProgramResolver {
 
   @ResolveField(() => ProgramHistoryConnection)
   async history(@Parent() program: Program, @Args() args: ProgramHistoryArgs) {
-    const [, filter] = await this.transform.paginationArgs(ProgramHistoryArgs, args)
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ProgramHistoryArgs, args)
     const cursor = await this.programService.history(program.id, filter)
     const items = await Promise.all(
       cursor.items.map((h: any) => this.transform.entityToModel(ProgramHistory, h)),
@@ -106,6 +106,8 @@ export class ProgramResolver {
       ProgramHistoryConnection,
       { items, count: cursor.count },
       true,
+      parsedArgs,
+      (node: any) => node.datetime?.toISO?.() ?? '',
     )
   }
 

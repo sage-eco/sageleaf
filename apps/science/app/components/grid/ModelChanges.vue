@@ -3,7 +3,7 @@
     <Card class="m-3 border-0 bg-base-100 shadow-md">
       <CardHeader class="pb-2">
         <CardTitle class="flex justify-between">
-          <span>Current Edits</span>
+          <span>Current Edits ({{ totalCount }})</span>
           <div class="flex justify-end gap-3">
             <Button :disabled="!hasPreviousPage" variant="outline" @click="prevPage">
               <ChevronLeft />
@@ -29,7 +29,7 @@
                 <slot :node="n" />
               </div>
               <button class="btn btn-square btn-ghost" @click="confirmDiscard(n.changes.id)">
-                <Trash2 />
+                <Undo2 />
               </button>
             </div>
           </ul>
@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { ChevronLeft, ChevronRight, Trash2 } from '@lucide/vue'
+import { ChevronLeft, ChevronRight, Undo2 } from '@lucide/vue'
 
 import { graphql } from '~/gql'
 import type { EditModelType } from '~/gql/graphql'
@@ -67,27 +67,30 @@ type CursorVars = {
   before: string | null
   after: string | null
 }
-const { desc, query, type, pageSize } = defineProps<{
+const { desc, query, type } = defineProps<{
   desc?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   query: TypedDocumentNode<Record<string, any>, CursorVars>
   type: EditModelType
-  pageSize?: number
 }>()
 
 const changeStore = useChangeStore()
 const { selectedChange } = storeToRefs(changeStore)
 
-const fetchCount = pageSize || 5
-const { result, refetch } = useQuery(query, {
-  changeID: selectedChange.value,
-  type,
-  first: fetchCount,
-  last: undefined,
-  after: null,
-  before: null,
-} as CursorVars)
+const fetchCount = 10
+const { result, refetch } = useQuery(
+  query,
+  (): CursorVars => ({
+    changeID: selectedChange.value ?? '',
+    type,
+    first: fetchCount,
+    last: undefined,
+    after: null,
+    before: null,
+  }),
+)
 const nodes = computed(() => result.value?.change?.edits.nodes || [])
+const totalCount = computed(() => result.value?.change?.edits.totalCount ?? 0)
 const hasPreviousPage = computed(() => {
   return result.value?.change?.edits.pageInfo?.hasPreviousPage || false
 })

@@ -187,6 +187,11 @@ export class ItemsConnection extends Paginated(Item) {}
 @ArgsType()
 export class ItemHistoryArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  // ItemHistory's primary key is (item, datetime) — there's no `id`.
+  orderBy(): string[] {
+    return ['datetime']
+  }
 }
 
 @ArgsType()

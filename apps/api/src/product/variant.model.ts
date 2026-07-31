@@ -254,6 +254,11 @@ export class VariantComponentsConnection extends Paginated(VariantComponent) {}
 @ArgsType()
 export class VariantHistoryArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  // VariantHistory's primary key is (variant, datetime) — there's no `id`.
+  orderBy(): string[] {
+    return ['datetime']
+  }
 }
 
 @ArgsType()

@@ -434,12 +434,11 @@ export class ItemService implements IEntityService<Item> {
   async history(itemID: string, opts: CursorOptions<ItemHistory>) {
     const items = await this.em.find(
       ItemHistory,
-      { item: itemID },
+      { item: itemID, ...opts.where },
       {
         populate: ['user'],
-        orderBy: { datetime: 'ASC' },
+        orderBy: opts.options.orderBy,
         limit: opts.options.limit,
-        offset: opts.options.offset,
       },
     )
     const count = await this.em.count(ItemHistory, { item: itemID })

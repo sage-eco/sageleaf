@@ -2,9 +2,9 @@
   <li
     class="list-row relative transition-colors"
     :class="{ 'cursor-pointer hover:bg-base-300': !!href || !!onRowClick }"
+    @click="onRowClick?.()"
   >
     <NuxtLink v-if="href" :to="href" class="absolute inset-0" />
-    <button v-else-if="onRowClick" class="absolute inset-0" @click="onRowClick" />
     <div>
       <span
         class="badge badge-sm"
@@ -53,7 +53,7 @@
     <ModelListActionButtons
       v-if="buttons && buttons.length"
       :id="change.id"
-      class="pointer-events-none relative z-10"
+      class="relative z-10"
       :buttons="buttons"
       @button="(btn: string) => emits('button', btn, change.id)"
     />

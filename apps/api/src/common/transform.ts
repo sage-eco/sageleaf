@@ -327,10 +327,30 @@ export class TransformService {
     }
   }
 
+  /**
+   * Builds a paginated connection from items already fetched for the page.
+   *
+   * When `options` (the cursor pagination args: first/after/last/before) is
+   * provided, `cursor.items` must already be windowed exactly like the
+   * `entityToPaginated` contract: at most `pageSize + 2` items, ordered by
+   * the cursor field ascending, or descending (query order, pre-flip) when
+   * `before`/`last` is set — see `paginationArgs`. This lets
+   * hasNextPage/hasPreviousPage be derived correctly instead of guessed.
+   *
+   * `getCursor` picks the field the connection is windowed by; it defaults
+   * to `node.id`, but some models expose a public `id` that isn't a unique
+   * orderable key (e.g. `Edit.id` is the edited entity's id), in which case
+   * the caller should smuggle the real key onto the item and read it here.
+   *
+   * When `options` is omitted, falls back to the legacy (unpaginated)
+   * behavior for callers that don't use cursor-based args.
+   */
   async objectsToPaginated<T, S extends PaginatedType<any>>(
     PageModel: new () => S,
     cursor: { items: EntityDTO<T>[]; count: number },
     skipTransform?: boolean,
+    options?: IPaginationArgs,
+    getCursor: (node: any) => string = (node) => node.id || '',
   ): Promise<PaginatedType<any>> {
     const entities: any[] = []
     if (skipTransform) {
@@ -348,15 +368,77 @@ export class TransformService {
       }
     }
     const page = new PageModel()
-    page.edges = entities.map((node) => ({
-      cursor: Buffer.from(node.id || '').toString('base64'),
+
+    if (!options) {
+      page.edges = entities.map((node) => ({
+        cursor: Buffer.from(getCursor(node)).toString('base64'),
+        node,
+      }))
+      page.nodes = entities
+      page.totalCount = cursor.count
+      page.pageInfo = {
+        hasPreviousPage: entities.length < cursor.count,
+        hasNextPage: false,
+      }
+      return page
+    }
+
+    const flip = !!(options.before || options.last)
+    const ordered = flip ? entities.reverse() : entities
+    const edges: EdgeType<any>[] = ordered.map((node) => ({
+      cursor: Buffer.from(getCursor(node)).toString('base64'),
       node,
     }))
-    page.nodes = entities
+    const nodes = ordered
+
+    const pageSize = options.first || options.last || DEFAULT_PAGE_SIZE
+    let hasPreviousPage = false
+    let hasNextPage = false
+    let extraNode = false
+    if (edges.length === pageSize + 2) {
+      const idx = flip ? edges.length - 1 : 0
+      if (edges[idx].cursor === (options.after || options.before)) {
+        hasPreviousPage = true
+        hasNextPage = true
+      } else {
+        hasNextPage = !!options.first
+        hasPreviousPage = !!options.last
+        extraNode = true
+      }
+    } else if (edges.length <= pageSize + 1 && edges.length > 0) {
+      const idx = flip ? edges.length - 1 : 0
+      if (edges[idx].cursor === (options.after || options.before)) {
+        hasPreviousPage = !!options.after
+        hasNextPage = !!options.before
+      } else if (edges.length > pageSize) {
+        hasNextPage = !!options.first
+        hasPreviousPage = !!options.last
+      }
+    }
+    if (hasPreviousPage) {
+      edges.shift()
+      nodes.shift()
+      if (extraNode) {
+        edges.shift()
+        nodes.shift()
+      }
+    }
+    if (hasNextPage) {
+      edges.pop()
+      nodes.pop()
+      if (extraNode) {
+        edges.pop()
+        nodes.pop()
+      }
+    }
+    page.edges = edges
+    page.nodes = nodes
     page.totalCount = cursor.count
     page.pageInfo = {
-      hasPreviousPage: entities.length < cursor.count,
-      hasNextPage: false,
+      startCursor: edges[0]?.cursor,
+      endCursor: edges[edges.length - 1]?.cursor,
+      hasPreviousPage,
+      hasNextPage,
     }
     return page
   }

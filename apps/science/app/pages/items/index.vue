@@ -83,6 +83,7 @@ const itemsChangesQuery = graphql(`
   ) {
     change(id: $changeID) {
       edits(type: $type, first: $first, last: $last, before: $before, after: $after) {
+        totalCount
         nodes {
           changes {
             ...ListItemFragment

@@ -154,12 +154,11 @@ export class ProcessService implements IEntityService<Process> {
   async history(processID: string, opts: CursorOptions<ProcessHistory>) {
     const items = await this.em.find(
       ProcessHistory,
-      { process: processID },
+      { process: processID, ...opts.where },
       {
         populate: ['user'],
-        orderBy: { datetime: 'ASC' },
+        orderBy: opts.options.orderBy,
         limit: opts.options.limit,
-        offset: opts.options.offset,
       },
     )
     const count = await this.em.count(ProcessHistory, { process: processID })
