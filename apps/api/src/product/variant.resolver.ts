@@ -12,6 +12,7 @@ import { TransformService } from '@src/common/transform'
 import { Region, RegionsConnection } from '@src/geo/region.model'
 import { DeleteOutput, ModelEditSchema } from '@src/graphql/base.model'
 import { Component, ComponentsConnection } from '@src/process/component.model'
+import { Process, ProcessConnection } from '@src/process/process.model'
 import { Tag, TagConnection } from '@src/process/tag.model'
 import { Image, ImagesArgs, ImagesConnection } from '@src/product/image.model'
 import { Item, ItemsConnection } from '@src/product/item.model'
@@ -32,6 +33,7 @@ import {
   VariantOrg,
   VariantOrgsArgs,
   VariantOrgsConnection,
+  VariantProcessesArgs,
   VariantRecycle,
   VariantRecycleArgs,
   VariantRecycleComponentsArgs,
@@ -106,6 +108,13 @@ export class VariantResolver {
     const [parsedArgs, filter] = await this.transform.paginationArgs(VariantItemsArgs, args)
     const cursor = await this.variantService.items(variant.id, filter)
     return this.transform.entityToPaginated(Item, ItemsConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField()
+  async processes(@Parent() variant: Variant, @Args() args: VariantProcessesArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(VariantProcessesArgs, args)
+    const cursor = await this.variantService.processes(variant.id, filter)
+    return this.transform.entityToPaginated(Process, ProcessConnection, cursor, parsedArgs)
   }
 
   @ResolveField(() => VariantsConnection)

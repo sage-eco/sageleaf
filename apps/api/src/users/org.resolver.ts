@@ -9,7 +9,11 @@ import { EditService } from '@src/changes/edit.service'
 import { TrackEntityView } from '@src/common/entity-view.decorator'
 import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
+import { Place, PlacesConnection } from '@src/geo/place.model'
 import { DeleteOutput, ModelEditSchema } from '@src/graphql/base.model'
+import { Process, ProcessConnection } from '@src/process/process.model'
+import { Program, ProgramsConnection } from '@src/process/program.model'
+import { Variant, VariantsConnection } from '@src/product/variant.model'
 import { RelatedArgs } from '@src/search/related.model'
 import { SearchIndex } from '@src/search/search.backend'
 import { SearchService } from '@src/search/search.service'
@@ -21,9 +25,13 @@ import {
   OrgHistory,
   OrgHistoryArgs,
   OrgHistoryConnection,
+  OrgPlacesArgs,
+  OrgProcessesArgs,
+  OrgProgramsArgs,
   OrgsArgs,
   OrgsConnection,
   OrgUsersArgs,
+  OrgVariantsArgs,
   UpdateOrgInput,
   UpdateOrgOutput,
 } from '@src/users/org.model'
@@ -81,6 +89,34 @@ export class OrgResolver {
     const [parsedArgs, filter] = await this.transform.paginationArgs(OrgUsersArgs, args)
     const cursor = await this.orgService.users(org.id, filter)
     return this.transform.entityToPaginated(User, UserConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField()
+  async places(@Parent() org: Org, @Args() args: OrgPlacesArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(OrgPlacesArgs, args)
+    const cursor = await this.orgService.places(org.id, filter)
+    return this.transform.entityToPaginated(Place, PlacesConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField()
+  async processes(@Parent() org: Org, @Args() args: OrgProcessesArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(OrgProcessesArgs, args)
+    const cursor = await this.orgService.processes(org.id, filter)
+    return this.transform.entityToPaginated(Process, ProcessConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField()
+  async programs(@Parent() org: Org, @Args() args: OrgProgramsArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(OrgProgramsArgs, args)
+    const cursor = await this.orgService.programs(org.id, filter)
+    return this.transform.entityToPaginated(Program, ProgramsConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField()
+  async variants(@Parent() org: Org, @Args() args: OrgVariantsArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(OrgVariantsArgs, args)
+    const cursor = await this.orgService.variants(org.id, filter)
+    return this.transform.entityToPaginated(Variant, VariantsConnection, cursor, parsedArgs)
   }
 
   @ResolveField(() => OrgsConnection)

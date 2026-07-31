@@ -89,13 +89,13 @@ export class Process extends IDCreatedUpdated implements Named {
     nullable: true,
     description: 'The geographic region where this process is available',
   })
-  region?: Region
+  region?: Region & {}
 
   @Field(() => Place, {
     nullable: true,
     description: 'The physical location where this process is carried out',
   })
-  place?: Place
+  place?: Place & {}
 
   @Field(() => ProcessSourcesConnection)
   sources!: ProcessSourcesConnection & {}

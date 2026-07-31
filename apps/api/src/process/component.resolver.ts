@@ -28,6 +28,7 @@ import {
   ComponentSourcesArgs,
   ComponentSourcesConnection,
   ComponentTagsArgs,
+  ComponentVariantsArgs,
   CreateComponentInput,
   CreateComponentOutput,
   UpdateComponentInput,
@@ -39,6 +40,7 @@ import { Material } from '@src/process/material.model'
 import { MaterialService } from '@src/process/material.service'
 import { Tag, TagConnection } from '@src/process/tag.model'
 import { Image, ImagesArgs, ImagesConnection } from '@src/product/image.model'
+import { Variant, VariantsConnection } from '@src/product/variant.model'
 import { RelatedArgs } from '@src/search/related.model'
 import { SearchIndex } from '@src/search/search.backend'
 import { SearchService } from '@src/search/search.service'
@@ -228,6 +230,13 @@ export class ComponentResolver {
     const [parsedArgs, filter] = await this.transform.paginationArgs(ImagesArgs, args)
     const cursor = await this.componentService.images(component.id, filter)
     return this.transform.entityToPaginated(Image, ImagesConnection, cursor, parsedArgs)
+  }
+
+  @ResolveField(() => VariantsConnection)
+  async variants(@Parent() component: Component, @Args() args: ComponentVariantsArgs) {
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ComponentVariantsArgs, args)
+    const cursor = await this.componentService.variants(component.id, filter)
+    return this.transform.entityToPaginated(Variant, VariantsConnection, cursor, parsedArgs)
   }
 
   @ResolveField(() => ComponentsConnection)

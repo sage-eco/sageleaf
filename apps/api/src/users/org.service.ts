@@ -8,6 +8,10 @@ import { ConflictErr, NotFoundErr } from '@src/common/exceptions'
 import { I18nService } from '@src/common/i18n.service'
 import { CursorOptions } from '@src/common/transform'
 import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
+import { Place } from '@src/geo/place.entity'
+import { Process } from '@src/process/process.entity'
+import { Program } from '@src/process/program.entity'
+import { Variant } from '@src/product/variant.entity'
 import { Org, OrgHistory } from '@src/users/org.entity'
 import { CreateOrgInput, UpdateOrgInput } from '@src/users/org.model'
 import { User } from '@src/users/users.entity'
@@ -47,6 +51,34 @@ export class OrgService implements IEntityService<Org> {
       items: users,
       count,
     }
+  }
+
+  async places(orgID: string, opts: CursorOptions<Place>) {
+    opts.where.org = orgID
+    const items = await this.em.find(Place, opts.where, opts.options)
+    const count = await this.em.count(Place, opts.where)
+    return { items, count }
+  }
+
+  async processes(orgID: string, opts: CursorOptions<Process>) {
+    opts.where.org = orgID
+    const items = await this.em.find(Process, opts.where, opts.options)
+    const count = await this.em.count(Process, opts.where)
+    return { items, count }
+  }
+
+  async programs(orgID: string, opts: CursorOptions<Program>) {
+    opts.where.orgs = this.em.getReference(Org, orgID)
+    const items = await this.em.find(Program, opts.where, opts.options)
+    const count = await this.em.count(Program, { orgs: opts.where.orgs })
+    return { items, count }
+  }
+
+  async variants(orgID: string, opts: CursorOptions<Variant>) {
+    opts.where.orgs = this.em.getReference(Org, orgID)
+    const items = await this.em.find(Variant, opts.where, opts.options)
+    const count = await this.em.count(Variant, { orgs: opts.where.orgs })
+    return { items, count }
   }
 
   async create(input: CreateOrgInput, userID: string) {

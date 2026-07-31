@@ -6,9 +6,13 @@ import { ChangeInputWithLang } from '@src/changes/change-ext.model'
 import { Change } from '@src/changes/change.model'
 import { LuxonDateTimeResolver } from '@src/common/datetime.model'
 import { IsNanoID } from '@src/common/validator.model'
+import { PlacesConnection } from '@src/geo/place.model'
 import { BaseModel, IDCreatedUpdated, type ModelRef, registerModel } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { ProcessConnection } from '@src/process/process.model'
+import { ProgramsConnection } from '@src/process/program.model'
+import { VariantsConnection } from '@src/product/variant.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User, UserConnection } from '@src/users/users.model'
 
@@ -34,6 +38,18 @@ export class Org extends IDCreatedUpdated implements Named {
 
   @Field(() => UserConnection, { description: 'Users that are members of this organization' })
   users!: UserConnection & {}
+
+  @Field(() => PlacesConnection, { description: 'Places belonging to this organization' })
+  places!: PlacesConnection & {}
+
+  @Field(() => ProcessConnection, { description: 'Processes belonging to this organization' })
+  processes!: ProcessConnection & {}
+
+  @Field(() => ProgramsConnection, { description: 'Programs this organization participates in' })
+  programs!: ProgramsConnection & {}
+
+  @Field(() => VariantsConnection, { description: 'Product variants linked to this organization' })
+  variants!: VariantsConnection & {}
 
   @Field(() => OrgsConnection, {
     description: 'Similar organizations related to this organization',
@@ -89,6 +105,26 @@ export class OrgHistoryArgs extends PaginationBasicArgs {
 
 @ArgsType()
 export class OrgUsersArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class OrgPlacesArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class OrgProcessesArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class OrgProgramsArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class OrgVariantsArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
 }
 

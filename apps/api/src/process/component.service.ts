@@ -23,6 +23,7 @@ import { Material } from '@src/process/material.entity'
 import { StreamService } from '@src/process/stream.service'
 import { Tag } from '@src/process/tag.entity'
 import { TagService } from '@src/process/tag.service'
+import { Variant } from '@src/product/variant.entity'
 
 @Injectable()
 @IsEntityService(Component)
@@ -240,6 +241,13 @@ export class ComponentService implements IEntityService<Component> {
       source: { type: SourceType.IMAGE },
     })
     return { items: componentSources.map((cs) => cs.source), count }
+  }
+
+  async variants(componentID: string, opts: CursorOptions<Variant>) {
+    opts.where.components = this.em.getReference(Component, componentID)
+    const items = await this.em.find(Variant, opts.where, opts.options)
+    const count = await this.em.count(Variant, { components: opts.where.components })
+    return { items, count }
   }
 
   async sources(componentID: string, opts: CursorOptions<ComponentsSources>) {

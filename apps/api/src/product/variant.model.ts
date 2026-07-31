@@ -21,6 +21,7 @@ import {
 import { Named } from '@src/graphql/interfaces.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { Component, ComponentsConnection } from '@src/process/component.model'
+import { ProcessConnection } from '@src/process/process.model'
 import {
   RecyclingStream,
   ReduceStream,
@@ -108,6 +109,11 @@ export class Variant extends IDCreatedUpdated implements Named {
 
   @Field(() => ItemsConnection, { description: 'Product items this variant belongs to' })
   items!: ItemsConnection
+
+  @Field(() => ProcessConnection, {
+    description: 'Recycling or disposal processes specific to this variant',
+  })
+  processes!: ProcessConnection & {}
 
   @Field(() => VariantsConnection, { description: 'Similar variants related to this variant' })
   related!: VariantsConnection & {}
@@ -302,6 +308,11 @@ export class VariantTagsArgs extends PaginationBasicArgs {
 
 @ArgsType()
 export class VariantItemsArgs extends PaginationBasicArgs {
+  static schema = PaginationBasicArgs.schema
+}
+
+@ArgsType()
+export class VariantProcessesArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
 }
 

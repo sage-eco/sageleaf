@@ -6,6 +6,10 @@ import { BadRequestErr } from '@src/common/exceptions'
 import { CursorOptions } from '@src/common/transform'
 import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
 import { Region } from '@src/geo/region.entity'
+import { Component } from '@src/process/component.entity'
+import { Process } from '@src/process/process.entity'
+import { Program } from '@src/process/program.entity'
+import { Variant } from '@src/product/variant.entity'
 import { SearchIndex } from '@src/search/search.backend'
 import { SearchService } from '@src/search/search.service'
 
@@ -36,6 +40,34 @@ export class RegionService implements IEntityService<Region> {
 
   async findManyByID(ids: string[]) {
     return this.em.find(Region, { id: { $in: ids } })
+  }
+
+  async components(regionID: string, opts: CursorOptions<Component>) {
+    opts.where.region = regionID
+    const items = await this.em.find(Component, opts.where, opts.options)
+    const count = await this.em.count(Component, opts.where)
+    return { items, count }
+  }
+
+  async processes(regionID: string, opts: CursorOptions<Process>) {
+    opts.where.region = regionID
+    const items = await this.em.find(Process, opts.where, opts.options)
+    const count = await this.em.count(Process, opts.where)
+    return { items, count }
+  }
+
+  async programs(regionID: string, opts: CursorOptions<Program>) {
+    opts.where.region = regionID
+    const items = await this.em.find(Program, opts.where, opts.options)
+    const count = await this.em.count(Program, opts.where)
+    return { items, count }
+  }
+
+  async variants(regionID: string, opts: CursorOptions<Variant>) {
+    opts.where.region = regionID
+    const items = await this.em.find(Variant, opts.where, opts.options)
+    const count = await this.em.count(Variant, opts.where)
+    return { items, count }
   }
 
   async findMostSpecificByPoint(args: {
