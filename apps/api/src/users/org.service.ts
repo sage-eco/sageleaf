@@ -153,12 +153,11 @@ export class OrgService implements IEntityService<Org> {
   async history(orgID: string, opts: CursorOptions<OrgHistory>) {
     const items = await this.em.find(
       OrgHistory,
-      { org: orgID },
+      { org: orgID, ...opts.where },
       {
         populate: ['user'],
-        orderBy: { datetime: 'ASC' },
+        orderBy: opts.options.orderBy,
         limit: opts.options.limit,
-        offset: opts.options.offset,
       },
     )
     const count = await this.em.count(OrgHistory, { org: orgID })

@@ -101,6 +101,11 @@ export class OrgsArgs extends PaginationBasicArgs {
 @ArgsType()
 export class OrgHistoryArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  // OrgHistory's primary key is (org, datetime) — there's no `id`.
+  orderBy(): string[] {
+    return ['datetime']
+  }
 }
 
 @ArgsType()

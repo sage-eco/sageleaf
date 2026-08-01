@@ -186,7 +186,7 @@ export class ProcessResolver {
 
   @ResolveField(() => ProcessHistoryConnection)
   async history(@Parent() process: Process, @Args() args: ProcessHistoryArgs) {
-    const [, filter] = await this.transform.paginationArgs(ProcessHistoryArgs, args)
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ProcessHistoryArgs, args)
     const cursor = await this.processService.history(process.id, filter)
     const items = await Promise.all(
       cursor.items.map((h) => this.transform.entityToModel(ProcessHistory, h)),
@@ -195,6 +195,8 @@ export class ProcessResolver {
       ProcessHistoryConnection,
       { items, count: cursor.count },
       true,
+      parsedArgs,
+      (node: any) => node.datetime?.toISO?.() ?? '',
     )
   }
 }

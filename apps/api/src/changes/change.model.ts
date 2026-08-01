@@ -215,6 +215,13 @@ export class ChangeEditsArgs extends PaginationBasicArgs {
 
   @Field(() => EditModelType, { nullable: true })
   type?: EditModelType
+
+  // `Edit.id` is the ID of the edited entity (see EditTransform), not a
+  // unique/orderable key, so cursor pagination is keyed on the ChangeEdits
+  // row's own primary key instead.
+  orderBy(): string[] {
+    return ['edit_id']
+  }
 }
 
 @ArgsType()

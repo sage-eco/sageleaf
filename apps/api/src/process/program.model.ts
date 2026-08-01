@@ -114,6 +114,11 @@ export class ProgramsConnection extends Paginated(Program) {}
 @ArgsType()
 export class ProgramHistoryArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  // ProgramHistory's primary key is (program, datetime) — there's no `id`.
+  orderBy(): string[] {
+    return ['datetime']
+  }
 }
 
 @ArgsType()

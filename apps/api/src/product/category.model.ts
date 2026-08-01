@@ -117,6 +117,11 @@ export class CategoriesConnection extends Paginated(Category) {}
 @ArgsType()
 export class CategoryHistoryArgs extends PaginationBasicArgs {
   static schema = PaginationBasicArgs.schema
+
+  // CategoryHistory's primary key is (category, datetime) — there's no `id`.
+  orderBy(): string[] {
+    return ['datetime']
+  }
 }
 
 @ArgsType()

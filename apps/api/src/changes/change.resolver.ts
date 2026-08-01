@@ -153,11 +153,22 @@ export class ChangeResolver {
     @Parent() change: Change,
     @Args() args: ChangeEditsArgs,
   ): Promise<ChangeEditsConnection> {
-    const edits = await this.changeService.edits(change.id, args.id, args.type)
+    if (args.id) {
+      const edit = await this.changeService.edit(change.id, args.id, args.type)
+      return this.transform.objectsToPaginated(
+        ChangeEditsConnection,
+        { items: [edit], count: 1 },
+        true,
+      )
+    }
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ChangeEditsArgs, args)
+    const cursor = await this.changeService.edits(change.id, args.type, filter)
     return this.transform.objectsToPaginated(
       ChangeEditsConnection,
-      { items: edits, count: edits.length },
+      cursor,
       true,
+      parsedArgs,
+      (node: any) => node._cursorID,
     )
   }
 

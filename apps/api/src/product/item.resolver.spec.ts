@@ -1123,6 +1123,78 @@ describe('ItemResolver (integration)', () => {
       expect(latest.original).toBeTruthy()
       expect(latest.changes).toBeTruthy()
     })
+
+    test('should paginate history with first/after and last', async () => {
+      const createRes = await gql.send(
+        graphql(`
+          mutation ItemHistoryPaginationCreate($input: CreateItemInput!) {
+            createItem(input: $input) {
+              item {
+                id
+              }
+            }
+          }
+        `),
+        { input: { name: 'History Pagination Item' } },
+      )
+      const itemID = createRes.data?.createItem?.item?.id
+      expect(itemID).toBeDefined()
+
+      for (let i = 0; i < 2; i++) {
+        await gql.send(
+          graphql(`
+            mutation ItemHistoryPaginationUpdate($input: UpdateItemInput!) {
+              updateItem(input: $input) {
+                item {
+                  id
+                }
+              }
+            }
+          `),
+          { input: { id: itemID!, name: `History Pagination Item ${i}` } },
+        )
+      }
+      // 3 history entries total: 1 create + 2 updates
+
+      const HistoryPageQuery = graphql(`
+        query ItemHistoryPage($id: ID!, $first: Int, $after: String, $last: Int, $before: String) {
+          item(id: $id) {
+            history(first: $first, after: $after, last: $last, before: $before) {
+              totalCount
+              nodes {
+                datetime
+              }
+              pageInfo {
+                hasNextPage
+                hasPreviousPage
+                startCursor
+                endCursor
+              }
+            }
+          }
+        }
+      `)
+
+      const page1 = await gql.send(HistoryPageQuery, { id: itemID!, first: 2 })
+      expect(page1.data?.item?.history?.totalCount).toBe(3)
+      expect(page1.data?.item?.history?.nodes?.length).toBe(2)
+      expect(page1.data?.item?.history?.pageInfo?.hasNextPage).toBe(true)
+      expect(page1.data?.item?.history?.pageInfo?.hasPreviousPage).toBe(false)
+
+      const page2 = await gql.send(HistoryPageQuery, {
+        id: itemID!,
+        first: 2,
+        after: page1.data?.item?.history?.pageInfo?.endCursor,
+      })
+      expect(page2.data?.item?.history?.nodes?.length).toBe(1)
+      expect(page2.data?.item?.history?.pageInfo?.hasNextPage).toBe(false)
+      expect(page2.data?.item?.history?.pageInfo?.hasPreviousPage).toBe(true)
+
+      const lastPage = await gql.send(HistoryPageQuery, { id: itemID!, last: 2 })
+      expect(lastPage.data?.item?.history?.nodes?.length).toBe(2)
+      expect(lastPage.data?.item?.history?.pageInfo?.hasNextPage).toBe(false)
+      expect(lastPage.data?.item?.history?.pageInfo?.hasPreviousPage).toBe(true)
+    })
   })
 
   describe('Item recycling fields (combined from variants)', () => {

@@ -418,6 +418,79 @@ describe('ChangeResolver (integration)', () => {
     expect(editNode?.copyInput?.updatedAt).toBeUndefined()
   })
 
+  test('should paginate edits with first/after and last/before', async () => {
+    const pagChange = await changeService.create(
+      { title: 'Pagination Test Change', description: 'Integration test' },
+      user.id,
+    )
+    const editCount = 3
+    for (let i = 0; i < editCount; i++) {
+      await gql.send(
+        graphql(`
+          mutation ChangeResolverPaginationEdit($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: VARIANT_IDS[i],
+            changeID: pagChange.id,
+            name: `Paginated Name ${i}`,
+          },
+        },
+      )
+    }
+
+    const EditsPageQuery = graphql(`
+      query ChangeResolverEditsPage(
+        $id: ID!
+        $first: Int
+        $after: String
+        $last: Int
+        $before: String
+      ) {
+        change(id: $id) {
+          edits(first: $first, after: $after, last: $last, before: $before) {
+            totalCount
+            nodes {
+              id
+            }
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+          }
+        }
+      }
+    `)
+
+    const page1 = await gql.send(EditsPageQuery, { id: pagChange.id, first: 2 })
+    expect(page1.data?.change?.edits?.totalCount).toBe(editCount)
+    expect(page1.data?.change?.edits?.nodes?.length).toBe(2)
+    expect(page1.data?.change?.edits?.pageInfo?.hasNextPage).toBe(true)
+    expect(page1.data?.change?.edits?.pageInfo?.hasPreviousPage).toBe(false)
+
+    const page2 = await gql.send(EditsPageQuery, {
+      id: pagChange.id,
+      first: 2,
+      after: page1.data?.change?.edits?.pageInfo?.endCursor,
+    })
+    expect(page2.data?.change?.edits?.nodes?.length).toBe(1)
+    expect(page2.data?.change?.edits?.pageInfo?.hasNextPage).toBe(false)
+    expect(page2.data?.change?.edits?.pageInfo?.hasPreviousPage).toBe(true)
+
+    const lastPage = await gql.send(EditsPageQuery, { id: pagChange.id, last: 2 })
+    expect(lastPage.data?.change?.edits?.nodes?.length).toBe(2)
+    expect(lastPage.data?.change?.edits?.pageInfo?.hasNextPage).toBe(false)
+    expect(lastPage.data?.change?.edits?.pageInfo?.hasPreviousPage).toBe(true)
+  })
+
   test('should add a direct Item -> Category reference', async () => {
     const res = await gql.send(AddRefMutation, {
       model: EditModelType.Item,

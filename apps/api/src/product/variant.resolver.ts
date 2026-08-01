@@ -282,7 +282,7 @@ export class VariantResolver {
 
   @ResolveField(() => VariantHistoryConnection)
   async history(@Parent() variant: Variant, @Args() args: VariantHistoryArgs) {
-    const [, filter] = await this.transform.paginationArgs(VariantHistoryArgs, args)
+    const [parsedArgs, filter] = await this.transform.paginationArgs(VariantHistoryArgs, args)
     const cursor = await this.variantService.history(variant.id, filter)
     const items = await Promise.all(
       cursor.items.map((h) => this.transform.entityToModel(VariantHistory, h)),
@@ -291,6 +291,8 @@ export class VariantResolver {
       VariantHistoryConnection,
       { items, count: cursor.count },
       true,
+      parsedArgs,
+      (node: any) => node.datetime?.toISO?.() ?? '',
     )
   }
 }

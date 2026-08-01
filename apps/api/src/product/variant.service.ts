@@ -458,12 +458,11 @@ export class VariantService implements IEntityService<Variant> {
   async history(variantID: string, opts: CursorOptions<VariantHistory>) {
     const items = await this.em.find(
       VariantHistory,
-      { variant: variantID },
+      { variant: variantID, ...opts.where },
       {
         populate: ['user'],
-        orderBy: { datetime: 'ASC' },
+        orderBy: opts.options.orderBy,
         limit: opts.options.limit,
-        offset: opts.options.offset,
       },
     )
     const count = await this.em.count(VariantHistory, { variant: variantID })

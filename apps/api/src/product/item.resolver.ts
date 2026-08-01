@@ -211,7 +211,7 @@ export class ItemResolver {
 
   @ResolveField(() => ItemHistoryConnection)
   async history(@Parent() item: Item, @Args() args: ItemHistoryArgs) {
-    const [, filter] = await this.transform.paginationArgs(ItemHistoryArgs, args)
+    const [parsedArgs, filter] = await this.transform.paginationArgs(ItemHistoryArgs, args)
     const cursor = await this.itemService.history(item.id, filter)
     const items = await Promise.all(
       cursor.items.map((h) => this.transform.entityToModel(ItemHistory, h)),
@@ -220,6 +220,8 @@ export class ItemResolver {
       ItemHistoryConnection,
       { items, count: cursor.count },
       true,
+      parsedArgs,
+      (node: any) => node.datetime?.toISO?.() ?? '',
     )
   }
 }

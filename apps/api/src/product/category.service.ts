@@ -219,12 +219,11 @@ export class CategoryService implements IEntityService<Category> {
   async history(categoryID: string, opts: CursorOptions<CategoryHistory>) {
     const items = await this.em.find(
       CategoryHistory,
-      { category: categoryID },
+      { category: categoryID, ...opts.where },
       {
         populate: ['user'],
-        orderBy: { datetime: 'ASC' },
+        orderBy: opts.options.orderBy,
         limit: opts.options.limit,
-        offset: opts.options.offset,
       },
     )
     const count = await this.em.count(CategoryHistory, { category: categoryID })

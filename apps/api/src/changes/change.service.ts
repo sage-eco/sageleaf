@@ -84,81 +84,75 @@ export class ChangeService {
     return change
   }
 
-  async edits(changeID: string, editID?: string, editType?: EditModelType) {
-    const change = await this.em.findOne(Change, { id: changeID }, { populate: ['edits'] })
-    if (!change) {
-      throw NotFoundErr(`Change with ID "${changeID}" not found`)
+  /**
+   * Fetches a single edit by the ID of the entity it edits.
+   */
+  async edit(changeID: string, editID: string, editType?: EditModelType): Promise<EditModel> {
+    const edit = await this.em.findOne(ChangeEdits, {
+      change: changeID,
+      entityID: editID,
+      ...(editType ? { entityName: editType } : {}),
+    })
+    if (!edit) {
+      throw NotFoundErr(`Edit with ID "${editID}" not found in change "${changeID}"`)
     }
-    if (editID) {
-      const edit = change.edits.find(
-        (e) => e.entityID === editID && (editType ? e.entityName === editType : true),
-      )
-      if (!edit) {
-        throw NotFoundErr(`Edit with ID "${editID}" not found in change "${changeID}"`)
-      }
-      edit._type = EditModel
-      const editModel = (await this.transform.entityToModel(EditModel, edit)) as EditModel
-      editModel.originalJSON = edit.original
-      editModel.changesJSON = edit.changes
-      const effectiveChanges = this.editService.effectiveChanges(edit)
-      const changesEntity =
-        effectiveChanges && edit.entityID
-          ? await this.editService.changePOJOToEntity(edit.entityName, effectiveChanges)
-          : null
-      const svcResult1 = changesEntity
-        ? this.metaService.findSchemaService(changesEntity.constructor)
+    return this.buildEditModel(edit)
+  }
+
+  /**
+   * Fetches a page of edits for a change. `filter` (from `TransformService.paginationArgs`)
+   * supplies the cursor where-clause/orderBy/limit; ordering is on `ChangeEdits.edit_id`
+   * (see `ChangeEditsArgs.orderBy`), not `Edit.id`, since the latter is the edited
+   * entity's id (see `EditTransform`) and isn't a unique, orderable key.
+   */
+  async edits(
+    changeID: string,
+    editType?: EditModelType,
+    filter?: CursorOptions<ChangeEdits>,
+  ): Promise<{ items: EditModel[]; count: number }> {
+    const where = {
+      change: changeID,
+      ...(editType ? { entityName: editType } : {}),
+      ...filter?.where,
+    }
+    const [edits, count] = await this.em.findAndCount(ChangeEdits, where, filter?.options ?? {})
+    const items = await Promise.all(edits.map((edit) => this.buildEditModel(edit)))
+    return { items, count }
+  }
+
+  private async buildEditModel(edit: ChangeEdits): Promise<EditModel> {
+    edit._type = EditModel
+    const editModel = (await this.transform.entityToModel(EditModel, edit)) as EditModel
+    editModel.originalJSON = edit.original
+    editModel.changesJSON = edit.changes
+    const effectiveChanges = this.editService.effectiveChanges(edit)
+    const changesEntity =
+      effectiveChanges && edit.entityID
+        ? await this.editService.changePOJOToEntity(edit.entityName, effectiveChanges)
         : null
-      if (svcResult1) {
-        const [, schemaSvc] = svcResult1
-        editModel.createInput = await schemaSvc.createInputModel(changesEntity!)
-        const updateInput = await schemaSvc.updateInputModel(changesEntity!)
-        editModel.updateInput = updateInput
-        if (updateInput) {
-          const {
-            id: _id,
-            createdAt: _createdAt,
-            updatedAt: _updatedAt,
-            ...copyInput
-          } = updateInput as any
-          editModel.copyInput = copyInput
-        }
+    const svcResult = changesEntity
+      ? this.metaService.findSchemaService(changesEntity.constructor)
+      : null
+    if (svcResult) {
+      const [, schemaSvc] = svcResult
+      editModel.createInput = await schemaSvc.createInputModel(changesEntity!)
+      const updateInput = await schemaSvc.updateInputModel(changesEntity!)
+      editModel.updateInput = updateInput
+      if (updateInput) {
+        const {
+          id: _id,
+          createdAt: _createdAt,
+          updatedAt: _updatedAt,
+          ...copyInput
+        } = updateInput as any
+        editModel.copyInput = copyInput
       }
-      await this.setEditConflict(editModel, edit)
-      return [editModel]
     }
-    return Promise.all(
-      change.edits.map(async (edit) => {
-        edit._type = EditModel
-        const editModel = (await this.transform.entityToModel(EditModel, edit)) as EditModel
-        editModel.originalJSON = edit.original
-        editModel.changesJSON = edit.changes
-        const effectiveChanges = this.editService.effectiveChanges(edit)
-        const changesEntity =
-          effectiveChanges && edit.entityID
-            ? await this.editService.changePOJOToEntity(edit.entityName, effectiveChanges)
-            : null
-        const svcResult2 = changesEntity
-          ? this.metaService.findSchemaService(changesEntity.constructor)
-          : null
-        if (svcResult2) {
-          const [, schemaSvc] = svcResult2
-          editModel.createInput = await schemaSvc.createInputModel(changesEntity!)
-          const updateInput = await schemaSvc.updateInputModel(changesEntity!)
-          editModel.updateInput = updateInput
-          if (updateInput) {
-            const {
-              id: _id,
-              createdAt: _createdAt,
-              updatedAt: _updatedAt,
-              ...copyInput
-            } = updateInput as any
-            editModel.copyInput = copyInput
-          }
-        }
-        await this.setEditConflict(editModel, edit)
-        return editModel
-      }),
-    )
+    await this.setEditConflict(editModel, edit)
+    // Smuggled onto the model (not a GraphQL field) so pagination can window
+    // on the ChangeEdits row's own key — see `edits()`/`ChangeEditsArgs.orderBy`.
+    ;(editModel as any)._cursorID = edit.edit_id
+    return editModel
   }
 
   private async setEditConflict(editModel: EditModel, edit: ChangeEdits) {
