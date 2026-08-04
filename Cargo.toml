@@ -1,5 +1,5 @@
 [workspace]
-members = ["apps/frontend/src-tauri", "packages/scanleaf"]
+members = ["apps/frontend/src-tauri", "apps/science/src-tauri", "packages/scanleaf"]
 resolver = "3"
 
 [workspace.package]
