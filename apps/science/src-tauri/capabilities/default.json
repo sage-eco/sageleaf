@@ -8,6 +8,7 @@
     "sql:default",
     "sql:allow-execute",
     "opener:default",
-    "os:default"
+    "os:default",
+    "sageleaf-scribeleaf:default"
   ]
 }

@@ -1,0 +1,33 @@
+[package]
+name = "sageleaf-scribeleaf"
+description = "Local REST API for human-in-the-loop form editing in Tauri"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+links = "sageleaf-scribeleaf"
+
+[package.metadata.platforms.support]
+windows = { level = "full", notes = "" }
+linux = { level = "full", notes = "" }
+macos = { level = "full", notes = "" }
+android = { level = "none", notes = "" }
+ios = { level = "none", notes = "" }
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+tauri = { workspace = true }
+log.workspace = true
+thiserror.workspace = true
+axum.workspace = true
+tokio = { workspace = true, features = ["net", "sync"] }
+tower-http = { workspace = true, features = ["cors"] }
+json-patch.workspace = true
+utoipa = { workspace = true, features = ["axum_extras"] }
+utoipa-axum.workspace = true

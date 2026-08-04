@@ -1,0 +1,15 @@
+"$schema" = "schemas/schema.json"
+
+[[permission]]
+identifier = "allow-form"
+description = "Enables the register_form, update_form_data, and unregister_form commands without any pre-configured scope."
+commands.allow = ["register_form", "update_form_data", "unregister_form"]
+
+[default]
+description = """
+This permission set configures which scribeleaf features are exposed by default.
+
+Grants access to registering, updating, and unregistering the currently active form.
+"""
+
+permissions = ["allow-form"]

@@ -27,6 +27,7 @@
     "@pinia/nuxt": "^0.11.3",
     "@tailwindcss/vite": "~4.2.2",
     "@tanstack/vue-form": "^1.28.5",
+    "@tauri-apps/api": "^2.10.1",
     "@tolgee/vue": "^7.0.0",
     "@vueuse/core": "^14.2.1",
     "ajv": "^8.17.1",

@@ -24,3 +24,4 @@ tauri-plugin-log.workspace = true
 tauri-plugin-opener.workspace = true
 tauri-plugin-os.workspace = true
 tauri-plugin-sql = { workspace = true, features = ["sqlite"] }
+sageleaf-scribeleaf.workspace = true

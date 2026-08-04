@@ -104,6 +104,7 @@ export default defineNuxtConfig({
       appVersion: version,
       buildDate,
       gitSha,
+      scribeleafEnabled: true,
     },
   },
 

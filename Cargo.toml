@@ -1,5 +1,10 @@
 [workspace]
-members = ["apps/frontend/src-tauri", "apps/science/src-tauri", "packages/scanleaf"]
+members = [
+  "apps/frontend/src-tauri",
+  "apps/science/src-tauri",
+  "packages/scanleaf",
+  "packages/scribeleaf",
+]
 resolver = "3"
 
 [workspace.package]
@@ -22,9 +27,16 @@ tauri-utils = "2.8"
 tauri-plugin-log = "2.8"
 tauri-plugin-geolocation = "2.3.2"
 sageleaf-scanleaf = { path = "packages/scanleaf" }
+sageleaf-scribeleaf = { path = "packages/scribeleaf" }
 tauri-plugin-sql = "2.3.2"
 tauri-plugin-opener = "2.5.3"
 tauri-plugin-os = "2.3.2"
+axum = "0.8"
+tokio = "1"
+tower-http = "0.6"
+json-patch = "3"
+utoipa = "5"
+utoipa-axum = "0.2"
 
 [profile.dev]
 incremental = true
