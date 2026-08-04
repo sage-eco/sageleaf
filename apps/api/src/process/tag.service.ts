@@ -36,7 +36,7 @@ export class TagService implements IEntityService<Tag> {
 
   async find(opts: CursorOptions<Tag>) {
     const tags = await this.em.find(Tag, opts.where, opts.options)
-    const count = await this.em.count(Tag, opts.where)
+    const count = await this.em.count(Tag, opts.where, { filters: opts.options.filters })
     return {
       items: tags,
       count,

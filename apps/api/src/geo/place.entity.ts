@@ -2,6 +2,7 @@ import {
   BaseEntity,
   Collection,
   Entity,
+  Filter,
   Index,
   ManyToMany,
   ManyToOne,
@@ -12,6 +13,7 @@ import {
   Property,
 } from '@mikro-orm/core'
 import type { Ref } from '@mikro-orm/core'
+import { raw } from '@mikro-orm/postgresql'
 
 import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
 import type { TranslatedField } from '@src/common/i18n'
@@ -28,6 +30,12 @@ import { User } from '@src/users/users.entity'
 @Index({
   name: 'places_rank_order_idx',
   expression: `create index "places_rank_order_idx" on "places" (rank_order desc, id desc)`,
+})
+@Filter({
+  name: 'rankOrderCursor',
+  cond: (args: { cmp: '$gte' | '$lte'; order: number; id: string }) => ({
+    [raw('(rank_order, id)')]: { [args.cmp]: raw('(?, ?)', [args.order, args.id]) },
+  }),
 })
 export class Place extends CreatedUpdated {
   [OptionalProps]?: 'rankOrder'

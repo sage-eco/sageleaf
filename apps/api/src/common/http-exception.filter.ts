@@ -6,7 +6,7 @@ import { Response } from 'express'
 import { GraphQLError } from 'graphql'
 import { ZodError } from 'zod/v4'
 
-import { isProd, isDev } from '@src/common/common.utils'
+import { isDev, isProd } from '@src/common/common.utils'
 import {
   BaseException,
   ErrorEntry,

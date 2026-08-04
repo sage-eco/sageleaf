@@ -45,28 +45,28 @@ export class RegionService implements IEntityService<Region> {
   async components(regionID: string, opts: CursorOptions<Component>) {
     opts.where.region = regionID
     const items = await this.em.find(Component, opts.where, opts.options)
-    const count = await this.em.count(Component, opts.where)
+    const count = await this.em.count(Component, opts.where, { filters: opts.options.filters })
     return { items, count }
   }
 
   async processes(regionID: string, opts: CursorOptions<Process>) {
     opts.where.region = regionID
     const items = await this.em.find(Process, opts.where, opts.options)
-    const count = await this.em.count(Process, opts.where)
+    const count = await this.em.count(Process, opts.where, { filters: opts.options.filters })
     return { items, count }
   }
 
   async programs(regionID: string, opts: CursorOptions<Program>) {
     opts.where.region = regionID
     const items = await this.em.find(Program, opts.where, opts.options)
-    const count = await this.em.count(Program, opts.where)
+    const count = await this.em.count(Program, opts.where, { filters: opts.options.filters })
     return { items, count }
   }
 
   async variants(regionID: string, opts: CursorOptions<Variant>) {
     opts.where.region = regionID
     const items = await this.em.find(Variant, opts.where, opts.options)
-    const count = await this.em.count(Variant, opts.where)
+    const count = await this.em.count(Variant, opts.where, { filters: opts.options.filters })
     return { items, count }
   }
 

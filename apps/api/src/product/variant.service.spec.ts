@@ -7,6 +7,7 @@ import { AuthUserService } from '@src/auth/authuser.service'
 import { AUTH_USER_SERVICE_MOCK } from '@src/auth/authuser.service.mock'
 import { EditsModule } from '@src/changes/edits.module'
 import { CommonModule } from '@src/common/common.module'
+import { TransformService } from '@src/common/transform'
 import { BaseSeeder } from '@src/db/seeds/BaseSeeder'
 import { TestMaterialSeeder } from '@src/db/seeds/TestMaterialSeeder'
 import { ORG_IDS, REGION_IDS, TestProcessSeeder } from '@src/db/seeds/TestProcessSeeder'
@@ -21,6 +22,7 @@ import { clearDatabase } from '@src/db/test.utils'
 import { GeoModule } from '@src/geo/geo.module'
 import { MIKRO_TEST_CONFIG } from '@src/mikro-orm-test.config'
 import { ProcessModule } from '@src/process/process.module'
+import { VariantsArgs } from '@src/product/variant.model'
 import { VariantService } from '@src/product/variant.service'
 import { WindmillMockService } from '@src/windmill/windmill.mock.service'
 import { WindmillService } from '@src/windmill/windmill.service'
@@ -28,6 +30,7 @@ import { WindmillService } from '@src/windmill/windmill.service'
 describe('VariantService', () => {
   let module: TestingModule
   let service: VariantService
+  let transform: TransformService
   let orm: MikroORM
 
   beforeAll(async () => {
@@ -49,6 +52,7 @@ describe('VariantService', () => {
       .compile()
 
     service = module.get<VariantService>(VariantService)
+    transform = module.get<TransformService>(TransformService)
     orm = module.get<MikroORM>(MikroORM)
 
     await clearDatabase(orm, 'public', ['users'])
@@ -80,6 +84,14 @@ describe('VariantService', () => {
     })
     expect(result.items).toHaveLength(1)
     expect(result.items[0].id).toBe(VARIANT_IDS[1])
+  })
+
+  test('should find variants ordered by relevance with a cursor without crashing on count', async () => {
+    const cursor = Buffer.from(JSON.stringify({ order: 0, id: VARIANT_IDS[0] })).toString('base64')
+    const [, filter] = await transform.paginationArgs(VariantsArgs, { after: cursor } as any)
+    const result = await service.find(filter)
+    expect(result).toBeDefined()
+    expect(typeof result.count).toBe('number')
   })
 
   test('should retrieve items for a variant', async () => {

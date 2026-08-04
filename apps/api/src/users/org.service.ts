@@ -31,7 +31,7 @@ export class OrgService implements IEntityService<Org> {
 
   async find(opts: CursorOptions<Org>) {
     const items = await this.em.find(Org, opts.where, opts.options)
-    const count = await this.em.count(Org, opts.where)
+    const count = await this.em.count(Org, opts.where, { filters: opts.options.filters })
     return { items, count }
   }
 
@@ -56,14 +56,14 @@ export class OrgService implements IEntityService<Org> {
   async places(orgID: string, opts: CursorOptions<Place>) {
     opts.where.org = orgID
     const items = await this.em.find(Place, opts.where, opts.options)
-    const count = await this.em.count(Place, opts.where)
+    const count = await this.em.count(Place, opts.where, { filters: opts.options.filters })
     return { items, count }
   }
 
   async processes(orgID: string, opts: CursorOptions<Process>) {
     opts.where.org = orgID
     const items = await this.em.find(Process, opts.where, opts.options)
-    const count = await this.em.count(Process, opts.where)
+    const count = await this.em.count(Process, opts.where, { filters: opts.options.filters })
     return { items, count }
   }
 

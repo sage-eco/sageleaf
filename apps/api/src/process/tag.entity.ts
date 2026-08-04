@@ -1,12 +1,14 @@
 import {
   Collection,
   Entity,
+  Filter,
   Index,
   ManyToMany,
   OptionalProps,
   Property,
   Unique,
 } from '@mikro-orm/core'
+import { raw } from '@mikro-orm/postgresql'
 import { JSONSchemaType } from 'ajv/dist/2020'
 import { z } from 'zod/v4'
 
@@ -88,6 +90,12 @@ export type TagRules = z.infer<typeof TagRulesSchema>
 @Index({
   name: 'tags_rank_order_idx',
   expression: `create index "tags_rank_order_idx" on "tags" (rank_order desc, id desc)`,
+})
+@Filter({
+  name: 'rankOrderCursor',
+  cond: (args: { cmp: '$gte' | '$lte'; order: number; id: string }) => ({
+    [raw('(rank_order, id)')]: { [args.cmp]: raw('(?, ?)', [args.order, args.id]) },
+  }),
 })
 export class Tag extends IDCreatedUpdated {
   [OptionalProps]?: 'rankOrder'

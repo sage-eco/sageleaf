@@ -2,6 +2,7 @@ import {
   BaseEntity,
   Collection,
   Entity,
+  Filter,
   Index,
   ManyToMany,
   ManyToOne,
@@ -13,6 +14,7 @@ import {
   Property,
   type Ref,
 } from '@mikro-orm/core'
+import { raw } from '@mikro-orm/postgresql'
 import { z } from 'zod/v4'
 
 import { Source } from '@src/changes/source.entity'
@@ -43,6 +45,12 @@ export type VariantOrgRole = z.infer<typeof VariantOrgRoleSchema>
 @Index({
   name: 'variants_rank_order_idx',
   expression: `create index "variants_rank_order_idx" on "variants" (rank_order desc, id desc)`,
+})
+@Filter({
+  name: 'rankOrderCursor',
+  cond: (args: { cmp: '$gte' | '$lte'; order: number; id: string }) => ({
+    [raw('(rank_order, id)')]: { [args.cmp]: raw('(?, ?)', [args.order, args.id]) },
+  }),
 })
 export class Variant extends IDCreatedUpdated {
   [OptionalProps]?: 'rankOrder'
