@@ -1,9 +1,11 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { createClient, RedisClientType } from 'redis'
+
+import { OtelLogger } from '@src/common/otel-logger.service'
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(RedisService.name)
+  private readonly logger = new OtelLogger(RedisService.name)
   private client: RedisClientType
 
   constructor() {

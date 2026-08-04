@@ -1,7 +1,8 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { Injectable, OnModuleInit } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Typesense, { Client as TypesenseClient } from 'typesense'
 
+import { OtelLogger } from '@src/common/otel-logger.service'
 import {
   SearchBackend,
   SearchBackendFacetResult,
@@ -75,7 +76,7 @@ export class TypesenseSearchService implements SearchBackend, OnModuleInit {
   private collectionCacheExpiry = 0
   private readonly collectionSchemaByName = new Map<string, TypesenseCollection>()
   private readonly collectionSchemaPromiseByName = new Map<string, Promise<TypesenseCollection>>()
-  private readonly logger = new Logger(TypesenseSearchService.name)
+  private readonly logger = new OtelLogger(TypesenseSearchService.name)
 
   private static readonly CACHE_TTL = 60 * 60 * 1000
   private static readonly LOCALIZED_QUERY_FIELD_PRIORITY = ['name', 'desc_short', 'desc']

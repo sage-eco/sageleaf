@@ -5,6 +5,7 @@ import { PostHog } from 'posthog-node'
 import { uuidv7 } from 'uuidv7'
 
 import type { UserSession } from '@src/auth/auth.guard'
+import { isDev } from '@src/common/common.utils'
 
 @Injectable()
 export class PosthogService implements OnModuleDestroy {
@@ -23,7 +24,7 @@ export class PosthogService implements OnModuleDestroy {
         app: 'api',
         app_version: version ?? 'dev',
         app_sha: sha ?? '',
-        environment: process.env.NODE_ENV ?? 'unknown',
+        environment: isDev() ? 'dev' : (process.env.NODE_ENV ?? 'unknown'),
       })
     } else {
       this.client = null

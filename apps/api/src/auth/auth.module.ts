@@ -1,5 +1,5 @@
 import { MikroORM } from '@mikro-orm/postgresql'
-import { Inject, Logger, Module } from '@nestjs/common'
+import { Inject, Module } from '@nestjs/common'
 import type { DynamicModule, MiddlewareConsumer, NestModule, OnModuleInit } from '@nestjs/common'
 import { normalizePath } from '@nestjs/common/utils/shared.utils.js'
 import {
@@ -31,6 +31,7 @@ import { SkipBodyParsingMiddleware } from '@src/auth/middlewares'
 import { OAuthResourceController } from '@src/auth/oauth-resource.controller'
 import { OAuthServerMetadataController } from '@src/auth/oauth-server-metadata.controller'
 import { AFTER_HOOK_KEY, BEFORE_HOOK_KEY, HOOK_KEY } from '@src/auth/symbols'
+import { OtelLogger } from '@src/common/otel-logger.service'
 
 const HOOKS = [
   { metadataKey: BEFORE_HOOK_KEY, hookType: 'before' as const },
@@ -49,7 +50,7 @@ export type Auth = ReturnType<typeof configureAuth>
   exports: [AuthService],
 })
 export class BetterAuthModule extends ConfigurableModuleClass implements NestModule, OnModuleInit {
-  private readonly logger = new Logger(BetterAuthModule.name)
+  private readonly logger = new OtelLogger(BetterAuthModule.name)
   private readonly basePath: string
 
   constructor(

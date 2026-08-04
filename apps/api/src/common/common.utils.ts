@@ -1,10 +1,10 @@
 export const isProd = () => process.env.NODE_ENV === 'production'
 
 /**
- * True for local dev and for the dev cluster deployment, which sets `IS_DEV=true`
- * despite running with `NODE_ENV=production`.
+ * True when `IS_DEV=true` is explicitly set — used by the dev cluster deployment,
+ * which sets it despite running with `NODE_ENV=production`.
  */
-export const isDev = () => !isProd() || process.env.IS_DEV === 'true'
+export const isDev = () => process.env.IS_DEV === 'true'
 
 /**
  * The base deployed domain (e.g. 'dev.sageleaf.app' or 'sageleaf.app')
