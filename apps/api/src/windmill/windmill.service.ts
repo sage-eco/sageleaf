@@ -1,7 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { Injectable, OnModuleInit } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JobService, OpenAPI } from 'windmill-client'
 import type { CompletedJob, Job } from 'windmill-client'
+
+import { OtelLogger } from '@src/common/otel-logger.service'
 
 export interface RunOpts {
   workspace?: string
@@ -40,7 +42,7 @@ export interface IWindmillService {
 
 @Injectable()
 export class WindmillService implements OnModuleInit, IWindmillService {
-  private readonly logger = new Logger(WindmillService.name)
+  private readonly logger = new OtelLogger(WindmillService.name)
   private defaultWorkspace!: string
 
   constructor(private readonly config: ConfigService) {}

@@ -1,10 +1,12 @@
 import { DriverException } from '@mikro-orm/core'
 import { ArgumentsHost, Catch, HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { GqlArgumentsHost, GqlExceptionFilter } from '@nestjs/graphql'
+import { logs, SeverityNumber } from '@opentelemetry/api-logs'
 import { Response } from 'express'
 import { GraphQLError } from 'graphql'
 import { ZodError } from 'zod/v4'
 
+import { isDev, isProd } from '@src/common/common.utils'
 import {
   BaseException,
   ErrorEntry,
@@ -12,6 +14,8 @@ import {
   zodIssuesToFieldErrors,
 } from '@src/common/exceptions'
 import { PosthogService } from '@src/common/posthog.service'
+
+const otelLogger = logs.getLogger('api')
 
 @Injectable()
 @Catch()
@@ -105,11 +109,22 @@ export class HttpExceptionFilter implements GqlExceptionFilter {
   }
 
   private logError(exception: unknown) {
-    if (process.env.NODE_ENV !== 'production') {
+    const err = exception instanceof Error ? exception : new Error(String(exception))
+    otelLogger.emit({
+      severityText: 'error',
+      severityNumber: SeverityNumber.ERROR,
+      body: err.message,
+      attributes: {
+        exceptionType: err.constructor?.name,
+        stack: err.stack,
+      },
+    })
+
+    this.posthog.captureException(exception)
+
+    if (!isProd() || isDev()) {
       // oxlint-disable-next-line no-console
       console.error('Unhandled exception:', exception)
-    } else {
-      this.posthog.captureException(exception)
     }
   }
 }

@@ -33,7 +33,7 @@ export class CategoryService implements IEntityService<Category> {
 
   async find(opts: CursorOptions<Category>) {
     const categories = await this.em.find(Category, opts.where, opts.options)
-    const count = await this.em.count(Category, opts.where)
+    const count = await this.em.count(Category, opts.where, { filters: opts.options.filters })
     return {
       items: categories,
       count,
@@ -123,7 +123,7 @@ export class CategoryService implements IEntityService<Category> {
 
   async findAll(opts: CursorOptions<Category>) {
     const categories = await this.em.find(Category, opts.where, opts.options)
-    const count = await this.em.count(Category, opts.where)
+    const count = await this.em.count(Category, opts.where, { filters: opts.options.filters })
     return {
       items: categories,
       count,
@@ -133,7 +133,7 @@ export class CategoryService implements IEntityService<Category> {
   async items(categoryID: string, opts: CursorOptions<Item>) {
     opts.where.categories = this.em.getReference(Category, categoryID)
     const items = await this.em.find(Item, opts.where, opts.options)
-    const count = await this.em.count(Item, opts.where)
+    const count = await this.em.count(Item, opts.where, { filters: opts.options.filters })
     return {
       items,
       count,

@@ -1,11 +1,13 @@
 import { Mistral } from '@mistralai/mistralai'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+
+import { OtelLogger } from '@src/common/otel-logger.service'
 
 @Injectable()
 export class MistralService {
   private readonly mistral: Mistral | null = null
-  private readonly logger = new Logger(MistralService.name)
+  private readonly logger = new OtelLogger(MistralService.name)
 
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('mistral.apiKey')

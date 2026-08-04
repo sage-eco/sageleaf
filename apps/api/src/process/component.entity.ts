@@ -2,6 +2,7 @@ import {
   BaseEntity,
   Collection,
   Entity,
+  Filter,
   Index,
   ManyToMany,
   ManyToOne,
@@ -12,6 +13,7 @@ import {
   Property,
 } from '@mikro-orm/core'
 import type { Ref } from '@mikro-orm/core'
+import { raw } from '@mikro-orm/postgresql'
 import { z } from 'zod/v4'
 
 import { Source } from '@src/changes/source.entity'
@@ -68,6 +70,12 @@ export type ComponentPhysical = z.infer<typeof ComponentPhysicalSchema>
 @Index({
   name: 'components_rank_order_idx',
   expression: `create index "components_rank_order_idx" on "components" (rank_order desc, id desc)`,
+})
+@Filter({
+  name: 'rankOrderCursor',
+  cond: (args: { cmp: '$gte' | '$lte'; order: number; id: string }) => ({
+    [raw('(rank_order, id)')]: { [args.cmp]: raw('(?, ?)', [args.order, args.id]) },
+  }),
 })
 export class Component extends IDCreatedUpdated {
   [OptionalProps]?: 'rankOrder'

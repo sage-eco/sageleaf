@@ -33,7 +33,7 @@ export class PlaceService implements IEntityService<Place> {
 
   async find(opts: CursorOptions<Place>) {
     const places = await this.em.find(Place, opts.where, opts.options)
-    const count = await this.em.count(Place, opts.where)
+    const count = await this.em.count(Place, opts.where, { filters: opts.options.filters })
     return {
       items: places,
       count,

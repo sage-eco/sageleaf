@@ -78,5 +78,8 @@ export const MIKRO_CONFIG = defineConfig({
   extensions: [Migrator, SeedManager],
   dataloader: DataloaderType.ALL,
   allowGlobalContext: process.env.NODE_ENV === 'test',
+  // Filters sharing a name across entities (e.g. rankOrderCursor) would otherwise
+  // get auto-applied through M:1/1:1 relations, forcing unwanted joins.
+  autoJoinRefsForFilters: false,
 })
 export default MIKRO_CONFIG

@@ -2,6 +2,7 @@ import {
   BaseEntity,
   Collection,
   Entity,
+  Filter,
   Index,
   ManyToMany,
   ManyToOne,
@@ -12,6 +13,7 @@ import {
   Property,
   type Ref,
 } from '@mikro-orm/core'
+import { raw } from '@mikro-orm/postgresql'
 import { z } from 'zod/v4'
 
 import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
@@ -40,6 +42,12 @@ export type ItemFiles = z.infer<typeof ItemFilesSchema>
 @Index({
   name: 'items_rank_order_idx',
   expression: `create index "items_rank_order_idx" on "items" (rank_order desc, id desc)`,
+})
+@Filter({
+  name: 'rankOrderCursor',
+  cond: (args: { cmp: '$gte' | '$lte'; order: number; id: string }) => ({
+    [raw('(rank_order, id)')]: { [args.cmp]: raw('(?, ?)', [args.order, args.id]) },
+  }),
 })
 export class Item extends IDCreatedUpdated {
   [OptionalProps]?: 'rankOrder'

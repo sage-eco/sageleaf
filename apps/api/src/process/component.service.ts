@@ -52,7 +52,7 @@ export class ComponentService implements IEntityService<Component> {
       }
     }
     const components = await this.em.find(Component, opts.where, opts.options)
-    const count = await this.em.count(Component, opts.where)
+    const count = await this.em.count(Component, opts.where, { filters: opts.options.filters })
     return {
       items: components,
       count,

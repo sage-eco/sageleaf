@@ -81,7 +81,7 @@ export class VariantService implements IEntityService<Variant> {
       }
     }
     const variants = await this.em.find(Variant, opts.where, opts.options)
-    const count = await this.em.count(Variant, opts.where)
+    const count = await this.em.count(Variant, opts.where, { filters: opts.options.filters })
     return {
       items: variants,
       count,
@@ -101,7 +101,7 @@ export class VariantService implements IEntityService<Variant> {
   async processes(variantID: string, opts: CursorOptions<Process>) {
     opts.where.variant = variantID
     const items = await this.em.find(Process, opts.where, opts.options)
-    const count = await this.em.count(Process, opts.where)
+    const count = await this.em.count(Process, opts.where, { filters: opts.options.filters })
     return {
       items,
       count,

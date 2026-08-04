@@ -9,7 +9,7 @@ import type {
   QueryOrderMap,
   Ref,
 } from '@mikro-orm/core'
-import { EntityManager, raw } from '@mikro-orm/postgresql'
+import { EntityManager } from '@mikro-orm/postgresql'
 import { Injectable } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import type { ClassConstructor, ClassTransformOptions, TransformFnParams } from 'class-transformer'
@@ -114,6 +114,7 @@ export class TransformService {
       (args.after && orderDirection === 'ASC') || (args.before && orderDirection === 'DESC')
         ? '$gte'
         : '$lte'
+    let filters: FindOptions<any, any>['filters']
     if (isRelevance) {
       if (args.after || args.before) {
         let parsed: { order: number | null; id: string }
@@ -122,8 +123,9 @@ export class TransformService {
         } catch (e) {
           throw new GraphQLError('Invalid cursor')
         }
-        const cursorOrder = parsed.order ?? 0
-        where[raw(`(rank_order, id)`)] = { [cmp]: raw(`(?, ?)`, [cursorOrder, parsed.id]) }
+        filters = {
+          rankOrderCursor: { cmp, order: parsed.order ?? 0, id: parsed.id },
+        }
       }
     } else if (args.after || args.before) {
       where[orderByField] = { [cmp]: decoded }
@@ -142,6 +144,7 @@ export class TransformService {
               [orderByField]: orderDirection,
             } as QueryOrderMap<any>),
         limit: (args.first || args.last || DEFAULT_PAGE_SIZE) + 2,
+        filters,
       },
     }
     return [args, options]

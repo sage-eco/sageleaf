@@ -271,7 +271,7 @@ export const configureAuth = (orm: MikroORM) => {
     },
     trustedOrigins: [
       ...(isProd() ? [`https://${baseDomain}`, `https://science.${baseDomain}`] : []),
-      ...(isDev() ? ['http://localhost:*', 'http://127.0.0.1:*'] : []),
+      ...(!isProd() || isDev() ? ['http://localhost:*', 'http://127.0.0.1:*'] : []),
       'https://tauri.localhost',
       'http://tauri.localhost',
       'tauri://localhost',

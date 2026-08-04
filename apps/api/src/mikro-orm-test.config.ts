@@ -154,4 +154,7 @@ export const MIKRO_TEST_CONFIG = defineConfig({
   extensions: [Migrator, SeedManager],
   dataloader: DataloaderType.ALL,
   allowGlobalContext: true,
+  // Filters sharing a name across entities (e.g. rankOrderCursor) would otherwise
+  // get auto-applied through M:1/1:1 relations, forcing unwanted joins.
+  autoJoinRefsForFilters: false,
 })

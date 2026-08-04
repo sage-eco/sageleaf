@@ -4,7 +4,6 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
-  Logger,
   UnauthorizedException,
 } from '@nestjs/common'
 import type { CanActivate, ContextType, ExecutionContext } from '@nestjs/common'
@@ -18,6 +17,7 @@ import { OAUTH_SCOPES_METADATA_KEY } from '@src/auth/decorators'
 import { getApiOrigin, getAuthIssuer } from '@src/auth/oauth.constants'
 import { createResourceClient } from '@src/auth/resource-client'
 import { getRequestFromContext } from '@src/auth/utils'
+import { OtelLogger } from '@src/common/otel-logger.service'
 import { User } from '@src/users/users.entity'
 
 /**
@@ -151,7 +151,7 @@ const AuthContextErrorMap: Record<
  */
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private readonly logger = new Logger(AuthGuard.name)
+  private readonly logger = new OtelLogger(AuthGuard.name)
 
   constructor(
     @Inject(Reflector)

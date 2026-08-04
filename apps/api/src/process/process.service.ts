@@ -44,7 +44,7 @@ export class ProcessService implements IEntityService<Process> {
       }
     }
     const processes = await this.em.find(Process, opts.where, opts.options)
-    const count = await this.em.count(Process, opts.where)
+    const count = await this.em.count(Process, opts.where, { filters: opts.options.filters })
     return {
       items: processes,
       count,

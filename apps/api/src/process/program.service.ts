@@ -64,7 +64,7 @@ export class ProgramService implements IEntityService<Program> {
     }
     opts.options.populate = ['region', 'programOrgs', 'programProcesses', 'programTags']
     const programs = await this.em.find(Program, opts.where, opts.options)
-    const count = await this.em.count(Program, opts.where)
+    const count = await this.em.count(Program, opts.where, { filters: opts.options.filters })
     return {
       items: programs,
       count,

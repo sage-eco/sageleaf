@@ -1,11 +1,12 @@
 import { KeyvAdapter } from '@apollo/utils.keyvadapter'
 import { ErrorsAreMissesCache, InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import KeyvRedis from '@keyv/redis'
-import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Keyv } from 'keyv'
 
-const logger = new Logger('GraphQLCache')
+import { OtelLogger } from '@src/common/otel-logger.service'
+
+const logger = new OtelLogger('GraphQLCache')
 
 export const createGraphQLCache = (configService: ConfigService) => {
   const url = configService.get<string>('dragonfly.url')
