@@ -1,11 +1,7 @@
-import { useDark } from '@vueuse/core'
+import { useColorMode } from '@vueuse/core'
 
-export const getThemeMode = () => {
-  const dark = useDark({
+export const useThemeMode = () =>
+  useColorMode({
     selector: 'html',
     attribute: 'data-theme',
-    valueDark: 'dark',
-    valueLight: 'light',
   })
-  return dark.value ? 'dark' : 'light'
-}

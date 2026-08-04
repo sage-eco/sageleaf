@@ -7,11 +7,11 @@
           <FormInput
             :id="field.name"
             :name="field.name"
-            :value="field.state.value"
+            :model-value="field.state.value"
             type="email"
             class="mt-4"
             @blur="field.handleBlur"
-            @input="(e: any) => field.handleChange((e.target as HTMLInputElement).value)"
+            @update:model-value="(value) => field.handleChange(value as string)"
           />
           <Alert v-if="!field.state.meta.isValid" variant="error" class="mt-4">
             <AlertDescription>{{
@@ -28,11 +28,11 @@
           <FormInput
             :id="field.name"
             :name="field.name"
-            :value="field.state.value"
+            :model-value="field.state.value"
             type="password"
             class="mt-4"
             @blur="field.handleBlur"
-            @input="(e: any) => field.handleChange((e.target as HTMLInputElement).value)"
+            @update:model-value="(value) => field.handleChange(value as string)"
           />
           <Alert v-if="!field.state.meta.isValid" variant="error" class="mt-4">
             <AlertDescription>{{

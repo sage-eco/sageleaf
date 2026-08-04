@@ -16,7 +16,7 @@ import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 useHead({
-  title: 'Sage',
+  title: 'Sageleaf Science',
   meta: [{ name: 'description', content: 'Circular economy information.' }],
 })
 useDark({

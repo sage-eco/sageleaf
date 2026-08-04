@@ -8,7 +8,7 @@
             <NuxtLink :to="'/'">
               <div class="p-3"><img src="/favicon-32x32.png" /></div>
             </NuxtLink>
-            <div class="text-bold grow px-2 text-lg text-base-content">Sage</div>
+            <div class="text-bold grow px-2 text-lg text-base-content">Sageleaf</div>
             <SidebarTrigger v-if="sidebarOpen" class="self-start text-base-content/70" />
           </div>
         </SidebarHeader>

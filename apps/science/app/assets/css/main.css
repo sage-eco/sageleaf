@@ -152,6 +152,12 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
+/* Disable the macOS WKWebView rubber-band/bounce effect on the desktop (Tauri) build. */
+html,
+body {
+  overscroll-behavior: none;
+}
+
 /* JSON Forms */
 .control > .wrapper > input,
 .control > .wrapper > select,
