@@ -24,6 +24,7 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import type { JsonFormsChangeEvent } from '@jsonforms/vue'
 import { LoaderCircle } from '@lucide/vue'
+import { useDebounceFn } from '@vueuse/core'
 
 import { graphql } from '~/gql'
 import type { Exact } from '~/gql/graphql'
@@ -85,6 +86,14 @@ const uiSchema = computed(() => {
 
 const createData = ref<object>({})
 const updateData = ref<object | null>(null)
+
+const { register, push, unregister, onExternalUpdate } = useScribeleaf()
+let applyingExternalUpdate = false
+const pushToScribeleaf = useDebounceFn((data: object) => {
+  if (applyingExternalUpdate) return
+  push(data)
+}, 500)
+
 const editQuery = graphql(`
   query DirectGetEdit($id: ID!, $entityName: String!) {
     directEdit(id: $id, entityName: $entityName) {
@@ -141,6 +150,7 @@ const onChange = (event: JsonFormsChangeEvent) => {
     } else {
       updateData.value = event.data
     }
+    pushToScribeleaf(event.data)
   }
 }
 const saveForm = async () => {
@@ -191,4 +201,33 @@ const saveForm = async () => {
       })
   }
 }
+
+watch(
+  [jsonSchema, uiSchema, createData, updateData],
+  ([schema, uischema, create, update]) => {
+    if (!schema || !uischema) return
+    const data = modelId === 'new' ? create : update
+    if (!data) return
+    register(schema, uischema, data, { modelId, entityName, changeId: undefined })
+  },
+  { immediate: true },
+)
+
+let unlistenExternalUpdate: (() => void) | undefined
+onMounted(async () => {
+  const unlisten = await onExternalUpdate((data) => {
+    applyingExternalUpdate = true
+    if (modelId === 'new') {
+      createData.value = data
+    } else {
+      updateData.value = data
+    }
+    applyingExternalUpdate = false
+  })
+  unlistenExternalUpdate = unlisten
+})
+onUnmounted(() => {
+  unlistenExternalUpdate?.()
+  unregister()
+})
 </script>

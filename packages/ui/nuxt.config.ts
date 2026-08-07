@@ -46,6 +46,7 @@ export default defineNuxtConfig({
       msw: {
         baseURL: 'http://localhost:3000',
       },
+      scribeleafEnabled: false,
     },
   },
 

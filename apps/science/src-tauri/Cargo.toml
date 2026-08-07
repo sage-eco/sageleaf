@@ -1,0 +1,27 @@
+[package]
+name = "sageleaf-science"
+description = "SageLeaf Science App"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "sageleaf_science_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.5.4", features = ["isolation"] }
+
+[dependencies]
+serde_json.workspace = true
+serde = { workspace = true, features = ["derive"] }
+log.workspace = true
+tauri = { version = "2.10.0", features = ["isolation"] }
+tauri-plugin-log.workspace = true
+tauri-plugin-opener.workspace = true
+tauri-plugin-os.workspace = true
+tauri-plugin-sql = { workspace = true, features = ["sqlite"] }
+sageleaf-scribeleaf.workspace = true

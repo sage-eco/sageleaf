@@ -30,6 +30,7 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import type { JsonFormsChangeEvent } from '@jsonforms/vue'
 import { LoaderCircle } from '@lucide/vue'
+import { useDebounceFn } from '@vueuse/core'
 
 import { graphql } from '~/gql'
 import { ChangeStatus, type Exact } from '~/gql/graphql'
@@ -103,8 +104,13 @@ const uiSchema = computed(() => {
 })
 
 const createData = ref<object>({})
-const updateData = ref<object | null>(null)
-const changeStatus = ref<ChangeStatus | null>(null)
+
+const { register, push, unregister, onExternalUpdate } = useScribeleaf()
+let applyingExternalUpdate = false
+const pushToScribeleaf = useDebounceFn((data: object) => {
+  if (applyingExternalUpdate) return
+  push(data)
+}, 500)
 
 if (modelId === 'new' && initialData) {
   createData.value = sanitizeFormData(initialData)
@@ -130,59 +136,15 @@ const directEditQuery = graphql(`
     }
   }
 `)
-const entityName = createModelKey.charAt(0).toUpperCase() + createModelKey.slice(1)
-if (modelId !== 'new' && changeId) {
-  const useDirect = ref(false)
-  const { result: changeResult, error: changeError } = useQuery(editQuery, {
-    id: modelId,
-    changeID: changeId,
-  })
-  watch(
-    changeError,
-    (err) => {
-      if (err) useDirect.value = true
-    },
-    { immediate: true },
-  )
-  watch(
-    [changeResult, jsonSchema],
-    ([result, schema]) => {
-      if (schema && result?.change?.edits.nodes && result.change.edits.nodes.length > 0) {
-        updateData.value = sanitizeFormData(result.change.edits.nodes[0]!.updateInput)
-      }
-      if (result?.change?.status) {
-        changeStatus.value = result.change.status
-      }
-    },
-    { immediate: true },
-  )
-  const { result: directResult } = useQuery(directEditQuery, { id: modelId, entityName }, () => ({
-    enabled: useDirect.value,
-  }))
-  watch(
-    [directResult, jsonSchema],
-    ([result, schema]) => {
-      if (schema && result?.directEdit?.updateInput) {
-        updateData.value = sanitizeFormData(result.directEdit.updateInput)
-      }
-    },
-    { immediate: true },
-  )
-} else if (modelId !== 'new') {
-  const { result } = useQuery(directEditQuery, {
-    id: modelId,
-    entityName,
-  })
-  watch(
-    [result, jsonSchema],
-    ([result, schema]) => {
-      if (schema && result?.directEdit?.id) {
-        updateData.value = sanitizeFormData(result.directEdit.updateInput)
-      }
-    },
-    { immediate: true },
-  )
-}
+const { entityName, updateData, changeStatus } = useModelEditData(
+  modelId,
+  changeId,
+  createModelKey,
+  jsonSchema,
+  editQuery,
+  directEditQuery,
+)
+
 const readOnly = computed<boolean | undefined>(() => {
   if (changeStatus.value !== ChangeStatus.Merged) {
     return
@@ -195,12 +157,18 @@ const isLoading = computed(() => {
   return updateData.value === null
 })
 
-const create = useMutation(createMutation)
-const update = useMutation(updateMutation)
-
-const saveStatus = ref<'saving' | 'saved' | 'not_saved' | 'error'>(
-  modelId === 'new' ? 'not_saved' : 'saved',
+const { saveStatus, saveForm } = useModelFormSave(
+  modelId,
+  changeId,
+  createModelKey,
+  autoSave,
+  createMutation,
+  updateMutation,
+  createData,
+  updateData,
+  emits,
 )
+
 let firstChange = false
 const onChange = (event: JsonFormsChangeEvent) => {
   if (changeStatus.value === ChangeStatus.Merged) {
@@ -222,107 +190,37 @@ const onChange = (event: JsonFormsChangeEvent) => {
     } else {
       updateData.value = event.data
     }
+    pushToScribeleaf(event.data)
   }
 }
-if (changeId && autoSave && modelId === 'new') {
-  watch(createData, async (newData) => {
-    createData.value = newData
-    await create
-      .mutate({
-        input: {
-          changeID: changeId,
-          ...createData.value,
-        },
-      })
-      .then((modelResult: { data?: unknown } | null) => {
-        if (!modelResult?.data) {
-          saveStatus.value = 'error'
-          return
-        }
-        saveStatus.value = 'saved'
-        const data = modelResult.data as Record<string, Record<string, unknown> | null>
-        const createKey = Object.keys(data)[0]!
-        const modelReturned = data[createKey]?.[createModelKey] as {
-          id: string
-        } | null
-        if (modelReturned?.id) {
-          emits('created', modelReturned.id)
-          emits('saved', modelReturned.id)
-        }
-      })
-      .catch(() => {
-        saveStatus.value = 'error'
-      })
+watch(
+  [jsonSchema, uiSchema, createData, updateData],
+  ([schema, uischema, create, update]) => {
+    if (!schema || !uischema) return
+    const data = modelId === 'new' ? create : update
+    if (!data) return
+    register(schema, uischema, data, { modelId, entityName, changeId })
+  },
+  { immediate: true },
+)
+
+let unlistenExternalUpdate: (() => void) | undefined
+onMounted(async () => {
+  const unlisten = await onExternalUpdate((data) => {
+    applyingExternalUpdate = true
+    if (modelId === 'new') {
+      createData.value = data
+    } else {
+      updateData.value = data
+    }
+    applyingExternalUpdate = false
   })
-} else if (changeId && autoSave && modelId !== 'new') {
-  watch(updateData, async (newData) => {
-    updateData.value = newData
-    await update
-      .mutate({
-        input: {
-          changeID: changeId,
-          id: modelId,
-          ...updateData.value,
-        },
-      })
-      .then(() => {
-        saveStatus.value = 'saved'
-        emits('saved', modelId)
-      })
-      .catch(() => {
-        saveStatus.value = 'error'
-      })
-  })
-}
-const saveForm = async () => {
-  if (saveStatus.value === 'error') {
-    return
-  }
-  if (modelId === 'new') {
-    await create
-      .mutate({
-        input: {
-          changeID: changeId || undefined,
-          ...createData.value,
-        },
-      })
-      .then((modelResult: { data?: unknown } | null) => {
-        if (!modelResult?.data) {
-          saveStatus.value = 'error'
-          return
-        }
-        saveStatus.value = 'saved'
-        const data = modelResult.data as Record<string, Record<string, unknown> | null>
-        const createKey = Object.keys(data)[0]!
-        const modelReturned = data[createKey]?.[createModelKey] as {
-          id: string
-        } | null
-        if (modelReturned?.id) {
-          emits('created', modelReturned.id)
-          emits('saved', modelReturned.id)
-        }
-      })
-      .catch(() => {
-        saveStatus.value = 'error'
-      })
-  } else {
-    await update
-      .mutate({
-        input: {
-          changeID: changeId || undefined,
-          id: modelId,
-          ...updateData.value,
-        },
-      })
-      .then(() => {
-        saveStatus.value = 'saved'
-        emits('saved', modelId)
-      })
-      .catch(() => {
-        saveStatus.value = 'error'
-      })
-  }
-}
+  unlistenExternalUpdate = unlisten
+})
+onUnmounted(() => {
+  unlistenExternalUpdate?.()
+  unregister()
+})
 
 defineExpose({ submit: saveForm })
 </script>

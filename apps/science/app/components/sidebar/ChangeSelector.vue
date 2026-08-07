@@ -43,7 +43,10 @@
         {{ result.change.description }}
       </div>
 
-      <ButtonGroup class="w-full">
+      <div v-if="!isAuthenticated" class="text-md w-full text-center opacity-70">
+        Sign In to Make Changes
+      </div>
+      <ButtonGroup v-else class="w-full">
         <Button class="flex-1" @click.stop.prevent="selectionOpen = true">
           <ArrowLeftRight :size="16" />
           Switch
@@ -82,7 +85,7 @@ import type { ChangeStatus } from '~/gql/graphql'
 
 const changeStore = useChangeStore()
 const { selectedChange, isChangeSelected } = storeToRefs(changeStore)
-const { isAdmin } = useAuth()
+const { isAdmin, isAuthenticated } = useAuth()
 const { requireAuth } = useRequireAuth()
 
 const ChangeSidebarQuery = graphql(`

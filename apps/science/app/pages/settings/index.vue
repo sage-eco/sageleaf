@@ -4,6 +4,24 @@
     <p class="mb-8 text-sm text-base-content/70">Customize your preferences for this app.</p>
 
     <section class="mb-10">
+      <h2 class="mb-1 text-lg font-semibold">Theme</h2>
+      <p class="mb-4 text-sm text-base-content/70">Choose how the app looks.</p>
+
+      <ButtonGroup>
+        <Button
+          v-for="option in themeOptions"
+          :key="option.value"
+          :variant="themeStore === option.value ? 'default' : 'outline'"
+          size="sm"
+          @click="themeStore = option.value"
+        >
+          <component :is="option.icon" :size="16" />
+          {{ option.label }}
+        </Button>
+      </ButtonGroup>
+    </section>
+
+    <section class="mb-10">
       <h2 class="mb-1 text-lg font-semibold">Display Languages</h2>
       <p class="mb-4 text-sm text-base-content/70">
         Languages shown as quick-edit tabs in translation fields. English is always included first.
@@ -92,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { Lock, Plus, X } from '@lucide/vue'
+import { Lock, Monitor, Moon, Plus, Sun, X } from '@lucide/vue'
 import { getLanguageByCode, supportedLanguages } from '@sageleaf/ui/app/utils/iso639-helpers'
 import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka-ui'
 import { computed, ref } from 'vue'
@@ -100,6 +118,13 @@ import { computed, ref } from 'vue'
 import { usePreferencesStore } from '~/stores/preferences_store'
 
 const prefs = usePreferencesStore()
+
+const { store: themeStore } = useThemeMode()
+const themeOptions = [
+  { value: 'auto', label: 'System', icon: Monitor },
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+] as const
 
 const addOpen = ref<boolean>(false)
 const search = ref<string>('')
