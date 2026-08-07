@@ -8,15 +8,16 @@ import { Change } from '@src/changes/change.model'
 import { LuxonDateTimeResolver } from '@src/common/datetime.model'
 import { CreatedUpdated, registerModel, TranslatedInput } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { Node } from '@src/graphql/node.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ComponentsConnection } from '@src/process/component.model'
 import { ProcessConnection } from '@src/process/process.model'
 
 @ObjectType({
-  implements: () => [Named],
+  implements: () => [Named, Node],
   description: 'A raw or processed material that physical components are composed of',
 })
-export class Material extends CreatedUpdated implements Named {
+export class Material extends CreatedUpdated implements Named, Node {
   @Field(() => ID)
   id!: string
 

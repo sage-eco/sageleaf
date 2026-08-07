@@ -11,6 +11,7 @@ import { IsNanoID } from '@src/common/validator.model'
 import { type JSONObject } from '@src/common/z.schema'
 import { CreatedUpdated, registerModel, TranslatedInput } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { TagConnection } from '@src/process/tag.model'
 import { Org } from '@src/users/org.model'
@@ -50,10 +51,10 @@ export class PlaceAddress {
 }
 
 @ObjectType({
-  implements: () => [Named],
+  implements: () => [Named, Node],
   description: 'A specific physical location, such as a business or recycling facility',
 })
-export class Place extends CreatedUpdated implements Named {
+export class Place extends CreatedUpdated implements Named, Node {
   @Field(() => ID)
   id!: string
 

@@ -9,6 +9,7 @@ import { IsNanoID } from '@src/common/validator.model'
 import { PlacesConnection } from '@src/geo/place.model'
 import { BaseModel, IDCreatedUpdated, type ModelRef, registerModel } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ProcessConnection } from '@src/process/process.model'
 import { ProgramsConnection } from '@src/process/program.model'
@@ -17,10 +18,10 @@ import { User as UserEntity } from '@src/users/users.entity'
 import { User, UserConnection } from '@src/users/users.model'
 
 @ObjectType({
-  implements: () => [Named],
+  implements: () => [Named, Node],
   description: 'An organization or company on the platform',
 })
-export class Org extends IDCreatedUpdated implements Named {
+export class Org extends IDCreatedUpdated implements Named, Node {
   @Field(() => String)
   name!: string
 

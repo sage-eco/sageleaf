@@ -2,6 +2,7 @@ import { ArgsType, Field, ID, ObjectType, registerEnumType } from '@nestjs/graph
 import { z } from 'zod/v4'
 
 import { IDCreatedUpdated, registerModel } from '@src/graphql/base.model'
+import { Node } from '@src/graphql/node.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 
 export enum FeedFormat {
@@ -47,8 +48,8 @@ export class FeedExternalLink {
   openGraph?: FeedOpenGraph
 }
 
-@ObjectType()
-export class FeedItem extends IDCreatedUpdated {
+@ObjectType({ implements: () => [Node] })
+export class FeedItem extends IDCreatedUpdated implements Node {
   @Field(() => FeedFormat)
   format!: FeedFormat
 

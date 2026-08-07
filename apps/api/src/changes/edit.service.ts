@@ -21,11 +21,13 @@ import {
   isUsingChange,
 } from '@src/changes/change-ext.model'
 import { Change, ChangeEdits, ChangeStatus } from '@src/changes/change.entity'
-import { MergeInput } from '@src/changes/change.model'
+import { OpType } from '@src/changes/change.enum'
+import { MergeInput, RefNode } from '@src/changes/change.model'
 import { Source } from '@src/changes/source.entity'
 import { BadRequestErr, NotFoundErr } from '@src/common/exceptions'
 import { isExcludedFromDiff } from '@src/common/exclude-from-diff.decorator'
 import { MetaService } from '@src/common/meta.service'
+import { toGlobalId } from '@src/graphql/global-id'
 import { User } from '@src/users/users.entity'
 
 export interface IEntityService {
@@ -1666,5 +1668,112 @@ export class EditService {
       collection.set(detachedItems)
     }
     return entity
+  }
+
+  /**
+   * Computes every *other* entity a single edit adds, removes, or modifies a reference to — the
+   * edited entity itself is never included, so an edit that changes no relation fields returns an
+   * empty list. Not deduplicated: a target referenced by more than one field appears once per
+   * field/event.
+   *
+   * Use this to power `Edit.refNodes`, so clients can render a diff-style summary of an edit's blast
+   * radius without resolving each relation field individually.
+   */
+  computeRefNodes(edit: ChangeEdits): RefNode[] {
+    const refNodes: RefNode[] = []
+
+    if (!edit.changes) {
+      return refNodes
+    }
+
+    const meta = this.em.getMetadata().get(edit.entityName)
+    const { flattenToId, flattenArrayRefs } = this.categorizePOJORelations(meta)
+    const changedKeys = Object.keys(edit.changes as Record<string, any>)
+    const changes = this.effectiveChanges(edit) as Record<string, any>
+    const original = (edit.original ?? {}) as Record<string, any>
+
+    const extractRefID = (val: any): string | undefined =>
+      typeof val === 'string'
+        ? val
+        : val && _.isObject(val) && _.has(val, 'id')
+          ? String((val as any).id)
+          : undefined
+
+    for (const field of flattenToId) {
+      if (!changedKeys.includes(field)) continue
+      const relation = meta.relations.find((rel) => rel.name === field)
+      if (!relation?.targetMeta?.name) continue
+      const targetName = relation.targetMeta.name
+      const oldID = extractRefID(original[field])
+      const newID = extractRefID(changes[field])
+      if (oldID && oldID !== newID) {
+        refNodes.push({ id: toGlobalId(targetName, oldID), op: OpType.REMOVED })
+      }
+      if (newID && newID !== oldID) {
+        refNodes.push({ id: toGlobalId(targetName, newID), op: OpType.ADDED })
+      }
+    }
+
+    for (const { name, targetMeta } of flattenArrayRefs) {
+      if (!changedKeys.includes(name)) continue
+      const beforeRows: any[] = Array.isArray(original[name]) ? original[name] : []
+      const afterRows: any[] = Array.isArray(changes[name]) ? changes[name] : []
+
+      const beforeByKey = new Map<string, Record<string, any>>()
+      for (const row of beforeRows) {
+        if (row && _.isObject(row)) {
+          beforeByKey.set(this.getPrimaryKeySignature(row, targetMeta), row)
+        }
+      }
+      const afterByKey = new Map<string, Record<string, any>>()
+      for (const row of afterRows) {
+        if (row && _.isObject(row)) {
+          afterByKey.set(this.getPrimaryKeySignature(row, targetMeta), row)
+        }
+      }
+
+      const relFields = targetMeta.relations.filter(
+        (rel) => rel.kind === 'm:1' || rel.kind === '1:1',
+      )
+      const resolveRowRef = (
+        row: Record<string, any>,
+      ): { type: string; id: string } | undefined => {
+        for (const rel of relFields) {
+          if (!rel.targetMeta?.name) continue
+          const refID = extractRefID(row[rel.name])
+          // Skip the field that points back to the entity being edited (e.g. `item` on an
+          // ItemsCategories row) so the resolved ref is the *other*, foreign side of the row.
+          if (refID && refID !== edit.entityID) {
+            return { type: rel.targetMeta.name, id: refID }
+          }
+        }
+        return undefined
+      }
+
+      const allKeys = new Set([...beforeByKey.keys(), ...afterByKey.keys()])
+      for (const key of allKeys) {
+        const beforeRow = beforeByKey.get(key)
+        const afterRow = afterByKey.get(key)
+        let op: OpType
+        let row: Record<string, any>
+        if (!beforeRow && afterRow) {
+          op = OpType.ADDED
+          row = afterRow
+        } else if (beforeRow && !afterRow) {
+          op = OpType.REMOVED
+          row = beforeRow
+        } else if (beforeRow && afterRow && !_.isEqual(beforeRow, afterRow)) {
+          op = OpType.MODIFIED
+          row = afterRow
+        } else {
+          continue
+        }
+        const ref = resolveRowRef(row)
+        if (!ref) continue
+        refNodes.push({ id: toGlobalId(ref.type, ref.id), op })
+      }
+    }
+
+    return refNodes
   }
 }

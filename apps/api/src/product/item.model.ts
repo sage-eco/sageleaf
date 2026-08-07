@@ -16,6 +16,7 @@ import {
   TranslatedInput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ComponentsConnection } from '@src/process/component.model'
 import {
@@ -92,10 +93,10 @@ export class ItemReuse {
 }
 
 @ObjectType({
-  implements: () => [Named],
+  implements: () => [Named, Node],
   description: 'A product or consumable item that can be categorized and have multiple variants',
 })
-export class Item extends IDCreatedUpdated implements Named {
+export class Item extends IDCreatedUpdated implements Named, Node {
   @Field(() => String, { nullable: true })
   @IsOptional()
   @MaxLength(1024)

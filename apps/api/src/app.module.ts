@@ -19,6 +19,7 @@ import { FeedModule } from '@src/feed/feed.module'
 import { FeedbackModule } from '@src/feedback/feedback.module'
 import { GeoModule } from '@src/geo/geo.module'
 import { GraphQLModule } from '@src/graphql/graphql.module'
+import { NodeModule } from '@src/graphql/node.module'
 import { HealthModule } from '@src/health/health.module'
 import { McpModule } from '@src/mcp/mcp.module'
 import { MIKRO_CONFIG } from '@src/mikro-orm.config'
@@ -70,6 +71,7 @@ if (dotenv) {
     MikroOrmModule.forRoot(MIKRO_CONFIG),
     AuthModule,
     GraphQLModule.register(),
+    NodeModule,
     HealthModule,
     UsersModule,
     GeoModule,

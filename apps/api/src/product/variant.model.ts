@@ -19,6 +19,7 @@ import {
   TranslatedInput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { Component, ComponentsConnection } from '@src/process/component.model'
 import { ProcessConnection } from '@src/process/process.model'
@@ -86,10 +87,10 @@ export class VariantReuse {
 }
 
 @ObjectType({
-  implements: () => [Named],
+  implements: () => [Named, Node],
   description: 'A specific variant or SKU of a product item, composed of physical components',
 })
-export class Variant extends IDCreatedUpdated implements Named {
+export class Variant extends IDCreatedUpdated implements Named, Node {
   @Field(() => String, { nullable: true })
   @IsOptional()
   @MaxLength(1024)

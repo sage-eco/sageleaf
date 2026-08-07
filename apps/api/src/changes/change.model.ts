@@ -4,10 +4,11 @@ import { z } from 'zod/v4'
 
 import { EditModelTypeSchema } from '@src/changes/change-type.schema'
 import { ChangeStatus } from '@src/changes/change.entity'
-import { EditModel, EditModelType } from '@src/changes/change.enum'
+import { EditModel, EditModelType, OpType } from '@src/changes/change.enum'
 import { Source } from '@src/changes/source.model'
 import { type JSONObject } from '@src/common/z.schema'
-import { BaseModel, IDCreatedUpdated } from '@src/graphql/base.model'
+import { BaseModel, IDCreatedUpdated, registerModel } from '@src/graphql/base.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { User } from '@src/users/users.model'
 
@@ -95,6 +96,22 @@ export class Edit extends BaseModel {
     description: 'Description of the conflict, if any',
   })
   conflictDesc?: string
+
+  @Field(() => [RefNode], {
+    description:
+      'Other entities this edit adds, removes, or modifies a reference to. Not deduplicated: a ' +
+      'target touched by more than one field appears once per field.',
+  })
+  refNodes!: RefNode[]
+}
+
+@ObjectType({ description: 'An entity referenced (added, removed, or modified) by an edit' })
+export class RefNode {
+  @Field(() => ID, { description: 'Global ID of the referenced entity' })
+  id!: string
+
+  @Field(() => OpType)
+  op!: OpType
 }
 
 @ObjectType()
@@ -122,8 +139,11 @@ export class DirectEdit {
 @ObjectType()
 export class ChangeEditsConnection extends Paginated(Edit) {}
 
-@ObjectType({ description: 'A proposed or merged set of edits to one or more data models' })
-export class Change extends IDCreatedUpdated {
+@ObjectType({
+  implements: () => [Node],
+  description: 'A proposed or merged set of edits to one or more data models',
+})
+export class Change extends IDCreatedUpdated implements Node {
   @Field(() => String, { nullable: true })
   title?: string
 
@@ -150,6 +170,7 @@ export class Change extends IDCreatedUpdated {
   })
   jobs?: JobsConnection
 }
+registerModel('Change', Change)
 
 @ObjectType()
 export class ChangeSource {

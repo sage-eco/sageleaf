@@ -16,6 +16,7 @@ import {
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
 import { ExternalLink, ExternalLinkInput } from '@src/graphql/link.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ProcessConnection } from '@src/process/process.model'
 import { ProgramStatus } from '@src/process/program.entity'
@@ -49,10 +50,10 @@ export class ProgramInstructionsInput {
 }
 
 @ObjectType({
-  implements: () => [Named],
+  implements: () => [Named, Node],
   description: 'An administrative description of circular economy processes',
 })
-export class Program extends IDCreatedUpdated implements Named {
+export class Program extends IDCreatedUpdated implements Named, Node {
   @Field(() => String)
   name!: string
 
