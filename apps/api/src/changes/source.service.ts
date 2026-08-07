@@ -17,14 +17,24 @@ import { NotFoundErr } from '@src/common/exceptions'
 import { StorageService } from '@src/common/storage.service'
 import { CursorOptions } from '@src/common/transform'
 import { type JSONObject } from '@src/common/z.schema'
+import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
 import { User } from '@src/users/users.entity'
 
 @Injectable()
-export class SourceService {
+@IsEntityService(Source)
+export class SourceService implements IEntityService<Source> {
   constructor(
     private readonly em: EntityManager,
     private readonly storageService: StorageService,
   ) {}
+
+  queryFields(): Record<string, QueryField> {
+    return {}
+  }
+
+  async findManyByID(ids: string[]) {
+    return this.em.find(Source, { id: { $in: ids } })
+  }
 
   async user(userID: string) {
     return this.em.findOne(User, { id: userID })

@@ -49,7 +49,7 @@ type CategoriesConnection {
 }
 
 """A hierarchical category for classifying product items"""
-type Category implements Named {
+type Category implements Named & Node {
   """All ancestor categories up the hierarchy tree"""
   ancestors(after: String, before: String, first: Int, last: Int): CategoriesConnection!
 
@@ -123,7 +123,7 @@ enum CaveatLevel {
 }
 
 """A proposed or merged set of edits to one or more data models"""
-type Change {
+type Change implements Node {
   createdAt: DateTime!
   description: String
 
@@ -198,14 +198,12 @@ type ChangesConnection {
 """
 A physical component of a product variant, made of one or more materials
 """
-type Component implements Named {
+type Component implements Named & Node {
   createdAt: DateTime!
   desc: String
 
   """Audit history of changes to this component"""
   history(after: String, before: String, first: Int, last: Int): ComponentHistoryConnection!
-
-  """The ID of the model"""
   id: ID!
   imageURL: String
 
@@ -767,6 +765,11 @@ type Edit {
   """The raw JSON of the entity before this edit"""
   originalJSON: JSONObject
 
+  """
+  Other entities this edit adds, removes, or modifies a reference to. Not deduplicated: a target touched by more than one field appears once per field.
+  """
+  refNodes: [RefNode!]!
+
   """Current input values for updating an existing entity"""
   updateInput: JSONObject
 }
@@ -827,7 +830,7 @@ enum FeedFormat {
   UPDATE
 }
 
-type FeedItem {
+type FeedItem implements Node {
   category: String
   createdAt: DateTime!
   externalLink: FeedExternalLink
@@ -903,7 +906,7 @@ type ImagesConnection {
 """
 A product or consumable item that can be categorized and have multiple variants
 """
-type Item implements Named {
+type Item implements Named & Node {
   """Categories this item belongs to"""
   categories(after: String, before: String, first: Int, last: Int): CategoriesConnection!
   createdAt: DateTime!
@@ -911,8 +914,6 @@ type Item implements Named {
 
   """Audit history of changes to this item"""
   history(after: String, before: String, first: Int, last: Int): ItemHistoryConnection!
-
-  """The ID of the model"""
   id: ID!
   imageURL: String
   name: String
@@ -1060,7 +1061,7 @@ type MarkSourceProcessedOutput {
 }
 
 """A raw or processed material that physical components are composed of"""
-type Material implements Named {
+type Material implements Named & Node {
   """All ancestor materials up the hierarchy"""
   ancestors(after: String, before: String, first: Int, last: Int): MaterialsConnection!
 
@@ -1182,14 +1183,23 @@ interface Named {
   name: String
 }
 
+interface Node {
+  id: ID!
+}
+
+"""The kind of change an edit made to a referenced entity"""
+enum OpType {
+  ADDED
+  MODIFIED
+  REMOVED
+}
+
 """An organization or company on the platform"""
-type Org implements Named {
+type Org implements Named & Node {
   avatarURL: String
   createdAt: DateTime!
   desc: String
   history(after: String, before: String, first: Int, last: Int): OrgHistoryConnection!
-
-  """The ID of the model"""
   id: ID!
   name: String!
 
@@ -1259,7 +1269,7 @@ type PageInfo {
 }
 
 """A specific physical location, such as a business or recycling facility"""
-type Place implements Named {
+type Place implements Named & Node {
   """Structured postal address of this place"""
   address: PlaceAddress
   createdAt: DateTime!
@@ -1326,7 +1336,7 @@ type PlacesConnection {
 """
 A recycling, reuse, or disposal process for a product variant or material
 """
-type Process implements Named {
+type Process implements Named & Node {
   createdAt: DateTime!
   desc: String
 
@@ -1335,8 +1345,6 @@ type Process implements Named {
 
   """Audit history of changes to this process"""
   history(after: String, before: String, first: Int, last: Int): ProcessHistoryConnection!
-
-  """The ID of the model"""
   id: ID!
 
   """The type of circular economy process (e.g. RECYCLE, REUSE, REPAIR)"""
@@ -1443,14 +1451,12 @@ input ProcessVariantInput {
 }
 
 """An administrative description of circular economy processes"""
-type Program implements Named {
+type Program implements Named & Node {
   createdAt: DateTime!
   desc: String
 
   """Audit history of changes to this program"""
   history(after: String, before: String, first: Int, last: Int): ProgramHistoryConnection!
-
-  """The ID of the model"""
   id: ID!
   instructions: ProgramInstructions
   name: String!
@@ -1551,6 +1557,8 @@ type Query {
   materialRoot: Material!
   materials(after: String, before: String, first: Int, last: Int): MaterialsConnection!
   me: User
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
   org(id: ID!): Org
   orgSchema: ModelEditSchema
   orgs(after: String, before: String, first: Int, last: Int): OrgsConnection!
@@ -1628,8 +1636,15 @@ enum RefModelType {
   Variant
 }
 
+"""An entity referenced (added, removed, or modified) by an edit"""
+type RefNode {
+  """Global ID of the referenced entity"""
+  id: ID!
+  op: OpType!
+}
+
 """A geographic region based on the Who's On First dataset"""
-type Region {
+type Region implements Node {
   """Bounding box as [minLon, minLat, maxLon, maxLat]"""
   bbox: [Float!]
 
@@ -1769,7 +1784,7 @@ enum SearchType {
 """
 A reference source used to support data changes, such as a URL, PDF, or image
 """
-type Source {
+type Source implements Node {
   changes(after: String, before: String, first: Int, last: Int, status: ChangeStatus, userID: ID): ChangesConnection!
 
   """Extracted or structured content from the source"""
@@ -1895,13 +1910,13 @@ enum StreamScoreRating {
 """
 A tag instance applied to a model, with optional instance-specific metadata
 """
-type Tag implements Named {
+type Tag implements Named & Node {
   """Hex color code for the tag background (e.g. #FF5733)"""
   bgColor: String
   createdAt: DateTime!
-  desc: String
 
-  """The ID of the model"""
+  """The description of the model"""
+  desc: String
   id: ID!
 
   """Icon or image URL for this tag"""
@@ -1912,7 +1927,9 @@ type Tag implements Named {
 
   """JSON schema template for tag instance metadata"""
   metaTemplate: JSONObject
-  name: String!
+
+  """The name of the model"""
+  name: String
 
   """The type of model this tag can be applied to"""
   type: TagType!
@@ -2418,7 +2435,7 @@ type UploadSourceOutput {
 }
 
 """A registered user of the platform"""
-type User {
+type User implements Node {
   avatarURL: String
 
   """Changes this user is involved in"""
@@ -2478,7 +2495,7 @@ type UserProfile {
 """
 A specific variant or SKU of a product item, composed of physical components
 """
-type Variant implements Named {
+type Variant implements Named & Node {
   """Physical components that make up this variant"""
   components(after: String, before: String, first: Int, last: Int): VariantComponentsConnection!
   createdAt: DateTime!
@@ -2486,8 +2503,6 @@ type Variant implements Named {
 
   """Audit history of changes to this variant"""
   history(after: String, before: String, first: Int, last: Int): VariantHistoryConnection!
-
-  """The ID of the model"""
   id: ID!
   imageURL: String
 

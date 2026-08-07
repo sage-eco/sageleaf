@@ -11,7 +11,8 @@ import { SourceType } from '@src/changes/source.entity'
 import { LuxonDateTimeResolver } from '@src/common/datetime.model'
 import { IsNanoID } from '@src/common/validator.model'
 import { type JSONObject } from '@src/common/z.schema'
-import { IDCreatedUpdated } from '@src/graphql/base.model'
+import { IDCreatedUpdated, registerModel } from '@src/graphql/base.model'
+import { Node } from '@src/graphql/node.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { User } from '@src/users/users.model'
 
@@ -21,9 +22,10 @@ registerEnumType(SourceType, {
 })
 
 @ObjectType({
+  implements: () => [Node],
   description: 'A reference source used to support data changes, such as a URL, PDF, or image',
 })
-export class Source extends IDCreatedUpdated {
+export class Source extends IDCreatedUpdated implements Node {
   @Field(() => SourceType)
   type!: SourceType
 
@@ -60,6 +62,7 @@ export class Source extends IDCreatedUpdated {
   })
   metadata?: JSONObject
 }
+registerModel('Source', Source)
 
 @ObjectType()
 export class SourcesConnection extends Paginated(Source) {}

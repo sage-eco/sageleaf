@@ -62,7 +62,7 @@ export type CategoriesConnection = {
 };
 
 /** A hierarchical category for classifying product items */
-export type Category = Named & {
+export type Category = Named & Node & {
   __typename?: 'Category';
   /** All ancestor categories up the hierarchy tree */
   ancestors: CategoriesConnection;
@@ -193,7 +193,7 @@ export enum CaveatLevel {
 }
 
 /** A proposed or merged set of edits to one or more data models */
-export type Change = {
+export type Change = Node & {
   __typename?: 'Change';
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
@@ -292,13 +292,12 @@ export type ChangesConnection = {
 };
 
 /** A physical component of a product variant, made of one or more materials */
-export type Component = Named & {
+export type Component = Named & Node & {
   __typename?: 'Component';
   createdAt: Scalars['DateTime']['output'];
   desc?: Maybe<Scalars['String']['output']>;
   /** Audit history of changes to this component */
   history: ComponentHistoryConnection;
-  /** The ID of the model */
   id: Scalars['ID']['output'];
   imageURL?: Maybe<Scalars['String']['output']>;
   /** Images associated with this component */
@@ -906,6 +905,8 @@ export type Edit = {
   original?: Maybe<EditModel>;
   /** The raw JSON of the entity before this edit */
   originalJSON?: Maybe<Scalars['JSONObject']['output']>;
+  /** Other entities this edit adds, removes, or modifies a reference to. Not deduplicated: a target touched by more than one field appears once per field. */
+  refNodes: Array<RefNode>;
   /** Current input values for updating an existing entity */
   updateInput?: Maybe<Scalars['JSONObject']['output']>;
 };
@@ -970,7 +971,7 @@ export enum FeedFormat {
   Update = 'UPDATE'
 }
 
-export type FeedItem = {
+export type FeedItem = Node & {
   __typename?: 'FeedItem';
   category?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
@@ -1049,7 +1050,7 @@ export type ImagesConnection = {
 };
 
 /** A product or consumable item that can be categorized and have multiple variants */
-export type Item = Named & {
+export type Item = Named & Node & {
   __typename?: 'Item';
   /** Categories this item belongs to */
   categories: CategoriesConnection;
@@ -1057,7 +1058,6 @@ export type Item = Named & {
   desc?: Maybe<Scalars['String']['output']>;
   /** Audit history of changes to this item */
   history: ItemHistoryConnection;
-  /** The ID of the model */
   id: Scalars['ID']['output'];
   imageURL?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
@@ -1338,7 +1338,7 @@ export type MarkSourceProcessedOutput = {
 };
 
 /** A raw or processed material that physical components are composed of */
-export type Material = Named & {
+export type Material = Named & Node & {
   __typename?: 'Material';
   /** All ancestor materials up the hierarchy */
   ancestors: MaterialsConnection;
@@ -1737,14 +1737,24 @@ export type Named = {
   name?: Maybe<Scalars['String']['output']>;
 };
 
+export type Node = {
+  id: Scalars['ID']['output'];
+};
+
+/** The kind of change an edit made to a referenced entity */
+export enum OpType {
+  Added = 'ADDED',
+  Modified = 'MODIFIED',
+  Removed = 'REMOVED'
+}
+
 /** An organization or company on the platform */
-export type Org = Named & {
+export type Org = Named & Node & {
   __typename?: 'Org';
   avatarURL?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   desc?: Maybe<Scalars['String']['output']>;
   history: OrgHistoryConnection;
-  /** The ID of the model */
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   /** Places belonging to this organization */
@@ -1874,7 +1884,7 @@ export type PageInfo = {
 };
 
 /** A specific physical location, such as a business or recycling facility */
-export type Place = Named & {
+export type Place = Named & Node & {
   __typename?: 'Place';
   /** Structured postal address of this place */
   address?: Maybe<PlaceAddress>;
@@ -1957,7 +1967,7 @@ export type PlacesConnection = {
 };
 
 /** A recycling, reuse, or disposal process for a product variant or material */
-export type Process = Named & {
+export type Process = Named & Node & {
   __typename?: 'Process';
   createdAt: Scalars['DateTime']['output'];
   desc?: Maybe<Scalars['String']['output']>;
@@ -1965,7 +1975,6 @@ export type Process = Named & {
   efficiency?: Maybe<ProcessEfficiency>;
   /** Audit history of changes to this process */
   history: ProcessHistoryConnection;
-  /** The ID of the model */
   id: Scalars['ID']['output'];
   /** The type of circular economy process (e.g. RECYCLE, REUSE, REPAIR) */
   intent: Scalars['String']['output'];
@@ -2091,13 +2100,12 @@ export type ProcessVariantInput = {
 };
 
 /** An administrative description of circular economy processes */
-export type Program = Named & {
+export type Program = Named & Node & {
   __typename?: 'Program';
   createdAt: Scalars['DateTime']['output'];
   desc?: Maybe<Scalars['String']['output']>;
   /** Audit history of changes to this program */
   history: ProgramHistoryConnection;
-  /** The ID of the model */
   id: Scalars['ID']['output'];
   instructions?: Maybe<ProgramInstructions>;
   name: Scalars['String']['output'];
@@ -2239,6 +2247,8 @@ export type Query = {
   materialRoot: Material;
   materials: MaterialsConnection;
   me?: Maybe<User>;
+  node?: Maybe<Node>;
+  nodes: Array<Maybe<Node>>;
   org?: Maybe<Org>;
   orgSchema?: Maybe<ModelEditSchema>;
   orgs: OrgsConnection;
@@ -2348,6 +2358,16 @@ export type QueryMaterialsArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryNodeArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryNodesArgs = {
+  ids: Array<Scalars['ID']['input']>;
 };
 
 
@@ -2546,8 +2566,16 @@ export enum RefModelType {
   Variant = 'Variant'
 }
 
+/** An entity referenced (added, removed, or modified) by an edit */
+export type RefNode = {
+  __typename?: 'RefNode';
+  /** Global ID of the referenced entity */
+  id: Scalars['ID']['output'];
+  op: OpType;
+};
+
 /** A geographic region based on the Who's On First dataset */
-export type Region = {
+export type Region = Node & {
   __typename?: 'Region';
   /** Bounding box as [minLon, minLat, maxLon, maxLat] */
   bbox?: Maybe<Array<Scalars['Float']['output']>>;
@@ -2740,7 +2768,7 @@ export enum SearchType {
 }
 
 /** A reference source used to support data changes, such as a URL, PDF, or image */
-export type Source = {
+export type Source = Node & {
   __typename?: 'Source';
   changes: ChangesConnection;
   /** Extracted or structured content from the source */
@@ -2874,13 +2902,13 @@ export enum StreamScoreRating {
 }
 
 /** A tag instance applied to a model, with optional instance-specific metadata */
-export type Tag = Named & {
+export type Tag = Named & Node & {
   __typename?: 'Tag';
   /** Hex color code for the tag background (e.g. #FF5733) */
   bgColor?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  /** The description of the model */
   desc?: Maybe<Scalars['String']['output']>;
-  /** The ID of the model */
   id: Scalars['ID']['output'];
   /** Icon or image URL for this tag */
   image?: Maybe<Scalars['String']['output']>;
@@ -2888,7 +2916,8 @@ export type Tag = Named & {
   meta?: Maybe<Scalars['JSONObject']['output']>;
   /** JSON schema template for tag instance metadata */
   metaTemplate?: Maybe<Scalars['JSONObject']['output']>;
-  name: Scalars['String']['output'];
+  /** The name of the model */
+  name?: Maybe<Scalars['String']['output']>;
   /** The type of model this tag can be applied to */
   type: TagType;
   updatedAt: Scalars['DateTime']['output'];
@@ -3330,7 +3359,7 @@ export type UploadSourceOutput = {
 };
 
 /** A registered user of the platform */
-export type User = {
+export type User = Node & {
   __typename?: 'User';
   avatarURL?: Maybe<Scalars['String']['output']>;
   /** Changes this user is involved in */
@@ -3409,7 +3438,7 @@ export type UserProfile = {
 };
 
 /** A specific variant or SKU of a product item, composed of physical components */
-export type Variant = Named & {
+export type Variant = Named & Node & {
   __typename?: 'Variant';
   /** Physical components that make up this variant */
   components: VariantComponentsConnection;
@@ -3417,7 +3446,6 @@ export type Variant = Named & {
   desc?: Maybe<Scalars['String']['output']>;
   /** Audit history of changes to this variant */
   history: VariantHistoryConnection;
-  /** The ID of the model */
   id: Scalars['ID']['output'];
   imageURL?: Maybe<Scalars['String']['output']>;
   /** Images associated with this variant */

@@ -18,6 +18,7 @@ import {
   TranslatedInput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { type ComponentPhysical, type ComponentVisual } from '@src/process/component.entity'
 import { Material } from '@src/process/material.model'
@@ -46,10 +47,10 @@ export class ComponentMaterial {
 }
 
 @ObjectType({
-  implements: () => [Named],
+  implements: () => [Named, Node],
   description: 'A physical component of a product variant, made of one or more materials',
 })
-export class Component extends IDCreatedUpdated implements Named {
+export class Component extends IDCreatedUpdated implements Named, Node {
   @Field(() => String, { nullable: true })
   @MaxLength(1024)
   name?: string

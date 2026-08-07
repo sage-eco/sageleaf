@@ -4,14 +4,18 @@ import { z } from 'zod/v4'
 
 import { LuxonDateTimeResolver } from '@src/common/datetime.model'
 import { CreatedUpdated, registerModel } from '@src/graphql/base.model'
+import { Node } from '@src/graphql/node.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ComponentsConnection } from '@src/process/component.model'
 import { ProcessConnection } from '@src/process/process.model'
 import { ProgramsConnection } from '@src/process/program.model'
 import { VariantsConnection } from '@src/product/variant.model'
 
-@ObjectType({ description: "A geographic region based on the Who's On First dataset" })
-export class Region extends CreatedUpdated {
+@ObjectType({
+  implements: () => [Node],
+  description: "A geographic region based on the Who's On First dataset",
+})
+export class Region extends CreatedUpdated implements Node {
   @Field(() => ID)
   id!: string
 

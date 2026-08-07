@@ -56,3 +56,14 @@ registerEnumType(RefModelType, {
   name: 'RefModelType',
   description: 'Type of the referenced model in a relation edit',
 })
+
+export enum OpType {
+  ADDED = 'ADDED',
+  REMOVED = 'REMOVED',
+  MODIFIED = 'MODIFIED',
+}
+
+registerEnumType(OpType, {
+  name: 'OpType',
+  description: 'The kind of change an edit made to a referenced entity',
+})

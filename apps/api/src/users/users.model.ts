@@ -2,7 +2,8 @@ import { ArgsType, Directive, Field, ObjectType } from '@nestjs/graphql'
 import { IsEmail, IsOptional, IsUrl, MaxLength } from 'class-validator'
 
 import { ChangesConnection } from '@src/changes/change.model'
-import { IDCreatedUpdated } from '@src/graphql/base.model'
+import { IDCreatedUpdated, registerModel } from '@src/graphql/base.model'
+import { Node } from '@src/graphql/node.model'
 import { Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { Org } from '@src/users/org.model'
 
@@ -12,8 +13,8 @@ export class UserProfile {
   bio?: string
 }
 
-@ObjectType({ description: 'A registered user of the platform' })
-export class User extends IDCreatedUpdated {
+@ObjectType({ implements: () => [Node], description: 'A registered user of the platform' })
+export class User extends IDCreatedUpdated implements Node {
   @Field({ nullable: true })
   name?: string
 
@@ -48,6 +49,7 @@ export class User extends IDCreatedUpdated {
   @Field(() => ChangesConnection, { description: 'Changes this user is involved in' })
   changes!: ChangesConnection & {}
 }
+registerModel('User', User)
 
 @ObjectType({ description: 'Membership of a user in an organization' })
 export class UserOrg {

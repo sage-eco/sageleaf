@@ -5,6 +5,7 @@ import { z } from 'zod/v4'
 import { type JSONObject, type JSONType } from '@src/common/z.schema'
 import { IDCreatedUpdated, registerModel } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { TagType } from '@src/process/tag.entity'
 
@@ -45,9 +46,10 @@ export class TagDefinition extends IDCreatedUpdated implements Named {
 registerModel('TagDefinition', TagDefinition)
 
 @ObjectType({
+  implements: () => [Named, Node],
   description: 'A tag instance applied to a model, with optional instance-specific metadata',
 })
-export class Tag extends TagDefinition {
+export class Tag extends TagDefinition implements Named, Node {
   @Field(() => JSONObjectResolver, {
     nullable: true,
     description: "Instance metadata conforming to the tag definition's metaTemplate",

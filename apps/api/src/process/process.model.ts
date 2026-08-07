@@ -19,6 +19,7 @@ import {
   TranslatedInput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { Material } from '@src/process/material.model'
 import { ProcessIntent } from '@src/process/process.entity'
@@ -49,10 +50,10 @@ export class ProcessEfficiency {
 }
 
 @ObjectType({
-  implements: () => [Named],
+  implements: () => [Named, Node],
   description: 'A recycling, reuse, or disposal process for a product variant or material',
 })
-export class Process extends IDCreatedUpdated implements Named {
+export class Process extends IDCreatedUpdated implements Named, Node {
   @Field(() => String, {
     description: 'The type of circular economy process (e.g. RECYCLE, REUSE, REPAIR)',
   })

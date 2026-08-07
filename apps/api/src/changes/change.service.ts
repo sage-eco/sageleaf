@@ -14,6 +14,7 @@ import { BadRequestErr, NotFoundErr } from '@src/common/exceptions'
 import { MetaService } from '@src/common/meta.service'
 import { CursorOptions, TransformService } from '@src/common/transform'
 import { ZService } from '@src/common/z.service'
+import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
 import { User } from '@src/users/users.entity'
 import { WindmillService } from '@src/windmill/windmill.service'
 
@@ -53,7 +54,8 @@ function mapToJobModel(wmJob: WmJob, stored: StoredJob): Job {
 }
 
 @Injectable()
-export class ChangeService {
+@IsEntityService(Change)
+export class ChangeService implements IEntityService<Change> {
   constructor(
     private readonly em: EntityManager,
     private readonly transform: TransformService,
@@ -64,6 +66,18 @@ export class ChangeService {
     private readonly metaService: MetaService,
     private readonly windmill: WindmillService,
   ) {}
+
+  queryFields(): Record<string, QueryField> {
+    return {}
+  }
+
+  async findOneByID(id: string) {
+    return this.em.findOne(Change, { id })
+  }
+
+  async findManyByID(ids: string[]) {
+    return this.em.find(Change, { id: { $in: ids } })
+  }
 
   async find(opts: CursorOptions<Change>) {
     const changes = await this.em.find(Change, opts.where, opts.options)
@@ -125,6 +139,7 @@ export class ChangeService {
     const editModel = (await this.transform.entityToModel(EditModel, edit)) as EditModel
     editModel.originalJSON = edit.original
     editModel.changesJSON = edit.changes
+    editModel.refNodes = this.editService.computeRefNodes(edit)
     const effectiveChanges = this.editService.effectiveChanges(edit)
     const changesEntity =
       effectiveChanges && edit.entityID

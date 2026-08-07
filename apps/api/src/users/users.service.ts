@@ -5,15 +5,25 @@ import { Injectable } from '@nestjs/common'
 import { Change } from '@src/changes/change.entity'
 import { BadRequestErr } from '@src/common/exceptions'
 import { CursorOptions } from '@src/common/transform'
+import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
 import { Org } from '@src/users/org.entity'
 import { User } from '@src/users/users.entity'
 
 @Injectable()
-export class UsersService {
+@IsEntityService(User)
+export class UsersService implements IEntityService<User> {
   constructor(private readonly em: EntityManager) {}
+
+  queryFields(): Record<string, QueryField> {
+    return {}
+  }
 
   async findOneByID(id: string) {
     return await this.em.findOne(User, { id }, { populate: ['orgs'] })
+  }
+
+  async findManyByID(ids: string[]) {
+    return this.em.find(User, { id: { $in: ids } }, { populate: ['orgs'] })
   }
 
   async findByUsernameOrEmail(usernameOrEmail: string) {

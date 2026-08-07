@@ -14,16 +14,17 @@ import {
   TranslatedOutput,
 } from '@src/graphql/base.model'
 import { Named } from '@src/graphql/interfaces.model'
+import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
 import { ItemsConnection } from '@src/product/item.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User } from '@src/users/users.model'
 
 @ObjectType({
-  implements: () => [Named],
+  implements: () => [Named, Node],
   description: 'A hierarchical category for classifying product items',
 })
-export class Category extends CreatedUpdated implements Named {
+export class Category extends CreatedUpdated implements Named, Node {
   @Field(() => ID)
   id!: string
 

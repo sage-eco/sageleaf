@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
+import type { ChangeEdits } from './change.entity'
+import { OpType } from './change.enum'
 import { EditService } from './edit.service'
 
 // Minimal mock of EntityManager — only getMetadata().get() is needed
@@ -456,5 +458,148 @@ describe('EditService.changePOJOToEntity', () => {
     const metaService = { findEntityService: () => null } as any
     const svc = new EditService(em, {} as any, metaService)
     await expect(svc.changePOJOToEntity('Variant', { id: 'v1' })).rejects.toThrow()
+  })
+})
+
+describe('EditService.computeRefNodes', () => {
+  function makeEdit(overrides: Partial<ChangeEdits>): ChangeEdits {
+    return {
+      entityName: 'Item',
+      entityID: 'item-1',
+      userID: 'user-1',
+      ...overrides,
+    } as ChangeEdits
+  }
+
+  test('create edit (no original) with no relation fields → empty', () => {
+    const svc = makeService({ Item: { relations: [] } })
+    const edit = makeEdit({ original: undefined, changes: { id: 'item-1', name: 'X' } })
+    expect(svc.computeRefNodes(edit)).toEqual([])
+  })
+
+  test('delete edit (original, no changes) → empty', () => {
+    const svc = makeService({ Item: { relations: [] } })
+    const edit = makeEdit({ original: { id: 'item-1', name: 'X' }, changes: undefined })
+    expect(svc.computeRefNodes(edit)).toEqual([])
+  })
+
+  test('update edit with no relation changes → empty', () => {
+    const svc = makeService({ Item: { relations: [] } })
+    const edit = makeEdit({
+      original: { id: 'item-1', name: 'Old' },
+      changes: { id: 'item-1', name: 'New' },
+    })
+    expect(svc.computeRefNodes(edit)).toEqual([])
+  })
+
+  test('to-one relation changed → REMOVED old ref, ADDED new ref', () => {
+    const svc = makeService({
+      Variant: {
+        relations: [
+          { name: 'material', kind: 'm:1', primary: false, targetMeta: { name: 'Material' } },
+        ],
+      },
+    })
+    const edit = makeEdit({
+      entityName: 'Variant',
+      entityID: 'v1',
+      original: { id: 'v1', material: 'mat-old' },
+      changes: { id: 'v1', material: 'mat-new' },
+    })
+    expect(svc.computeRefNodes(edit)).toEqual([
+      { id: 'gid://sageleaf/Material/mat-old', op: OpType.REMOVED },
+      { id: 'gid://sageleaf/Material/mat-new', op: OpType.ADDED },
+    ])
+  })
+
+  test('to-one relation newly set (no prior value) → ADDED only', () => {
+    const svc = makeService({
+      Variant: {
+        relations: [
+          { name: 'material', kind: 'm:1', primary: false, targetMeta: { name: 'Material' } },
+        ],
+      },
+    })
+    const edit = makeEdit({
+      entityName: 'Variant',
+      entityID: 'v1',
+      original: { id: 'v1' },
+      changes: { id: 'v1', material: 'mat-new' },
+    })
+    expect(svc.computeRefNodes(edit)).toEqual([
+      { id: 'gid://sageleaf/Material/mat-new', op: OpType.ADDED },
+    ])
+  })
+
+  test('unchanged to-one field (not in edit.changes) → no ref emitted', () => {
+    const svc = makeService({
+      Variant: {
+        relations: [
+          { name: 'material', kind: 'm:1', primary: false, targetMeta: { name: 'Material' } },
+        ],
+      },
+    })
+    const edit = makeEdit({
+      entityName: 'Variant',
+      entityID: 'v1',
+      original: { id: 'v1', material: 'mat-1', name: 'Old' },
+      changes: { id: 'v1', name: 'New' },
+    })
+    expect(svc.computeRefNodes(edit)).toEqual([])
+  })
+
+  test('pivot collection rows added/removed/modified → one RefNode per row event', () => {
+    const svc = makeService({
+      Item: {
+        relations: [
+          { name: 'categories', kind: 'm:n', pivotEntity: 'ItemsCategories' },
+          {
+            name: 'itemCategories',
+            kind: '1:m',
+            targetMeta: {
+              className: 'ItemsCategories',
+              primaryKeys: ['item', 'category'],
+              relations: [
+                { name: 'item', kind: 'm:1', primary: true, targetMeta: { name: 'Item' } },
+                { name: 'category', kind: 'm:1', primary: true, targetMeta: { name: 'Category' } },
+              ],
+            },
+          },
+        ],
+      },
+    })
+    const edit = makeEdit({
+      entityName: 'Item',
+      entityID: 'item-1',
+      original: {
+        id: 'item-1',
+        itemCategories: [
+          { item: 'item-1', category: 'cat-removed' },
+          { item: 'item-1', category: 'cat-modified', note: 'old' },
+        ],
+      },
+      changes: {
+        id: 'item-1',
+        itemCategories: [
+          { item: 'item-1', category: 'cat-modified', note: 'new' },
+          { item: 'item-1', category: 'cat-added' },
+        ],
+      },
+    })
+    const result = svc.computeRefNodes(edit)
+    expect(result).toEqual(
+      expect.arrayContaining([
+        { id: 'gid://sageleaf/Category/cat-removed', op: OpType.REMOVED },
+        { id: 'gid://sageleaf/Category/cat-modified', op: OpType.MODIFIED },
+        { id: 'gid://sageleaf/Category/cat-added', op: OpType.ADDED },
+      ]),
+    )
+    expect(result).toHaveLength(3)
+  })
+
+  test('no entityID (draft not yet persisted), no relation changes → empty', () => {
+    const svc = makeService({ Item: { relations: [] } })
+    const edit = makeEdit({ entityID: undefined, changes: { name: 'X' } })
+    expect(svc.computeRefNodes(edit)).toEqual([])
   })
 })
