@@ -9,24 +9,12 @@
               {{ totalCount }} result{{ totalCount !== 1 ? 's' : '' }}
             </span>
           </span>
-          <div class="flex justify-end gap-3">
-            <Button
-              :disabled="!hasPreviousPage || !!debouncedSearch"
-              variant="outline"
-              @click="prevPage"
-            >
-              <ChevronLeft />
-              Prev
-            </Button>
-            <Button
-              :disabled="!hasNextPage || !!debouncedSearch"
-              variant="outline"
-              @click="nextPage"
-            >
-              Next
-              <ChevronRight />
-            </Button>
-          </div>
+          <GridPagerButtons
+            :has-previous-page="hasPreviousPage && !debouncedSearch"
+            :has-next-page="hasNextPage && !debouncedSearch"
+            @prev="prevPage"
+            @next="nextPage"
+          />
         </CardTitle>
         <div v-if="searchQuery" class="relative mt-2 max-w-sm">
           <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-base-content/40">
@@ -55,7 +43,7 @@
 
 <script setup lang="ts">
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { ChevronLeft, ChevronRight, SearchIcon } from '@lucide/vue'
+import { SearchIcon } from '@lucide/vue'
 import { watchDebounced } from '@vueuse/core'
 
 const { title, desc, query, queryName, pageSize, searchQuery, searchPlaceholder } = defineProps<{

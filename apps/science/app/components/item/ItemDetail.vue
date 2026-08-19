@@ -92,18 +92,26 @@
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Variants</CardTitle>
+          <CardTitle class="flex items-center justify-between">
+            <span>Variants</span>
+            <GridPagerButtons
+              :has-previous-page="variantsPager.hasPreviousPage.value"
+              :has-next-page="variantsPager.hasNextPage.value"
+              @prev="variantsPager.prevPage"
+              @next="variantsPager.nextPage"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul class="list">
-            <div v-for="variant in entity.variants?.nodes ?? []" :key="variant.id">
+            <div v-for="variant in variantsPager.nodes.value" :key="variant.id">
               <ModelListVariant
                 :variant="variant"
                 :on-row-click="() => panelStore.openPanel('variant', variant.id)"
               />
             </div>
           </ul>
-          <div v-if="!entity.variants?.nodes?.length" class="text-sm opacity-60">None</div>
+          <div v-if="!variantsPager.nodes.value.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
       <Card class="m-3 border-0 bg-base-100 shadow-md">
@@ -195,12 +203,6 @@ const detailQuery = graphql(`
           ...ListCategoryFragment
         }
       }
-      variants(first: 20) {
-        nodes {
-          id
-          ...ListVariantFragment
-        }
-      }
       tags(first: 20) {
         nodes {
           id
@@ -220,6 +222,27 @@ const detailQuery = graphql(`
 
 const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.item ?? null)
+
+const itemVariantsQuery = graphql(`
+  query ItemVariants($id: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+    item(id: $id) {
+      id
+      variants(first: $first, last: $last, after: $after, before: $before) {
+        nodes {
+          id
+          ...ListVariantFragment
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
+`)
+const variantsPager = useRelationPager(itemVariantsQuery, 'item', 'variants', () => props.id)
 
 const deleteItemMutation = graphql(`
   mutation DeleteItem($input: DeleteInput!) {

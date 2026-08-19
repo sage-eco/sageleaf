@@ -75,28 +75,44 @@
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Items</CardTitle>
+          <CardTitle class="flex items-center justify-between">
+            <span>Items</span>
+            <GridPagerButtons
+              :has-previous-page="itemsPager.hasPreviousPage.value"
+              :has-next-page="itemsPager.hasNextPage.value"
+              @prev="itemsPager.prevPage"
+              @next="itemsPager.nextPage"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul class="list">
-            <div v-for="item in entity.items?.nodes ?? []" :key="item.id">
+            <div v-for="item in itemsPager.nodes.value" :key="item.id">
               <ModelListItem
                 :item="item"
                 :on-row-click="() => panelStore.openPanel('item', item.id)"
               />
             </div>
           </ul>
-          <div v-if="!entity.items?.nodes?.length" class="text-sm opacity-60">None</div>
+          <div v-if="!itemsPager.nodes.value.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Components</CardTitle>
+          <CardTitle class="flex items-center justify-between">
+            <span>Components</span>
+            <GridPagerButtons
+              :has-previous-page="componentsPager.hasPreviousPage.value"
+              :has-next-page="componentsPager.hasNextPage.value"
+              @prev="componentsPager.prevPage"
+              @next="componentsPager.nextPage"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul class="list">
-            <div v-for="vc in entity.components?.nodes ?? []" :key="vc.component.id">
+            <div v-for="vc in componentsPager.nodes.value" :key="vc.component.id">
               <ModelListComponent
                 :component="vc.component"
                 :on-row-click="() => panelStore.openPanel('component', vc.component.id)"
@@ -106,24 +122,32 @@
               </div>
             </div>
           </ul>
-          <div v-if="!entity.components?.nodes?.length" class="text-sm opacity-60">None</div>
+          <div v-if="!componentsPager.nodes.value.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Organizations</CardTitle>
+          <CardTitle class="flex items-center justify-between">
+            <span>Organizations</span>
+            <GridPagerButtons
+              :has-previous-page="orgsPager.hasPreviousPage.value"
+              :has-next-page="orgsPager.hasNextPage.value"
+              @prev="orgsPager.prevPage"
+              @next="orgsPager.nextPage"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul class="list">
             <ModelListOrg
-              v-for="vo in entity.orgs?.nodes ?? []"
+              v-for="vo in orgsPager.nodes.value"
               :key="vo.org.id"
               :org="vo.org"
               :on-row-click="() => panelStore.openPanel('org', vo.org.id)"
             />
           </ul>
-          <div v-if="!entity.orgs?.nodes?.length" class="text-sm opacity-60">None</div>
+          <div v-if="!orgsPager.nodes.value.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
 
@@ -223,30 +247,6 @@ const detailQuery = graphql(`
       imageURL
       createdAt
       updatedAt
-      items(first: 10) {
-        nodes {
-          id
-          ...ListItemFragment
-        }
-      }
-      components(first: 20) {
-        nodes {
-          component {
-            id
-            ...ListComponentFragment
-          }
-          quantity
-          unit
-        }
-      }
-      orgs(first: 10) {
-        nodes {
-          org {
-            id
-            ...ListOrgFragment
-          }
-        }
-      }
       regions(first: 10) {
         nodes {
           id
@@ -274,6 +274,80 @@ const detailQuery = graphql(`
 
 const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.variant ?? null)
+
+const variantItemsQuery = graphql(`
+  query VariantItems($id: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+    variant(id: $id) {
+      id
+      items(first: $first, last: $last, after: $after, before: $before) {
+        nodes {
+          id
+          ...ListItemFragment
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
+`)
+const itemsPager = useRelationPager(variantItemsQuery, 'variant', 'items', () => props.id)
+
+const variantComponentsQuery = graphql(`
+  query VariantComponents($id: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+    variant(id: $id) {
+      id
+      components(first: $first, last: $last, after: $after, before: $before) {
+        nodes {
+          component {
+            id
+            ...ListComponentFragment
+          }
+          quantity
+          unit
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
+`)
+const componentsPager = useRelationPager(
+  variantComponentsQuery,
+  'variant',
+  'components',
+  () => props.id,
+)
+
+const variantOrgsQuery = graphql(`
+  query VariantOrgs($id: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+    variant(id: $id) {
+      id
+      orgs(first: $first, last: $last, after: $after, before: $before) {
+        nodes {
+          org {
+            id
+            ...ListOrgFragment
+          }
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
+`)
+const orgsPager = useRelationPager(variantOrgsQuery, 'variant', 'orgs', () => props.id)
 
 const deleteVariantMutation = graphql(`
   mutation DeleteVariant($input: DeleteInput!) {

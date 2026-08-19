@@ -84,35 +84,51 @@
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Child Materials</CardTitle>
+          <CardTitle class="flex items-center justify-between">
+            <span>Child Materials</span>
+            <GridPagerButtons
+              :has-previous-page="childrenPager.hasPreviousPage.value"
+              :has-next-page="childrenPager.hasNextPage.value"
+              @prev="childrenPager.prevPage"
+              @next="childrenPager.nextPage"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul class="list">
             <ModelListMaterial
-              v-for="child in entity.children?.nodes ?? []"
+              v-for="child in childrenPager.nodes.value"
               :key="child.id"
               :material="child"
               :on-row-click="() => navigateTo(`/materials/${child.id}`)"
             />
           </ul>
-          <div v-if="!entity.children?.nodes?.length" class="text-sm opacity-60">None</div>
+          <div v-if="!childrenPager.nodes.value.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Processes</CardTitle>
+          <CardTitle class="flex items-center justify-between">
+            <span>Processes</span>
+            <GridPagerButtons
+              :has-previous-page="processesPager.hasPreviousPage.value"
+              :has-next-page="processesPager.hasNextPage.value"
+              @prev="processesPager.prevPage"
+              @next="processesPager.nextPage"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul class="list">
             <ModelListProcess
-              v-for="process in entity.processes?.nodes ?? []"
+              v-for="process in processesPager.nodes.value"
               :key="process.id"
               :process="process"
               :on-row-click="() => panelStore.openPanel('process', process.id)"
             />
           </ul>
-          <div v-if="!entity.processes?.nodes?.length" class="text-sm opacity-60">None</div>
+          <div v-if="!processesPager.nodes.value.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
 
@@ -172,18 +188,6 @@ const detailQuery = graphql(`
           ...ListMaterialFragment
         }
       }
-      children(first: 50) {
-        nodes {
-          id
-          ...ListMaterialFragment
-        }
-      }
-      processes(first: 20) {
-        nodes {
-          id
-          ...ListProcessFragment
-        }
-      }
       related(limit: 10) {
         nodes {
           id
@@ -196,4 +200,56 @@ const detailQuery = graphql(`
 
 const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.material ?? null)
+
+const materialChildrenQuery = graphql(`
+  query MaterialChildren($id: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+    material(id: $id) {
+      id
+      children(first: $first, last: $last, after: $after, before: $before) {
+        nodes {
+          id
+          ...ListMaterialFragment
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
+`)
+const childrenPager = useRelationPager(
+  materialChildrenQuery,
+  'material',
+  'children',
+  () => props.id,
+)
+
+const materialProcessesQuery = graphql(`
+  query MaterialProcesses($id: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+    material(id: $id) {
+      id
+      processes(first: $first, last: $last, after: $after, before: $before) {
+        nodes {
+          id
+          ...ListProcessFragment
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
+`)
+const processesPager = useRelationPager(
+  materialProcessesQuery,
+  'material',
+  'processes',
+  () => props.id,
+)
 </script>
