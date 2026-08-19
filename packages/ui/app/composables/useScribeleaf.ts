@@ -45,5 +45,15 @@ export function useScribeleaf() {
     return listen<object>(DATA_UPDATED_EVENT, (event: Event<object>) => cb(event.payload))
   }
 
-  return { enabled, register, push, unregister, onExternalUpdate }
+  async function status(): Promise<'running' | 'stopped' | 'disabled'> {
+    if (!enabled) return 'disabled'
+    return await invoke('plugin:sageleaf-scribeleaf|scribeleaf_status')
+  }
+
+  async function restart() {
+    if (!enabled) return
+    await invoke('plugin:sageleaf-scribeleaf|scribeleaf_restart')
+  }
+
+  return { enabled, register, push, unregister, onExternalUpdate, status, restart }
 }

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-scribeleaf-status"
+description = "Enables the scribeleaf_status command without any pre-configured scope."
+commands.allow = ["scribeleaf_status"]
+
+[[permission]]
+identifier = "deny-scribeleaf-status"
+description = "Denies the scribeleaf_status command without any pre-configured scope."
+commands.deny = ["scribeleaf_status"]

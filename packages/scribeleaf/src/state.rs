@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 use utoipa::ToSchema;
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
@@ -27,3 +27,5 @@ pub struct FormState {
 }
 
 pub type SharedFormState = Arc<RwLock<Option<FormState>>>;
+
+pub type ScribeleafServerHandle = Arc<Mutex<Option<tauri::async_runtime::JoinHandle<()>>>>;

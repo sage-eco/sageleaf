@@ -106,18 +106,34 @@
         </PopoverPortal>
       </PopoverRoot>
     </section>
+
+    <section v-if="scribeleaf.enabled" class="mb-10">
+      <h2 class="mb-1 text-lg font-semibold">Scribeleaf API</h2>
+      <p class="mb-4 text-sm text-base-content/70">
+        Local API used to bridge form data to external tools.
+      </p>
+      <div class="flex items-center gap-3">
+        <Badge :variant="statusVariant">{{ statusLabel }}</Badge>
+        <Button variant="outline" size="sm" :disabled="restarting" @click="onRestart">
+          <RefreshCw :size="16" :class="{ 'animate-spin': restarting }" />
+          Restart
+        </Button>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Lock, Monitor, Moon, Plus, Sun, X } from '@lucide/vue'
+import { Lock, Monitor, Moon, Plus, RefreshCw, Sun, X } from '@lucide/vue'
 import { getLanguageByCode, supportedLanguages } from '@sageleaf/ui/app/utils/iso639-helpers'
+import { useIntervalFn } from '@vueuse/core'
 import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka-ui'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import { usePreferencesStore } from '~/stores/preferences_store'
 
 const prefs = usePreferencesStore()
+const scribeleaf = useScribeleaf()
 
 const { store: themeStore } = useThemeMode()
 const themeOptions = [
@@ -163,5 +179,41 @@ function getLabel(code: string): string {
   const entry = getLanguageByCode(code)
   if (entry) return entry.referenceName
   return code.toUpperCase()
+}
+
+const scribeleafStatus = ref<'checking' | 'running' | 'stopped'>('checking')
+const restarting = ref<boolean>(false)
+
+const statusVariant = computed(() => {
+  if (scribeleafStatus.value === 'running') return 'teal'
+  if (scribeleafStatus.value === 'stopped') return 'red'
+  return 'gray'
+})
+
+const statusLabel = computed(() => {
+  if (scribeleafStatus.value === 'running') return 'Running'
+  if (scribeleafStatus.value === 'stopped') return 'Stopped'
+  return 'Checking…'
+})
+
+async function refreshStatus() {
+  const result = await scribeleaf.status()
+  if (result === 'disabled') return
+  scribeleafStatus.value = result
+}
+
+async function onRestart() {
+  restarting.value = true
+  try {
+    await scribeleaf.restart()
+    await refreshStatus()
+  } finally {
+    restarting.value = false
+  }
+}
+
+if (scribeleaf.enabled) {
+  onMounted(refreshStatus)
+  useIntervalFn(refreshStatus, 10_000)
 }
 </script>

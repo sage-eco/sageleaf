@@ -3,6 +3,7 @@ use std::sync::Arc;
 use axum::{extract::State, Json};
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, Runtime};
+use tokio::net::TcpListener;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use utoipa::OpenApi;
 use utoipa_axum::{router::OpenApiRouter, routes};
@@ -10,7 +11,7 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use crate::error::{Error, Result};
 use crate::state::{FormMeta, FormState, SharedFormState};
 
-const PORT: u16 = 47651;
+pub(crate) const PORT: u16 = 47651;
 const DATA_UPDATED_EVENT: &str = "scribeleaf://data-updated";
 
 /// Type-erased emitter, so the axum router (and its handlers) stay free of
@@ -27,7 +28,11 @@ struct ServerState {
 #[openapi(components(schemas(FormMeta, FormState)))]
 struct ApiDoc;
 
-pub async fn serve<R: Runtime>(form: SharedFormState, app_handle: AppHandle<R>) {
+pub async fn bind() -> std::io::Result<TcpListener> {
+    TcpListener::bind(("127.0.0.1", PORT)).await
+}
+
+pub async fn run<R: Runtime>(listener: TcpListener, form: SharedFormState, app_handle: AppHandle<R>) {
     let emit: EmitFn = Arc::new(move |data: &Value| app_handle.emit(DATA_UPDATED_EVENT, data));
     let state = ServerState { form, emit };
 
@@ -44,14 +49,6 @@ pub async fn serve<R: Runtime>(form: SharedFormState, app_handle: AppHandle<R>) 
     let router = router
         .route("/api-docs/openapi.json", axum::routing::get(async || Json(api)))
         .layer(cors);
-
-    let listener = match tokio::net::TcpListener::bind(("127.0.0.1", PORT)).await {
-        Ok(listener) => listener,
-        Err(err) => {
-            log::error!("scribeleaf: failed to bind to 127.0.0.1:{PORT}: {err}");
-            return;
-        }
-    };
 
     if let Err(err) = axum::serve(listener, router).await {
         log::error!("scribeleaf: server error: {err}");

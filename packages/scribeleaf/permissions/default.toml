@@ -5,11 +5,17 @@ identifier = "allow-form"
 description = "Enables the register_form, update_form_data, and unregister_form commands without any pre-configured scope."
 commands.allow = ["register_form", "update_form_data", "unregister_form"]
 
+[[permission]]
+identifier = "allow-server-control"
+description = "Enables the scribeleaf_status and scribeleaf_restart commands without any pre-configured scope."
+commands.allow = ["scribeleaf_status", "scribeleaf_restart"]
+
 [default]
 description = """
 This permission set configures which scribeleaf features are exposed by default.
 
-Grants access to registering, updating, and unregistering the currently active form.
+Grants access to registering, updating, and unregistering the currently active form, and to
+checking and restarting the local server.
 """
 
-permissions = ["allow-form"]
+permissions = ["allow-form", "allow-server-control"]
