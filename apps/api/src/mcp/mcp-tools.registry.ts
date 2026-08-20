@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 
 import { McpToolContext } from '@src/mcp/mcp.types'
 import { registerBeginChangeTool } from '@src/mcp/tools/begin-change.tool'
+import { registerCreateSourceTool } from '@src/mcp/tools/create-source.tool'
 import { registerEditChangeTool } from '@src/mcp/tools/edit-change.tool'
 import { registerGraphqlIntrospectionTool } from '@src/mcp/tools/graphql-introspection.tool'
 import { registerGraphqlQueryTool } from '@src/mcp/tools/graphql-query.tool'
@@ -20,6 +21,7 @@ export function buildMcpServer(ctx: McpToolContext): McpServer {
 
   registerBeginChangeTool(server, ctx)
   registerEditChangeTool(server, ctx)
+  registerCreateSourceTool(server, ctx)
   registerProposeEditTool(server, ctx)
   registerProposeRefsTool(server, ctx)
 

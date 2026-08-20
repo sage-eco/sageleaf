@@ -764,7 +764,7 @@ export type CreateProgramInput = {
   /** IDs of sources to remove from this change */
   removeSources?: InputMaybe<Array<Scalars['ID']['input']>>;
   social?: InputMaybe<ProgramSocialInput>;
-  status: Scalars['String']['input'];
+  status: ProgramStatus;
   tags?: InputMaybe<Array<ProgramTagsInput>>;
 };
 
@@ -775,10 +775,9 @@ export type CreateProgramOutput = {
 };
 
 export type CreateSourceInput = {
-  content?: InputMaybe<Scalars['JSONObject']['input']>;
   contentURL?: InputMaybe<Scalars['String']['input']>;
-  location?: InputMaybe<Scalars['String']['input']>;
   metadata?: InputMaybe<Scalars['JSONObject']['input']>;
+  text?: InputMaybe<Scalars['String']['input']>;
   type: SourceType;
 };
 
@@ -1883,6 +1882,17 @@ export type PageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
+export type PhoneEntry = {
+  __typename?: 'PhoneEntry';
+  phoneNumber: Scalars['String']['output'];
+  purpose?: Maybe<Scalars['String']['output']>;
+};
+
+export type PhoneEntryInput = {
+  phoneNumber: Scalars['String']['input'];
+  purpose?: InputMaybe<Scalars['String']['input']>;
+};
+
 /** A specific physical location, such as a business or recycling facility */
 export type Place = Named & Node & {
   __typename?: 'Place';
@@ -2115,7 +2125,7 @@ export type Program = Named & Node & {
   processes: ProcessConnection;
   region?: Maybe<Region>;
   social?: Maybe<ProgramSocial>;
-  status: Scalars['String']['output'];
+  status: ProgramStatus;
   /** Metadata tags applied to this program */
   tags: TagConnection;
   updatedAt: Scalars['DateTime']['output'];
@@ -2188,16 +2198,27 @@ export type ProgramHistoryEdge = {
 
 export type ProgramInstructions = {
   __typename?: 'ProgramInstructions';
+  /** The one link from primaryLinks matching the current request locale, falling back to the first link with no locale - not an explicit "primary" designation. */
   primaryLink?: Maybe<ExternalLink>;
 };
 
 export type ProgramInstructionsInput = {
+  /** Multiple links may be submitted, one per locale. Reads return only one - see Program.instructions.primaryLink. */
   primaryLinks?: InputMaybe<Array<ExternalLinkInput>>;
 };
 
+/** Role of an Org within a Program */
+export enum ProgramOrgRole {
+  Funder = 'FUNDER',
+  Host = 'HOST',
+  Operator = 'OPERATOR',
+  Other = 'OTHER',
+  Sponsor = 'SPONSOR'
+}
+
 export type ProgramOrgsInput = {
   id: Scalars['ID']['input'];
-  role?: InputMaybe<Scalars['String']['input']>;
+  role?: InputMaybe<ProgramOrgRole>;
 };
 
 export type ProgramProcessesInput = {
@@ -2206,12 +2227,24 @@ export type ProgramProcessesInput = {
 
 export type ProgramSocial = {
   __typename?: 'ProgramSocial';
+  address?: Maybe<Scalars['String']['output']>;
   links?: Maybe<Array<ExternalLink>>;
+  phones?: Maybe<Array<PhoneEntry>>;
 };
 
 export type ProgramSocialInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  addressTr?: InputMaybe<Array<TranslatedInput>>;
   links?: InputMaybe<Array<ExternalLinkInput>>;
+  phones?: InputMaybe<Array<PhoneEntryInput>>;
 };
+
+/** Lifecycle status of a Program */
+export enum ProgramStatus {
+  Active = 'ACTIVE',
+  Closed = 'CLOSED',
+  Planned = 'PLANNED'
+}
 
 export type ProgramTagsInput = {
   id: Scalars['ID']['input'];
@@ -2436,6 +2469,7 @@ export type QueryRegionsArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3259,7 +3293,7 @@ export type UpdateProgramInput = {
   removeSources?: InputMaybe<Array<Scalars['ID']['input']>>;
   removeTags?: InputMaybe<Array<Scalars['ID']['input']>>;
   social?: InputMaybe<ProgramSocialInput>;
-  status?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<ProgramStatus>;
   tags?: InputMaybe<Array<ProgramTagsInput>>;
 };
 
@@ -3272,11 +3306,10 @@ export type UpdateProgramOutput = {
 };
 
 export type UpdateSourceInput = {
-  content?: InputMaybe<Scalars['JSONObject']['input']>;
   contentURL?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
-  location?: InputMaybe<Scalars['String']['input']>;
   metadata?: InputMaybe<Scalars['JSONObject']['input']>;
+  text?: InputMaybe<Scalars['String']['input']>;
   type?: InputMaybe<SourceType>;
 };
 
@@ -3796,3 +3829,111 @@ export type VoteOutput = {
   success: Scalars['Boolean']['output'];
   uischema?: Maybe<Scalars['JSONObject']['output']>;
 };
+
+/** One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string. */
+export type __EnumValue = {
+  __typename?: '__EnumValue';
+  name: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  isDeprecated: Scalars['Boolean']['output'];
+  deprecationReason?: Maybe<Scalars['String']['output']>;
+};
+
+/** Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type. */
+export type __Field = {
+  __typename?: '__Field';
+  name: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  args: Array<__InputValue>;
+  type: __Type;
+  isDeprecated: Scalars['Boolean']['output'];
+  deprecationReason?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type. */
+export type __FieldArgsArgs = {
+  includeDeprecated?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value. */
+export type __InputValue = {
+  __typename?: '__InputValue';
+  name: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  type: __Type;
+  /** A GraphQL-formatted string representing the default value for this input value. */
+  defaultValue?: Maybe<Scalars['String']['output']>;
+  isDeprecated: Scalars['Boolean']['output'];
+  deprecationReason?: Maybe<Scalars['String']['output']>;
+};
+
+/**
+ * The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+ *
+ * Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name, description and optional `specifiedByURL`, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+ */
+export type __Type = {
+  __typename?: '__Type';
+  kind: __TypeKind;
+  name?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  specifiedByURL?: Maybe<Scalars['String']['output']>;
+  fields?: Maybe<Array<__Field>>;
+  interfaces?: Maybe<Array<__Type>>;
+  possibleTypes?: Maybe<Array<__Type>>;
+  enumValues?: Maybe<Array<__EnumValue>>;
+  inputFields?: Maybe<Array<__InputValue>>;
+  ofType?: Maybe<__Type>;
+  isOneOf?: Maybe<Scalars['Boolean']['output']>;
+};
+
+
+/**
+ * The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+ *
+ * Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name, description and optional `specifiedByURL`, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+ */
+export type __TypeFieldsArgs = {
+  includeDeprecated?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+/**
+ * The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+ *
+ * Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name, description and optional `specifiedByURL`, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+ */
+export type __TypeEnumValuesArgs = {
+  includeDeprecated?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+/**
+ * The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+ *
+ * Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name, description and optional `specifiedByURL`, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+ */
+export type __TypeInputFieldsArgs = {
+  includeDeprecated?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** An enum describing what kind of type a given `__Type` is. */
+export enum __TypeKind {
+  /** Indicates this type is a scalar. */
+  Scalar = 'SCALAR',
+  /** Indicates this type is an object. `fields` and `interfaces` are valid fields. */
+  Object = 'OBJECT',
+  /** Indicates this type is an interface. `fields`, `interfaces`, and `possibleTypes` are valid fields. */
+  Interface = 'INTERFACE',
+  /** Indicates this type is a union. `possibleTypes` is a valid field. */
+  Union = 'UNION',
+  /** Indicates this type is an enum. `enumValues` is a valid field. */
+  Enum = 'ENUM',
+  /** Indicates this type is an input object. `inputFields` is a valid field. */
+  InputObject = 'INPUT_OBJECT',
+  /** Indicates this type is a list. `ofType` is a valid field. */
+  List = 'LIST',
+  /** Indicates this type is a non-null. `ofType` is a valid field. */
+  NonNull = 'NON_NULL'
+}

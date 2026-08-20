@@ -111,7 +111,6 @@ describe('API Key Authentication (integration)', () => {
       {
         input: {
           type: SourceType.Text,
-          location: 'https://example.com/api-key-test',
         },
       },
     )

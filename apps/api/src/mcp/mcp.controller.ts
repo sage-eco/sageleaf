@@ -12,6 +12,8 @@ import type { ReqUser } from '@src/auth/auth.guard'
 import { ChangeSchemaService } from '@src/changes/change.schema'
 import { ChangeService } from '@src/changes/change.service'
 import { RefEditService } from '@src/changes/ref-edit.service'
+import { SourceSchemaService } from '@src/changes/source.schema'
+import { SourceService } from '@src/changes/source.service'
 import { TransformService } from '@src/common/transform'
 import { PlaceSchemaService } from '@src/geo/place.schema'
 import { PlaceService } from '@src/geo/place.service'
@@ -66,6 +68,8 @@ export class McpController implements OnModuleInit {
     private readonly changeService: ChangeService,
     private readonly changeSchemaService: ChangeSchemaService,
     private readonly refEditService: RefEditService,
+    private readonly sourceService: SourceService,
+    private readonly sourceSchemaService: SourceSchemaService,
     private readonly searchService: SearchService,
     private readonly itemService: ItemService,
     private readonly itemSchemaService: ItemSchemaService,
@@ -112,6 +116,8 @@ export class McpController implements OnModuleInit {
       changeService: this.changeService,
       changeSchemaService: this.changeSchemaService,
       refEditService: this.refEditService,
+      sourceService: this.sourceService,
+      sourceSchemaService: this.sourceSchemaService,
       searchService: this.searchService,
       itemService: this.itemService,
       itemSchemaService: this.itemSchemaService,

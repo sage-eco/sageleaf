@@ -11,18 +11,16 @@
       <FormInput v-model="form.contentURL" placeholder="https://..." />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="label">Location</label>
-      <FormInput v-model="form.location" placeholder="Page number, section, etc." />
+      <label class="label">Text</label>
+      <FormTextArea
+        v-model="form.text"
+        placeholder="Plain-text content extracted from the source"
+      />
     </div>
     <div class="flex flex-col gap-1">
       <label class="label">Metadata (JSON)</label>
       <FormTextArea v-model="form.metadataRaw" placeholder="{}" />
       <span v-if="metadataError" class="text-xs text-error">{{ metadataError }}</span>
-    </div>
-    <div class="flex flex-col gap-1">
-      <label class="label">Content (JSON)</label>
-      <FormTextArea v-model="form.contentRaw" placeholder="{}" />
-      <span v-if="contentError" class="text-xs text-error">{{ contentError }}</span>
     </div>
     <div class="flex justify-end gap-2">
       <Button type="submit">{{ sourceId ? 'Save' : 'Create' }}</Button>
@@ -38,9 +36,8 @@ const props = defineProps<{
   sourceId?: string
   initialType?: SourceType
   initialContentURL?: string
-  initialLocation?: string
+  initialText?: string
   initialMetadata?: Record<string, unknown> | null
-  initialContent?: Record<string, unknown> | null
 }>()
 
 const emit = defineEmits<{
@@ -52,13 +49,11 @@ const sourceTypes = Object.values(SourceType)
 const form = reactive({
   type: props.initialType ?? SourceType.Url,
   contentURL: props.initialContentURL ?? '',
-  location: props.initialLocation ?? '',
+  text: props.initialText ?? '',
   metadataRaw: props.initialMetadata ? JSON.stringify(props.initialMetadata, null, 2) : '',
-  contentRaw: props.initialContent ? JSON.stringify(props.initialContent, null, 2) : '',
 })
 
 const metadataError = ref('')
-const contentError = ref('')
 
 const createSourceMutation = graphql(`
   mutation CreateSourceFromForm($input: CreateSourceInput!) {
@@ -96,8 +91,7 @@ const parseJSON = (raw: string, errorRef: Ref<string>): Record<string, unknown> 
 
 const onSubmit = async () => {
   const metadata = parseJSON(form.metadataRaw, metadataError)
-  const content = parseJSON(form.contentRaw, contentError)
-  if (metadataError.value || contentError.value) return
+  if (metadataError.value) return
 
   if (props.sourceId) {
     await updateSource({
@@ -105,9 +99,8 @@ const onSubmit = async () => {
         id: props.sourceId,
         type: form.type,
         contentURL: form.contentURL || null,
-        location: form.location || null,
+        text: form.text || null,
         metadata,
-        content,
       },
     })
   } else {
@@ -115,9 +108,8 @@ const onSubmit = async () => {
       input: {
         type: form.type,
         contentURL: form.contentURL || null,
-        location: form.location || null,
+        text: form.text || null,
         metadata,
-        content,
       },
     })
   }

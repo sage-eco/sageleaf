@@ -3,7 +3,6 @@ import type { Ref } from '@mikro-orm/core'
 import { z } from 'zod/v4'
 
 import { Change } from '@src/changes/change.entity'
-import { type JSONObject } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Component } from '@src/process/component.entity'
 import { Process } from '@src/process/process.entity'
@@ -30,6 +29,11 @@ export const ContentSchema = z.object({
 })
 
 export type Content = z.infer<typeof ContentSchema>
+
+export const SourceMetadataSchema = z.object({
+  extra: z.record(z.string(), z.json()).optional(),
+})
+export type SourceMetadata = z.infer<typeof SourceMetadataSchema>
 
 @Entity({ tableName: 'sources', schema: 'public' })
 export class Source extends IDCreatedUpdated {
@@ -64,7 +68,7 @@ export class Source extends IDCreatedUpdated {
   variants = new Collection<Variant>(this)
 
   @Property({ type: 'json', nullable: true })
-  metadata?: JSONObject
+  metadata?: SourceMetadata
 }
 
 @Entity({ tableName: 'external_sources', schema: 'public' })

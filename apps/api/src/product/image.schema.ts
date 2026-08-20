@@ -17,7 +17,7 @@ export class ImageSchemaService {
       model.createdAt = DateTime.fromJSDate(entity.createdAt)
       model.updatedAt = DateTime.fromJSDate(entity.updatedAt)
       model.url = expandCdnUrl(entity.location) ?? ''
-      model.size = entity.metadata?.size as string | undefined
+      model.size = entity.metadata?.extra?.size as string | undefined
       return model
     })
     this.zService.registerEntityTransform(SourceEntity, Image, ImageTransform)

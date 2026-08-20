@@ -333,6 +333,27 @@ describe('ChangeResolver (integration)', () => {
     expect(res.data?.createChange?.change?.title).toBe('New Change')
   })
 
+  test('should reject a description longer than the change_edits.description column (255 chars)', async () => {
+    const res = await gql.send(
+      graphql(`
+        mutation ChangeResolverCreateChangeLongDescription($input: CreateChangeInput!) {
+          createChange(input: $input) {
+            change {
+              id
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          title: 'Change with overlong description',
+          description: 'x'.repeat(256),
+        },
+      },
+    )
+    expect(res.errors).toBeDefined()
+  })
+
   test('should update a change', async () => {
     const res = await gql.send(
       graphql(`

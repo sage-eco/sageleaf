@@ -83,10 +83,7 @@ export class CreateSourceInput {
   type!: SourceType
 
   @Field(() => String, { nullable: true })
-  location?: string
-
-  @Field(() => JSONObjectResolver, { nullable: true })
-  content?: JSONObject
+  text?: string
 
   @Field(() => String, { nullable: true })
   contentURL?: string
@@ -104,10 +101,7 @@ export class UpdateSourceInput {
   type?: SourceType
 
   @Field(() => String, { nullable: true })
-  location?: string
-
-  @Field(() => JSONObjectResolver, { nullable: true })
-  content?: JSONObject
+  text?: string
 
   @Field(() => String, { nullable: true })
   contentURL?: string

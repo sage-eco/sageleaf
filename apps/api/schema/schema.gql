@@ -612,7 +612,7 @@ input CreateProgramInput {
   """IDs of sources to remove from this change"""
   removeSources: [ID!]
   social: ProgramSocialInput
-  status: String!
+  status: ProgramStatus!
   tags: [ProgramTagsInput!]
 }
 
@@ -622,10 +622,9 @@ type CreateProgramOutput {
 }
 
 input CreateSourceInput {
-  content: JSONObject
   contentURL: String
-  location: String
   metadata: JSONObject
+  text: String
   type: SourceType!
 }
 
@@ -1268,6 +1267,16 @@ type PageInfo {
   startCursor: String
 }
 
+type PhoneEntry {
+  phoneNumber: String!
+  purpose: String
+}
+
+input PhoneEntryInput {
+  phoneNumber: String!
+  purpose: String
+}
+
 """A specific physical location, such as a business or recycling facility"""
 type Place implements Named & Node {
   """Structured postal address of this place"""
@@ -1468,7 +1477,7 @@ type Program implements Named & Node {
   processes(after: String, before: String, first: Int, last: Int): ProcessConnection!
   region: Region
   social: ProgramSocial
-  status: String!
+  status: ProgramStatus!
 
   """Metadata tags applied to this program"""
   tags(after: String, before: String, first: Int, last: Int): TagConnection!
@@ -1501,16 +1510,31 @@ type ProgramHistoryEdge {
 }
 
 type ProgramInstructions {
+  """
+  The one link from primaryLinks matching the current request locale, falling back to the first link with no locale - not an explicit "primary" designation.
+  """
   primaryLink: ExternalLink
 }
 
 input ProgramInstructionsInput {
+  """
+  Multiple links may be submitted, one per locale. Reads return only one - see Program.instructions.primaryLink.
+  """
   primaryLinks: [ExternalLinkInput!]
+}
+
+"""Role of an Org within a Program"""
+enum ProgramOrgRole {
+  FUNDER
+  HOST
+  OPERATOR
+  OTHER
+  SPONSOR
 }
 
 input ProgramOrgsInput {
   id: ID!
-  role: String
+  role: ProgramOrgRole
 }
 
 input ProgramProcessesInput {
@@ -1518,11 +1542,23 @@ input ProgramProcessesInput {
 }
 
 type ProgramSocial {
+  address: String
   links: [ExternalLink!]
+  phones: [PhoneEntry!]
 }
 
 input ProgramSocialInput {
+  address: String
+  addressTr: [TranslatedInput!]
   links: [ExternalLinkInput!]
+  phones: [PhoneEntryInput!]
+}
+
+"""Lifecycle status of a Program"""
+enum ProgramStatus {
+  ACTIVE
+  CLOSED
+  PLANNED
 }
 
 input ProgramTagsInput {
@@ -1572,7 +1608,7 @@ type Query {
   programSchema: ModelEditSchema
   programs(after: String, before: String, first: Int, last: Int): ProgramsConnection!
   region(id: ID!): Region
-  regions(after: String, before: String, first: Int, last: Int): RegionsConnection!
+  regions(after: String, before: String, first: Int, last: Int, query: String): RegionsConnection!
   search(filters: [SearchFacetFilterInput!], latlong: [Float!], limit: Int, offset: Int, query: String!, types: [SearchType!]): SearchResultConnection!
   searchRegionsByPoint(after: String, before: String, first: Int, last: Int, latlong: [Float!]!): RegionsConnection!
   source(id: ID!): Source
@@ -2326,7 +2362,7 @@ input UpdateProgramInput {
   removeSources: [ID!]
   removeTags: [ID!]
   social: ProgramSocialInput
-  status: String
+  status: ProgramStatus
   tags: [ProgramTagsInput!]
 }
 
@@ -2339,11 +2375,10 @@ type UpdateProgramOutput {
 }
 
 input UpdateSourceInput {
-  content: JSONObject
   contentURL: String
   id: ID!
-  location: String
   metadata: JSONObject
+  text: String
   type: SourceType
 }
 

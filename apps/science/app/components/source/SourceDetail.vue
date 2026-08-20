@@ -123,9 +123,8 @@
           :source-id="id"
           :initial-type="entity.type"
           :initial-content-u-r-l="entity.contentURL ?? undefined"
-          :initial-location="entity.location ?? undefined"
+          :initial-text="entityContentText"
           :initial-metadata="entity.metadata"
-          :initial-content="entity.content"
           @saved="onSaved"
         />
       </DialogContent>
@@ -188,6 +187,10 @@ const detailQuery = graphql(`
 
 const { result, refetch } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.source ?? null)
+const entityContentText = computed(() => {
+  const content = entity.value?.content as Record<string, unknown> | null | undefined
+  return typeof content?.text === 'string' ? content.text : undefined
+})
 
 const deleteSourceMutation = graphql(`
   mutation DeleteSource($id: ID!) {
