@@ -22,6 +22,7 @@ describe('OrgResolver (integration)', () => {
   let app: INestApplication
   let gql: GraphQLTestClient
   let orgID: string
+  let orm: MikroORM
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -36,7 +37,7 @@ describe('OrgResolver (integration)', () => {
 
     gql = new GraphQLTestClient(app)
 
-    const orm = module.get<MikroORM>(MikroORM)
+    orm = module.get<MikroORM>(MikroORM)
 
     await clearDatabase(orm, 'public', ['users'])
     await orm.seeder.seed(
@@ -134,6 +135,84 @@ describe('OrgResolver (integration)', () => {
     expect(res.data?.createOrg?.org).toBeDefined()
     expect(res.data?.createOrg?.org?.name).toBe('Test Organization')
     expect(res.data?.createOrg?.org?.slug).toBe('test-org')
+  })
+
+  test('should populate nameTr alongside name on create', async () => {
+    const res = await gql.send(
+      graphql(`
+        mutation OrgResolverCreateOrgNameTr($input: CreateOrgInput!) {
+          createOrg(input: $input) {
+            org {
+              id
+              name
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          name: 'Brick Recycler',
+          slug: 'brick-recycler',
+        },
+      },
+    )
+    expect(res.errors).toBeUndefined()
+    const createdID = res.data?.createOrg?.org?.id
+    expect(createdID).toBeDefined()
+    expect(res.data?.createOrg?.org?.name).toBe('Brick Recycler')
+
+    orm.em.clear()
+    const org = await orm.em.findOne(Org, { id: createdID })
+    expect(org?.name).toBe('Brick Recycler')
+    expect(org?.nameTr).toMatchObject({ en: 'Brick Recycler' })
+  })
+
+  test('should populate nameTr alongside name on update', async () => {
+    const createRes = await gql.send(
+      graphql(`
+        mutation OrgResolverCreateOrgForNameTrUpdate($input: CreateOrgInput!) {
+          createOrg(input: $input) {
+            org {
+              id
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          name: 'Original Name',
+          slug: 'org-for-nametr-update',
+        },
+      },
+    )
+    const updateOrgID = createRes.data?.createOrg?.org?.id
+    expect(updateOrgID).toBeDefined()
+
+    const res = await gql.send(
+      graphql(`
+        mutation OrgResolverUpdateOrgNameTr($input: UpdateOrgInput!) {
+          updateOrg(input: $input) {
+            org {
+              id
+              name
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          id: updateOrgID,
+          name: 'Brick Recycler',
+        },
+      },
+    )
+    expect(res.errors).toBeUndefined()
+    expect(res.data?.updateOrg?.org?.name).toBe('Brick Recycler')
+
+    orm.em.clear()
+    const org = await orm.em.findOne(Org, { id: updateOrgID })
+    expect(org?.name).toBe('Brick Recycler')
+    expect(org?.nameTr).toMatchObject({ en: 'Brick Recycler' })
   })
 
   test('should update an org', async () => {

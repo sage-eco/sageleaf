@@ -167,6 +167,7 @@ export class OrgService implements IEntityService<Org> {
   async setFields(org: Org, input: Partial<CreateOrgInput & UpdateOrgInput>, change?: Change) {
     if (input.name) {
       org.name = input.name
+      org.nameTr = this.i18n.addTrReq(org.nameTr, input.name, input.lang)
     }
     if (input.slug) {
       org.slug = input.slug
