@@ -10,6 +10,7 @@ import { TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ExternalLinkInputSchema } from '@src/common/link.schema'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
+import { PhoneEntrySchema } from '@src/common/phone.schema'
 import { UISchemaElement } from '@src/common/ui.schema'
 import { TransformInput, ZService } from '@src/common/z.service'
 import { RegionIDSchema } from '@src/geo/region.model'
@@ -17,6 +18,7 @@ import { ProcessIDSchema } from '@src/process/process.schema'
 import {
   Program as ProgramEntity,
   ProgramHistory as ProgramHistoryEntity,
+  ProgramOrgRole,
   ProgramStatus,
 } from '@src/process/program.entity'
 import {
@@ -36,7 +38,7 @@ export const ProgramIDSchema = z.string().meta({
 
 export const ProgramOrgsInputSchema = z.strictObject({
   id: OrgIDSchema,
-  role: z.string().optional(),
+  role: z.enum(ProgramOrgRole).optional(),
 })
 
 export const ProgramProcessesInputSchema = z.strictObject({
@@ -51,6 +53,9 @@ export const ProgramTagsInputSchema = z.strictObject({
 // Input variants, to keep server-only link fields out of programSchema's JSON Schema
 export const ProgramSocialInputSchema = z.object({
   links: z.array(ExternalLinkInputSchema).optional(),
+  phones: z.array(PhoneEntrySchema).optional(),
+  address: z.string().max(1024).optional(),
+  addressTr: TrArraySchema,
 })
 
 export const ProgramInstructionsInputSchema = z.object({
@@ -90,7 +95,11 @@ export class ProgramSchemaService implements ISchemaService {
       model.name = input.i18n.tr(entity.name) as string
       model.desc = input.i18n.tr(entity.desc)
       model.social = entity.social
-        ? { links: input.i18n.filterByLocale(entity.social.links) }
+        ? {
+            links: input.i18n.filterByLocale(entity.social.links),
+            phones: entity.social.phones,
+            address: input.i18n.tr(entity.social.address),
+          }
         : undefined
       model.instructions = entity.instructions
         ? { primaryLink: input.i18n.pickByLocale(entity.instructions.primaryLinks) }
@@ -306,11 +315,18 @@ export class ProgramSchemaService implements ISchemaService {
     const e = entity as any
     const data: Record<string, any> = {
       status: e.status,
-      social: e.social,
       instructions: e.instructions,
     }
     this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
     this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+    if (e.social) {
+      const social: Record<string, any> = {
+        links: e.social.links,
+        phones: e.social.phones,
+      }
+      this.baseSchema.applyTranslatedField(social, e.social.address, 'address', 'addressTr')
+      data.social = social
+    }
     data.orgs = this.baseSchema.collectionToInput(
       this.baseSchema.safeCollectionItems(e.programOrgs),
       'program',
@@ -338,11 +354,18 @@ export class ProgramSchemaService implements ISchemaService {
     const data: Record<string, any> = {
       id: e.id,
       status: e.status,
-      social: e.social,
       instructions: e.instructions,
     }
     this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
     this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+    if (e.social) {
+      const social: Record<string, any> = {
+        links: e.social.links,
+        phones: e.social.phones,
+      }
+      this.baseSchema.applyTranslatedField(social, e.social.address, 'address', 'addressTr')
+      data.social = social
+    }
     data.orgs = this.baseSchema.collectionToInput(
       this.baseSchema.safeCollectionItems(e.programOrgs),
       'program',

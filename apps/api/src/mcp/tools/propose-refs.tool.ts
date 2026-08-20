@@ -3,7 +3,13 @@ import { z, ZodError } from 'zod/v4'
 
 import { EditModelType, RefModelType } from '@src/changes/change.enum'
 import { AddRefInput } from '@src/changes/ref-edit.model'
-import { assertChangeIsDraft, errorResult, McpToolContext, textResult } from '@src/mcp/mcp.types'
+import {
+  assertChangeIsDraft,
+  errorResult,
+  McpToolContext,
+  normalizeEmptyCollectionStrings,
+  textResult,
+} from '@src/mcp/mcp.types'
 import { MODEL_BY_EDIT_TYPE } from '@src/mcp/tools/propose-edit.tool'
 
 const RefEntrySchema = z.object({
@@ -32,7 +38,9 @@ export function registerProposeRefsTool(server: McpServer, ctx: McpToolContext) 
         'Add relationship edits (e.g. link a Tag, an Item to a Variant) for one entity, as a draft ' +
         'edit tied to a Change created with begin_change. Accepts multiple ref operations for the ' +
         'same entity in one call. The Change must be in DRAFT status - once PROPOSED, this tool ' +
-        'refuses further edits until moved back to DRAFT.',
+        'refuses further edits until moved back to DRAFT. IDs returned by an earlier "create" call ' +
+        'in the same DRAFT Change (via propose_edit) can be referenced immediately here - there is ' +
+        'no need to merge the Change first.',
       inputSchema: {
         model: z
           .enum(EditModelType)
@@ -55,8 +63,17 @@ export function registerProposeRefsTool(server: McpServer, ctx: McpToolContext) 
       const results = []
       for (const refEntry of refs) {
         try {
-          const parsed = await ctx.changeSchemaService.parseAddRefInput({
+          const normalizedEntry = {
             ...refEntry,
+            input: refEntry.input
+              ? (normalizeEmptyCollectionStrings(refEntry.input) as Record<string, unknown>)
+              : refEntry.input,
+            inputs: refEntry.inputs
+              ? (normalizeEmptyCollectionStrings(refEntry.inputs) as Record<string, unknown>[])
+              : refEntry.inputs,
+          }
+          const parsed = await ctx.changeSchemaService.parseAddRefInput({
+            ...normalizedEntry,
             changeID,
           } as AddRefInput)
           const output = await ctx.refEditService.addRef(model, id, parsed, ctx.userID)

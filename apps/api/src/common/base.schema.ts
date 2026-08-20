@@ -59,6 +59,7 @@ export class BaseSchemaService {
         url: true,
         uri: true,
         nanoid: true,
+        e164: true,
       },
     })
   }

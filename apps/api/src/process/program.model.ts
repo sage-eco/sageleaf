@@ -1,4 +1,4 @@
-import { ArgsType, Field, ID, InputType, ObjectType } from '@nestjs/graphql'
+import { ArgsType, Field, ID, InputType, ObjectType, registerEnumType } from '@nestjs/graphql'
 import { JSONObjectResolver } from 'graphql-scalars'
 import { DateTime } from 'luxon'
 
@@ -18,34 +18,70 @@ import { Named } from '@src/graphql/interfaces.model'
 import { ExternalLink, ExternalLinkInput } from '@src/graphql/link.model'
 import { Node } from '@src/graphql/node.model'
 import { OrderDirection, Paginated, PaginationBasicArgs } from '@src/graphql/paginated'
+import { PhoneEntry, PhoneEntryInput } from '@src/graphql/phone.model'
 import { ProcessConnection } from '@src/process/process.model'
-import { ProgramStatus } from '@src/process/program.entity'
+import { ProgramOrgRole, ProgramStatus } from '@src/process/program.entity'
 import { TagConnection } from '@src/process/tag.model'
 import { OrgsConnection } from '@src/users/org.model'
 import { User as UserEntity } from '@src/users/users.entity'
 import { User } from '@src/users/users.model'
 
+registerEnumType(ProgramStatus, {
+  name: 'ProgramStatus',
+  description: 'Lifecycle status of a Program',
+})
+
+registerEnumType(ProgramOrgRole, {
+  name: 'ProgramOrgRole',
+  description: 'Role of an Org within a Program',
+})
+
 @ObjectType()
 export class ProgramSocial {
   @Field(() => [ExternalLink], { nullable: true })
   links?: ExternalLink[]
+
+  @Field(() => [PhoneEntry], { nullable: true })
+  phones?: PhoneEntry[]
+
+  @Field(() => String, { nullable: true })
+  address?: string
 }
 
 @InputType()
 export class ProgramSocialInput {
   @Field(() => [ExternalLinkInput], { nullable: true })
   links?: ExternalLinkInput[]
+
+  @Field(() => [PhoneEntryInput], { nullable: true })
+  phones?: PhoneEntryInput[]
+
+  @Field(() => String, { nullable: true })
+  address?: string
+
+  @Field(() => [TranslatedInput], { nullable: true })
+  addressTr?: TranslatedInput[]
 }
 
 @ObjectType()
 export class ProgramInstructions {
-  @Field(() => ExternalLink, { nullable: true })
+  @Field(() => ExternalLink, {
+    nullable: true,
+    description:
+      'The one link from primaryLinks matching the current request locale, falling back to the ' +
+      'first link with no locale - not an explicit "primary" designation.',
+  })
   primaryLink?: ExternalLink
 }
 
 @InputType()
 export class ProgramInstructionsInput {
-  @Field(() => [ExternalLinkInput], { nullable: true })
+  @Field(() => [ExternalLinkInput], {
+    nullable: true,
+    description:
+      'Multiple links may be submitted, one per locale. Reads return only one - see ' +
+      'Program.instructions.primaryLink.',
+  })
   primaryLinks?: ExternalLinkInput[]
 }
 
@@ -66,7 +102,7 @@ export class Program extends IDCreatedUpdated implements Named, Node {
   @Field(() => ProgramInstructions, { nullable: true })
   instructions?: ProgramInstructions
 
-  @Field(() => String)
+  @Field(() => ProgramStatus)
   status!: ProgramStatus
 
   @Field(() => Region, { nullable: true })
@@ -155,8 +191,8 @@ export class ProgramOrgsInput {
   @Field(() => ID)
   id!: string
 
-  @Field(() => String, { nullable: true })
-  role?: string
+  @Field(() => ProgramOrgRole, { nullable: true })
+  role?: ProgramOrgRole
 }
 
 @InputType()
@@ -194,7 +230,7 @@ export class CreateProgramInput extends ChangeInputWithLang {
   @Field(() => ProgramInstructionsInput, { nullable: true })
   instructions?: ProgramInstructionsInput
 
-  @Field(() => String)
+  @Field(() => ProgramStatus)
   status!: ProgramStatus
 
   @Field(() => ID, { nullable: true })
@@ -233,7 +269,7 @@ export class UpdateProgramInput extends ChangeInputWithLang {
   @Field(() => ProgramInstructionsInput, { nullable: true })
   instructions?: ProgramInstructionsInput
 
-  @Field(() => String, { nullable: true })
+  @Field(() => ProgramStatus, { nullable: true })
   status?: ProgramStatus
 
   @Field(() => ID, { nullable: true })

@@ -4,7 +4,13 @@ import { z, ZodError } from 'zod/v4'
 import { EditModelType } from '@src/changes/change.enum'
 import { Change } from '@src/changes/change.model'
 import { Place } from '@src/geo/place.model'
-import { assertChangeIsDraft, errorResult, McpToolContext, textResult } from '@src/mcp/mcp.types'
+import {
+  assertChangeIsDraft,
+  errorResult,
+  McpToolContext,
+  normalizeEmptyCollectionStrings,
+  textResult,
+} from '@src/mcp/mcp.types'
 import { Component } from '@src/process/component.model'
 import { Process } from '@src/process/process.model'
 import { Program } from '@src/process/program.model'
@@ -96,7 +102,12 @@ export function registerProposeEditTool(server: McpServer, ctx: McpToolContext) 
         'human editor using the web UI. The Change must be in DRAFT status (see begin_change / ' +
         'edit_change); once PROPOSED, this tool refuses further edits until moved back to DRAFT. For ' +
         'mode "update", "data" must include the entity "id". Material is read-only (like Region) - ' +
-        'it has no create/update mutation in this app.',
+        'it has no create/update mutation in this app. IDs returned by an earlier "create" call in ' +
+        'the same DRAFT Change can be referenced immediately by later propose_edit/propose_refs ' +
+        'calls in that Change - there is no need to merge the Change first. Array fields must be ' +
+        'passed as real arrays (use [] to clear an existing array); a stringified empty collection ' +
+        '("[]" or "{}") is defensively unwrapped as a safety net, but do not rely on this for ' +
+        'non-empty values.',
       inputSchema: {
         model: z
           .enum(EditModelType)
@@ -125,17 +136,25 @@ export function registerProposeEditTool(server: McpServer, ctx: McpToolContext) 
 
       const resultKey = model.toLowerCase()
 
+      const normalizedData = normalizeEmptyCollectionStrings(data) as Record<string, unknown>
+
       try {
         if (mode === 'create') {
-          const parsed = await entry.schemaService.parseCreateInput({ ...data, changeID })
+          const parsed = await entry.schemaService.parseCreateInput({
+            ...normalizedData,
+            changeID,
+          })
           const result = await entry.entityService.create(parsed, ctx.userID)
           return await formatResult(ctx, entry.model, resultKey, result)
         }
 
-        if (!('id' in data) || typeof data.id !== 'string') {
+        if (!('id' in normalizedData) || typeof normalizedData.id !== 'string') {
           return errorResult('mode "update" requires "id" in data')
         }
-        const parsed = await entry.schemaService.parseUpdateInput({ ...data, changeID })
+        const parsed = await entry.schemaService.parseUpdateInput({
+          ...normalizedData,
+          changeID,
+        })
         const result = await entry.entityService.update(parsed, ctx.userID)
         return await formatResult(ctx, entry.model, resultKey, result)
       } catch (error) {

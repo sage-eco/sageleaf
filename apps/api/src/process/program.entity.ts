@@ -20,6 +20,7 @@ import { z } from 'zod/v4'
 import { ExcludeFromDiff } from '@src/common/exclude-from-diff.decorator'
 import type { TranslatedField } from '@src/common/i18n'
 import { ExternalLinkSchema } from '@src/common/link.schema'
+import { PhoneEntrySchema } from '@src/common/phone.schema'
 import { type JSONObject, type Rank, RANK_ORDER_SQL } from '@src/common/z.schema'
 import { IDCreatedUpdated } from '@src/db/base.entity'
 import { Region } from '@src/geo/region.entity'
@@ -34,8 +35,18 @@ export enum ProgramStatus {
   CLOSED = 'CLOSED',
 }
 
+export enum ProgramOrgRole {
+  OPERATOR = 'OPERATOR',
+  SPONSOR = 'SPONSOR',
+  HOST = 'HOST',
+  FUNDER = 'FUNDER',
+  OTHER = 'OTHER',
+}
+
 export const ProgramSocialSchema = z.object({
   links: z.array(ExternalLinkSchema).optional(),
+  phones: z.array(PhoneEntrySchema).optional(),
+  address: z.custom<TranslatedField>().optional(),
 })
 export type ProgramSocial = z.infer<typeof ProgramSocialSchema>
 

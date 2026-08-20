@@ -73,6 +73,25 @@ describe('RegionResolver (integration)', () => {
     expect(Array.isArray(res.data?.regions.nodes)).toBe(true)
   })
 
+  test('should filter regions by name query', async () => {
+    const res = await gql.send(
+      graphql(`
+        query RegionResolverQueryRegions($query: String, $first: Int) {
+          regions(query: $query, first: $first) {
+            nodes {
+              id
+              name
+            }
+          }
+        }
+      `),
+      { query: 'San Francisco', first: 10 },
+    )
+    expect(res.errors).toBeUndefined()
+    expect(res.data?.regions.nodes.length).toBeGreaterThan(0)
+    expect(res.data?.regions.nodes.every((n) => n.name?.includes('San Francisco'))).toBe(true)
+  })
+
   test('should search regions by point with pagination', async () => {
     const res = await gql.send(
       graphql(`

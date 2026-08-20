@@ -36,7 +36,7 @@ export class RegionResolver {
   @OptionalAuth()
   async regions(@Args() args: RegionsArgs): Promise<RegionsConnection> {
     const [parsedArgs, filter] = await this.transform.paginationArgs(RegionsArgs, args)
-    const cursor = await this.regionService.find(filter)
+    const cursor = await this.regionService.find(filter, args.query)
     return this.transform.entityToPaginated(Region, RegionsConnection, cursor, parsedArgs)
   }
 

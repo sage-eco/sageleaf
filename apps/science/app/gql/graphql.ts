@@ -768,7 +768,7 @@ export type CreateProgramInput = {
   /** IDs of sources to remove from this change */
   removeSources?: InputMaybe<Array<Scalars['ID']['input']>>;
   social?: InputMaybe<ProgramSocialInput>;
-  status: Scalars['String']['input'];
+  status: ProgramStatus;
   tags?: InputMaybe<Array<ProgramTagsInput>>;
 };
 
@@ -779,10 +779,9 @@ export type CreateProgramOutput = {
 };
 
 export type CreateSourceInput = {
-  content?: InputMaybe<Scalars['JSONObject']['input']>;
   contentURL?: InputMaybe<Scalars['String']['input']>;
-  location?: InputMaybe<Scalars['String']['input']>;
   metadata?: InputMaybe<Scalars['JSONObject']['input']>;
+  text?: InputMaybe<Scalars['String']['input']>;
   type: SourceType;
 };
 
@@ -1887,6 +1886,17 @@ export type PageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
+export type PhoneEntry = {
+  __typename?: 'PhoneEntry';
+  phoneNumber: Scalars['String']['output'];
+  purpose?: Maybe<Scalars['String']['output']>;
+};
+
+export type PhoneEntryInput = {
+  phoneNumber: Scalars['String']['input'];
+  purpose?: InputMaybe<Scalars['String']['input']>;
+};
+
 /** A specific physical location, such as a business or recycling facility */
 export type Place = Named & Node & {
   __typename?: 'Place';
@@ -2119,7 +2129,7 @@ export type Program = Named & Node & {
   processes: ProcessConnection;
   region?: Maybe<Region>;
   social?: Maybe<ProgramSocial>;
-  status: Scalars['String']['output'];
+  status: ProgramStatus;
   /** Metadata tags applied to this program */
   tags: TagConnection;
   updatedAt: Scalars['DateTime']['output'];
@@ -2192,16 +2202,27 @@ export type ProgramHistoryEdge = {
 
 export type ProgramInstructions = {
   __typename?: 'ProgramInstructions';
+  /** The one link from primaryLinks matching the current request locale, falling back to the first link with no locale - not an explicit "primary" designation. */
   primaryLink?: Maybe<ExternalLink>;
 };
 
 export type ProgramInstructionsInput = {
+  /** Multiple links may be submitted, one per locale. Reads return only one - see Program.instructions.primaryLink. */
   primaryLinks?: InputMaybe<Array<ExternalLinkInput>>;
 };
 
+/** Role of an Org within a Program */
+export enum ProgramOrgRole {
+  Funder = 'FUNDER',
+  Host = 'HOST',
+  Operator = 'OPERATOR',
+  Other = 'OTHER',
+  Sponsor = 'SPONSOR'
+}
+
 export type ProgramOrgsInput = {
   id: Scalars['ID']['input'];
-  role?: InputMaybe<Scalars['String']['input']>;
+  role?: InputMaybe<ProgramOrgRole>;
 };
 
 export type ProgramProcessesInput = {
@@ -2210,12 +2231,24 @@ export type ProgramProcessesInput = {
 
 export type ProgramSocial = {
   __typename?: 'ProgramSocial';
+  address?: Maybe<Scalars['String']['output']>;
   links?: Maybe<Array<ExternalLink>>;
+  phones?: Maybe<Array<PhoneEntry>>;
 };
 
 export type ProgramSocialInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  addressTr?: InputMaybe<Array<TranslatedInput>>;
   links?: InputMaybe<Array<ExternalLinkInput>>;
+  phones?: InputMaybe<Array<PhoneEntryInput>>;
 };
+
+/** Lifecycle status of a Program */
+export enum ProgramStatus {
+  Active = 'ACTIVE',
+  Closed = 'CLOSED',
+  Planned = 'PLANNED'
+}
 
 export type ProgramTagsInput = {
   id: Scalars['ID']['input'];
@@ -2440,6 +2473,7 @@ export type QueryRegionsArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3263,7 +3297,7 @@ export type UpdateProgramInput = {
   removeSources?: InputMaybe<Array<Scalars['ID']['input']>>;
   removeTags?: InputMaybe<Array<Scalars['ID']['input']>>;
   social?: InputMaybe<ProgramSocialInput>;
-  status?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<ProgramStatus>;
   tags?: InputMaybe<Array<ProgramTagsInput>>;
 };
 
@@ -3276,11 +3310,10 @@ export type UpdateProgramOutput = {
 };
 
 export type UpdateSourceInput = {
-  content?: InputMaybe<Scalars['JSONObject']['input']>;
   contentURL?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
-  location?: InputMaybe<Scalars['String']['input']>;
   metadata?: InputMaybe<Scalars['JSONObject']['input']>;
+  text?: InputMaybe<Scalars['String']['input']>;
   type?: InputMaybe<SourceType>;
 };
 
@@ -4194,7 +4227,7 @@ export type ProgramDetailQueryVariables = Exact<{
 }>;
 
 
-export type ProgramDetailQuery = { __typename?: 'Query', program?: { __typename?: 'Program', id: string, name: string, desc?: string | null, status: string, createdAt: any, updatedAt: any, region?: { __typename?: 'Region', id: string, name?: string | null } | null, tags: { __typename?: 'TagConnection', nodes: Array<{ __typename?: 'Tag', id: string, name?: string | null, bgColor?: string | null }> } } | null };
+export type ProgramDetailQuery = { __typename?: 'Query', program?: { __typename?: 'Program', id: string, name: string, desc?: string | null, status: ProgramStatus, createdAt: any, updatedAt: any, region?: { __typename?: 'Region', id: string, name?: string | null } | null, tags: { __typename?: 'TagConnection', nodes: Array<{ __typename?: 'Tag', id: string, name?: string | null, bgColor?: string | null }> } } | null };
 
 export type ProgramOrgsQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -5492,7 +5525,7 @@ export type ListPlaceFragmentFragment = { __typename?: 'Place', id: string, name
 
 export type ListProcessFragmentFragment = { __typename?: 'Process', id: string, name?: string | null, desc?: string | null, intent: string, material?: { __typename?: 'Material', id: string, name?: string | null } | null, org?: { __typename?: 'Org', id: string, name: string } | null, region?: { __typename?: 'Region', id: string, name?: string | null } | null } & { ' $fragmentName'?: 'ListProcessFragmentFragment' };
 
-export type ListProgramFragmentFragment = { __typename?: 'Program', id: string, name: string, desc?: string | null, status: string, region?: { __typename?: 'Region', id: string, name?: string | null } | null, orgs: { __typename?: 'OrgsConnection', nodes: Array<{ __typename?: 'Org', id: string, name: string }> } } & { ' $fragmentName'?: 'ListProgramFragmentFragment' };
+export type ListProgramFragmentFragment = { __typename?: 'Program', id: string, name: string, desc?: string | null, status: ProgramStatus, region?: { __typename?: 'Region', id: string, name?: string | null } | null, orgs: { __typename?: 'OrgsConnection', nodes: Array<{ __typename?: 'Org', id: string, name: string }> } } & { ' $fragmentName'?: 'ListProgramFragmentFragment' };
 
 export type ListRegionFragmentFragment = { __typename?: 'Region', id: string, name?: string | null, desc?: string | null, placetype: string, province?: { __typename?: 'Region', id: string, name?: string | null } | null, country?: { __typename?: 'Region', id: string, name?: string | null } | null } & { ' $fragmentName'?: 'ListRegionFragmentFragment' };
 

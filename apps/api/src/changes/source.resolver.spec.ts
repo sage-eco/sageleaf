@@ -151,7 +151,6 @@ describe('SourceResolver (integration)', () => {
       {
         input: {
           type: SourceType.File,
-          location: 'https://example.com/test-datasheet.pdf',
         },
       },
     )
@@ -168,7 +167,7 @@ describe('SourceResolver (integration)', () => {
           updateSource(input: $input) {
             source {
               id
-              location
+              contentURL
             }
           }
         }
@@ -176,14 +175,16 @@ describe('SourceResolver (integration)', () => {
       {
         input: {
           id: sourceID,
-          location: 'https://example.com/updated-source.pdf',
+          contentURL: 'https://example.com/updated-source.pdf',
         },
       },
     )
     expect(res.errors).toBeUndefined()
     expect(res.data?.updateSource?.source).toBeDefined()
     expect(res.data?.updateSource?.source?.id).toBe(sourceID)
-    expect(res.data?.updateSource?.source?.location).toBe('https://example.com/updated-source.pdf')
+    expect(res.data?.updateSource?.source?.contentURL).toBe(
+      'https://example.com/updated-source.pdf',
+    )
   })
 
   test('should mark source as processed', async () => {
@@ -217,7 +218,6 @@ describe('SourceResolver (integration)', () => {
       {
         input: {
           type: SourceType.File,
-          location: 'https://example.com/to-delete.pdf',
         },
       },
     )
@@ -266,8 +266,9 @@ describe('SourceResolver (integration)', () => {
               source {
                 id
                 type
-                location
                 contentURL
+                content
+                metadata
               }
             }
           }
@@ -275,9 +276,8 @@ describe('SourceResolver (integration)', () => {
         {
           input: {
             type: SourceType.Url,
-            location: 'https://recycling-guide.com/page1',
+            text: 'Recycling Guide body text',
             contentURL: 'https://cdn.example.com/content.json',
-            content: { title: 'Recycling Guide', pages: 10 },
             metadata: { author: 'Test Author', date: '2024-01-01' },
           },
         },
@@ -285,10 +285,16 @@ describe('SourceResolver (integration)', () => {
       expect(res.errors).toBeUndefined()
       expect(res.data?.createSource?.source).toBeDefined()
       expect(res.data?.createSource?.source?.type).toBe(SourceType.Url)
-      expect(res.data?.createSource?.source?.location).toBe('https://recycling-guide.com/page1')
       expect(res.data?.createSource?.source?.contentURL).toBe(
         'https://cdn.example.com/content.json',
       )
+      expect(res.data?.createSource?.source?.content).toMatchObject({
+        text: 'Recycling Guide body text',
+      })
+      expect(res.data?.createSource?.source?.metadata).toMatchObject({
+        author: 'Test Author',
+        date: '2024-01-01',
+      })
       expect(res.data?.createSource?.source?.id).toBeDefined()
     })
 
@@ -307,10 +313,7 @@ describe('SourceResolver (integration)', () => {
             }
           `),
           {
-            input: {
-              type,
-              location: `https://example.com/${type.toLowerCase()}/test`,
-            },
+            input: { type },
           },
         )
         expect(res.errors).toBeUndefined()
@@ -708,8 +711,9 @@ describe('SourceResolver (integration)', () => {
             updateSource(input: $input) {
               source {
                 id
-                location
                 contentURL
+                content
+                metadata
               }
             }
           }
@@ -717,19 +721,19 @@ describe('SourceResolver (integration)', () => {
         {
           input: {
             id: sourceID,
-            location: 'https://updated-location.com',
+            text: 'updated text',
             contentURL: 'https://updated-content.com/data.json',
-            content: { updated: true },
             metadata: { updatedBy: 'Test User' },
           },
         },
       )
       expect(res.errors).toBeUndefined()
       expect(res.data?.updateSource?.source).toBeDefined()
-      expect(res.data?.updateSource?.source?.location).toBe('https://updated-location.com')
       expect(res.data?.updateSource?.source?.contentURL).toBe(
         'https://updated-content.com/data.json',
       )
+      expect(res.data?.updateSource?.source?.content).toMatchObject({ text: 'updated text' })
+      expect(res.data?.updateSource?.source?.metadata).toMatchObject({ updatedBy: 'Test User' })
       expect(res.data?.updateSource?.source?.id).toBe(sourceID)
     })
   })

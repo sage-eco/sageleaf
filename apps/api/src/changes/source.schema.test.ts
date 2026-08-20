@@ -37,9 +37,8 @@ describe('SourceSchemaService', () => {
       await expect(
         service.parseCreateInput({
           type: SourceType.URL,
-          location: 'https://example.com',
+          text: 'some extracted text',
           contentURL: 'https://example.com/data.json',
-          content: { key: 'value' },
           metadata: { author: 'test' },
         }),
       ).resolves.toBeDefined()
@@ -117,7 +116,7 @@ describe('SourceSchemaService', () => {
         service.parseUpdateInput({
           id: VALID_NANOID,
           type: SourceType.PDF,
-          location: 'https://example.com/doc.pdf',
+          text: 'updated extracted text',
           contentURL: 'https://example.com/content.pdf',
           metadata: { pages: 10 },
         }),

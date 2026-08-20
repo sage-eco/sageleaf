@@ -25,9 +25,15 @@ export class RegionService implements IEntityService<Region> {
     return {}
   }
 
-  async find(opts: CursorOptions<Region>) {
-    const regions = await this.em.find(Region, opts.where, opts.options)
-    const count = await this.em.count(Region, opts.where)
+  async find(opts: CursorOptions<Region>, query?: string) {
+    const findWhere = query
+      ? { ...opts.where, [raw('name::text ilike ?', [`%${query}%`])]: true }
+      : opts.where
+    const countWhere = query
+      ? { ...opts.where, [raw('name::text ilike ?', [`%${query}%`])]: true }
+      : opts.where
+    const regions = await this.em.find(Region, findWhere, opts.options)
+    const count = await this.em.count(Region, countWhere)
     return {
       items: regions,
       count,

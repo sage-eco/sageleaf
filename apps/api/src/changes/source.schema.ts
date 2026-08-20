@@ -36,8 +36,7 @@ const ContentUrlSchema = z
 
 export const CreateSourceInputSchema = z.object({
   type: z.enum(SourceType),
-  location: z.string().max(2048).optional(),
-  content: z.record(z.string(), z.json()).optional(),
+  text: z.string().optional(),
   contentURL: ContentUrlSchema,
   metadata: z.record(z.string(), z.json()).optional(),
 })
@@ -46,8 +45,7 @@ export const CreateSourceInputJSONSchema = z.toJSONSchema(CreateSourceInputSchem
 export const UpdateSourceInputSchema = z.object({
   id: z.nanoid(),
   type: z.enum(SourceType).optional(),
-  location: z.string().max(2048).optional(),
-  content: z.record(z.string(), z.json()).optional(),
+  text: z.string().optional(),
   contentURL: ContentUrlSchema,
   metadata: z.record(z.string(), z.json()).optional(),
 })
@@ -93,7 +91,7 @@ const ModelTransform = z.transform((input: TransformInput) => {
   model.content = entity.content
   model.contentURL = expandCdnUrl(entity.contentURL)
   model.processedAt = entity.processedAt ? DateTime.fromJSDate(entity.processedAt) : undefined
-  model.metadata = entity.metadata
+  model.metadata = entity.metadata?.extra
   model.user = { id: entity.user.id } as any
   return model
 })

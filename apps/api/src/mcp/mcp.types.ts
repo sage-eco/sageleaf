@@ -7,6 +7,8 @@ import { ChangeStatus } from '@src/changes/change.entity'
 import { ChangeSchemaService } from '@src/changes/change.schema'
 import { ChangeService } from '@src/changes/change.service'
 import { RefEditService } from '@src/changes/ref-edit.service'
+import { SourceSchemaService } from '@src/changes/source.schema'
+import { SourceService } from '@src/changes/source.service'
 import { TransformService } from '@src/common/transform'
 import { PlaceSchemaService } from '@src/geo/place.schema'
 import { PlaceService } from '@src/geo/place.service'
@@ -40,6 +42,8 @@ export interface McpToolContext {
   changeService: ChangeService
   changeSchemaService: ChangeSchemaService
   refEditService: RefEditService
+  sourceService: SourceService
+  sourceSchemaService: SourceSchemaService
   searchService: SearchService
   itemService: ItemService
   itemSchemaService: ItemSchemaService
@@ -86,6 +90,29 @@ export function errorResult(message: string): McpToolTextResult {
     content: [{ type: 'text', text: message }],
     isError: true,
   }
+}
+
+/**
+ * Recursively replaces string values that are exactly "[]" or "{}" with a real empty array/object.
+ * Defends against MCP clients that stringify empty collections when the tool's input schema (a
+ * generic z.record for entity-specific "data") gives no per-field type hints. Scoped to exact-match
+ * empty literals only - it must not attempt general JSON-string parsing, which could corrupt
+ * legitimate string values.
+ */
+export function normalizeEmptyCollectionStrings(value: unknown): unknown {
+  if (value === '[]') return []
+  if (value === '{}') return {}
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeEmptyCollectionStrings(item))
+  }
+  if (value && typeof value === 'object') {
+    const result: Record<string, unknown> = {}
+    for (const [key, val] of Object.entries(value)) {
+      result[key] = normalizeEmptyCollectionStrings(val)
+    }
+    return result
+  }
+  return value
 }
 
 export async function assertChangeIsDraft(

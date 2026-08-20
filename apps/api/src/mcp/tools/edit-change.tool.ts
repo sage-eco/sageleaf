@@ -17,7 +17,7 @@ export function registerEditChangeTool(server: McpServer, ctx: McpToolContext) {
       inputSchema: {
         changeID: z.string().min(1).describe('The Change ID to update.'),
         title: z.string().max(1000).optional(),
-        description: z.string().max(100000).optional(),
+        description: z.string().max(255).optional(),
         status: z.enum(['DRAFT', 'PROPOSED']).optional(),
         sources: z.array(z.string()).optional().describe('Full replacement list of source IDs.'),
       },

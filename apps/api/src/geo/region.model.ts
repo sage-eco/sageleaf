@@ -94,7 +94,12 @@ export class RegionSearchWithinArgs {
 
 @ArgsType()
 export class RegionsArgs extends PaginationBasicArgs {
-  static schema = PaginationBasicArgs.schema
+  static schema = PaginationBasicArgs.schema.extend({
+    query: z.string().optional(),
+  })
+
+  @Field(() => String, { nullable: true })
+  query?: string
 }
 
 @ArgsType()

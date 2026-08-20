@@ -227,7 +227,24 @@ export class ProgramService implements IEntityService<Program> {
       program.desc = this.i18n.addTr(program.desc, input.descTr, input.lang)
     }
     if (input.social !== undefined) {
-      program.social = input.social
+      const social = { ...program.social }
+      if (input.social.links !== undefined) {
+        social.links = input.social.links
+      }
+      if (input.social.phones !== undefined) {
+        social.phones = input.social.phones
+      }
+      if (input.social.address) {
+        social.address = this.i18n.addTr(program.social?.address, input.social.address, input.lang)
+      }
+      if (input.social.addressTr) {
+        social.address = this.i18n.addTr(
+          program.social?.address,
+          input.social.addressTr,
+          input.lang,
+        )
+      }
+      program.social = social
     }
     if (input.instructions !== undefined) {
       program.instructions = input.instructions

@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppTestModule } from '@test/app-test.module'
 import { graphql } from '@test/gql'
-import { ChangeStatus } from '@test/gql/types.generated'
+import { ChangeStatus, ProgramOrgRole, ProgramStatus } from '@test/gql/types.generated'
 import { GraphQLTestClient } from '@test/graphql.utils'
 
 import { BaseSeeder } from '@src/db/seeds/BaseSeeder'
@@ -61,6 +61,60 @@ describe('ProgramResolver (integration)', () => {
     await app.close()
   })
 
+  test('should expose ProgramStatus and ProgramOrgRole as real GraphQL enums', async () => {
+    const res = await gql.send(
+      graphql(`
+        query ProgramResolverIntrospectEnums {
+          statusType: __type(name: "ProgramStatus") {
+            kind
+            enumValues {
+              name
+            }
+          }
+          roleType: __type(name: "ProgramOrgRole") {
+            kind
+            enumValues {
+              name
+            }
+          }
+        }
+      `),
+    )
+    expect(res.errors).toBeUndefined()
+    expect(res.data?.statusType?.kind).toBe('ENUM')
+    expect(res.data?.statusType?.enumValues?.map((v) => v.name).sort()).toEqual([
+      'ACTIVE',
+      'CLOSED',
+      'PLANNED',
+    ])
+    expect(res.data?.roleType?.kind).toBe('ENUM')
+    expect(res.data?.roleType?.enumValues?.map((v) => v.name).sort()).toEqual([
+      'FUNDER',
+      'HOST',
+      'OPERATOR',
+      'OTHER',
+      'SPONSOR',
+    ])
+  })
+
+  test('should reject an invalid ProgramOrgRole value on write', async () => {
+    const res = await gql.send(
+      graphql(`
+        mutation ProgramResolverInvalidRole($input: UpdateProgramInput!) {
+          updateProgram(input: $input) {
+            program {
+              id
+            }
+          }
+        }
+      `),
+      {
+        input: { id: programID, orgs: [{ id: ORG_IDS[0], role: 'NOT_A_ROLE' as any }] },
+      },
+    )
+    expect(res.errors).toBeDefined()
+  })
+
   test('should query programs with pagination', async () => {
     const res = await gql.send(
       graphql(`
@@ -112,7 +166,7 @@ describe('ProgramResolver (integration)', () => {
       {
         input: {
           nameTr: [{ lang: 'en', text: 'New Program' }],
-          status: 'ACTIVE',
+          status: ProgramStatus.Active,
         },
       },
     )
@@ -157,7 +211,7 @@ describe('ProgramResolver (integration)', () => {
       {
         input: {
           nameTr: [{ lang: 'en', text: 'Social Program' }],
-          status: 'ACTIVE',
+          status: ProgramStatus.Active,
           social: {
             links: [
               { url: 'https://example.org', label: 'Website' },
@@ -219,6 +273,120 @@ describe('ProgramResolver (integration)', () => {
     }
   })
 
+  test('should merge social.phones/address and social.links without clobbering each other', async () => {
+    const createRes = await gql.send(
+      graphql(`
+        mutation ProgramResolverCreateProgramForMergeTest($input: CreateProgramInput!) {
+          createProgram(input: $input) {
+            program {
+              id
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          nameTr: [{ lang: 'en', text: 'Merge Test Program' }],
+          status: ProgramStatus.Active,
+          social: { links: [{ url: 'https://example.org' }] },
+        },
+      },
+    )
+    expect(createRes.errors).toBeUndefined()
+    const mergeProgramID = createRes.data!.createProgram!.program!.id
+
+    const updatePhoneRes = await gql.send(
+      graphql(`
+        mutation ProgramResolverUpdateProgramPhone($input: UpdateProgramInput!) {
+          updateProgram(input: $input) {
+            program {
+              id
+              social {
+                phones {
+                  purpose
+                  phoneNumber
+                }
+                address
+                links {
+                  url
+                }
+              }
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          id: mergeProgramID,
+          social: {
+            phones: [{ purpose: 'main', phoneNumber: '+14155552671' }],
+            address: '123 Main St',
+          },
+        },
+      },
+    )
+    expect(updatePhoneRes.errors).toBeUndefined()
+    const afterPhone = updatePhoneRes.data?.updateProgram?.program
+    expect(afterPhone?.social?.phones).toEqual([{ purpose: 'main', phoneNumber: '+14155552671' }])
+    expect(afterPhone?.social?.address).toBe('123 Main St')
+    expect(afterPhone?.social?.links?.map((l) => l.url)).toEqual(['https://example.org'])
+
+    const updateLinksRes = await gql.send(
+      graphql(`
+        mutation ProgramResolverUpdateProgramLinks($input: UpdateProgramInput!) {
+          updateProgram(input: $input) {
+            program {
+              id
+              social {
+                phones {
+                  purpose
+                  phoneNumber
+                }
+                address
+                links {
+                  url
+                }
+              }
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          id: mergeProgramID,
+          social: { links: [] },
+        },
+      },
+    )
+    expect(updateLinksRes.errors).toBeUndefined()
+    const afterLinks = updateLinksRes.data?.updateProgram?.program
+    expect(afterLinks?.social?.links).toEqual([])
+    expect(afterLinks?.social?.phones).toEqual([{ purpose: 'main', phoneNumber: '+14155552671' }])
+    expect(afterLinks?.social?.address).toBe('123 Main St')
+  })
+
+  test('should reject an invalid phone number in social.phones', async () => {
+    const res = await gql.send(
+      graphql(`
+        mutation ProgramResolverInvalidPhone($input: CreateProgramInput!) {
+          createProgram(input: $input) {
+            program {
+              id
+            }
+          }
+        }
+      `),
+      {
+        input: {
+          nameTr: [{ lang: 'en', text: 'Invalid Phone Program' }],
+          status: ProgramStatus.Active,
+          social: { phones: [{ purpose: 'main', phoneNumber: 'not-a-phone-number' }] },
+        },
+      },
+    )
+    expect(res.errors).toBeDefined()
+  })
+
   test('should keep currentProgram relation refs isolated while staging program relation changes', async () => {
     const baselineRes = await gql.send(
       graphql(`
@@ -234,7 +402,7 @@ describe('ProgramResolver (integration)', () => {
         input: {
           id: programID,
           region: REGION_IDS[0],
-          orgs: [{ id: ORG_IDS[0], role: 'lead' }],
+          orgs: [{ id: ORG_IDS[0], role: ProgramOrgRole.Operator }],
           processes: [{ id: PROCESS_IDS[0] }, { id: PROCESS_IDS[1] }],
           tags: [{ id: TAG_IDS[0], meta: { score: 10 } }],
         },
@@ -277,7 +445,7 @@ describe('ProgramResolver (integration)', () => {
         input: {
           id: programID,
           region: REGION_IDS[1],
-          addOrgs: [{ id: ORG_IDS[1], role: 'partner' }],
+          addOrgs: [{ id: ORG_IDS[1], role: ProgramOrgRole.Sponsor }],
           removeOrgs: [ORG_IDS[0]],
           addProcesses: [{ id: PROCESS_IDS[2] }],
           removeProcesses: [PROCESS_IDS[0]],
@@ -390,7 +558,7 @@ describe('ProgramResolver (integration)', () => {
       orderBy: { org: 'ASC' },
     })
     expect(orgRows.map((row) => row.org.id)).toEqual([ORG_IDS[1]])
-    expect(orgRows[0]?.role).toBe('partner')
+    expect(orgRows[0]?.role).toBe('SPONSOR')
 
     const processRows = await em.find(ProgramsProcesses, { program: programID } as any, {
       populate: ['process'],

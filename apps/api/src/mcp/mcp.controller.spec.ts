@@ -134,6 +134,7 @@ describe('MCP Server (integration)', () => {
         'graphql_introspection',
         'begin_change',
         'edit_change',
+        'create_source',
         'propose_edit',
         'propose_refs',
       ]),
@@ -367,5 +368,84 @@ describe('MCP Server (integration)', () => {
     expect(reopenedEvent.result.isError).toBeFalsy()
     const reopenedPayload = JSON.parse(reopenedEvent.result.content[0].text)
     expect(reopenedPayload.entity.name).toBe('MCP Test Item Updated')
+  })
+
+  test('create_source creates a Source directly and it can be attached via addSources', async () => {
+    const createRes = await mcpRequest({
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: {
+        name: 'create_source',
+        arguments: {
+          type: 'URL',
+          text: 'MCP test source body text',
+          contentURL: 'https://example.com/mcp-test-source',
+        },
+      },
+      id: 1,
+    })
+    const createEvent = parseSSE(createRes.text)[0]
+    expect(createEvent.result.isError).toBeFalsy()
+    const createPayload = JSON.parse(createEvent.result.content[0].text)
+    const sourceID = createPayload.source.id
+    expect(sourceID).toBeDefined()
+    expect(createPayload.source.content).toMatchObject({ text: 'MCP test source body text' })
+
+    const beginRes = await mcpRequest({
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: {
+        name: 'begin_change',
+        arguments: { title: 'MCP create_source integration test change' },
+      },
+      id: 1,
+    })
+    const changeID = JSON.parse(parseSSE(beginRes.text)[0].result.content[0].text).changeID
+
+    const proposeRes = await mcpRequest({
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: {
+        name: 'propose_edit',
+        arguments: {
+          model: 'Item',
+          mode: 'create',
+          changeID,
+          data: { name: 'MCP Item With Source', addSources: [{ id: sourceID }] },
+        },
+      },
+      id: 1,
+    })
+    const proposeEvent = parseSSE(proposeRes.text)[0]
+    expect(proposeEvent.result.isError).toBeFalsy()
+  })
+
+  test('propose_edit unwraps a stringified empty array for an array field', async () => {
+    const beginRes = await mcpRequest({
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: { name: 'begin_change', arguments: { title: 'MCP empty-array test change' } },
+      id: 1,
+    })
+    const changeID = JSON.parse(parseSSE(beginRes.text)[0].result.content[0].text).changeID
+
+    const proposeRes = await mcpRequest({
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: {
+        name: 'propose_edit',
+        arguments: {
+          model: 'Program',
+          mode: 'create',
+          changeID,
+          data: { name: 'MCP Empty Array Program', status: 'ACTIVE', social: { links: '[]' } },
+        },
+      },
+      id: 1,
+    })
+    const proposeEvent = parseSSE(proposeRes.text)[0]
+    expect(proposeEvent.result.isError).toBeFalsy()
+    const payload = JSON.parse(proposeEvent.result.content[0].text)
+    expect(payload.entity.social.links).toEqual([])
   })
 })

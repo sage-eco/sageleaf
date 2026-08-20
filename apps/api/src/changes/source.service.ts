@@ -12,7 +12,6 @@ import {
   UpdateSourceInput,
 } from '@src/changes/source.model'
 import { JSONLD_CONTEXT } from '@src/changes/source.schema'
-import { shrinkCdnUrl } from '@src/common/cdn'
 import { NotFoundErr } from '@src/common/exceptions'
 import { StorageService } from '@src/common/storage.service'
 import { CursorOptions } from '@src/common/transform'
@@ -92,7 +91,7 @@ export class SourceService implements IEntityService<Source> {
 
     entity.type = sourceType
     entity.location = cdnUrl
-    if (metadata) entity.metadata = metadata
+    if (metadata) entity.metadata = { ...entity.metadata, extra: metadata }
     await this.em.flush()
     return entity
   }
@@ -163,17 +162,14 @@ export class SourceService implements IEntityService<Source> {
 
   async setFields(source: Source, input: Partial<CreateSourceInput & UpdateSourceInput>) {
     if (input.type) source.type = input.type
-    if (input.location) {
-      source.location = shrinkCdnUrl(input.location)
-    }
-    if (input.content) {
-      source.content = input.content
+    if (input.text !== undefined) {
+      source.content = { ...source.content, text: input.text }
     }
     if (input.contentURL) {
       source.contentURL = input.contentURL
     }
-    if (input.metadata) {
-      source.metadata = input.metadata
+    if (input.metadata !== undefined) {
+      source.metadata = { ...source.metadata, extra: input.metadata }
     }
   }
 }
