@@ -69,6 +69,46 @@
             {{ data.status }}
           </span>
           <div class="flex-1 text-sm opacity-60">{{ statusText }}</div>
+          <ButtonGroup v-if="primaryAction">
+            <Button @click="requireAuth(() => primaryAction!.handler())">
+              <component :is="primaryAction.icon" :size="16" />
+              {{ primaryAction.label }}
+            </Button>
+            <DropdownMenu v-if="secondaryActions.length">
+              <DropdownMenuTrigger as-child>
+                <Button size="icon" title="More actions" @click.stop.prevent>
+                  <ChevronDown :size="16" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="bottom">
+                <DropdownMenuItem
+                  v-for="action in secondaryActions"
+                  :key="action.key"
+                  @select="requireAuth(() => action.handler())"
+                >
+                  <component :is="action.icon" :size="16" />
+                  <span>{{ action.label }}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </ButtonGroup>
+          <DropdownMenu v-else-if="statusActions.length">
+            <DropdownMenuTrigger as-child>
+              <Button variant="outline" size="icon" title="Change status" @click.stop.prevent>
+                <ChevronDown :size="16" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="bottom">
+              <DropdownMenuItem
+                v-for="action in statusActions"
+                :key="action.key"
+                @select="requireAuth(() => action.handler())"
+              >
+                <component :is="action.icon" :size="16" />
+                <span>{{ action.label }}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <Card class="border-0 bg-base-100 shadow-none">
@@ -216,13 +256,17 @@
 </template>
 
 <script setup lang="ts">
-import { Check, ExternalLink, Pencil, X } from '@lucide/vue'
+import { Check, ChevronDown, ExternalLink, Pencil, X } from '@lucide/vue'
 import { useTimeAgo } from '@vueuse/core'
 
 import { graphql } from '~/gql'
+import type { ChangeStatus } from '~/gql/graphql'
 
 const props = defineProps<{ changeId: string | undefined }>()
 const open = defineModel<boolean>('open', { required: true })
+
+const { isAdmin } = useAuth()
+const { requireAuth } = useRequireAuth()
 
 const ChangeSummaryQuery = graphql(`
   query ChangeSidebarSummary($id: ID!) {
@@ -310,7 +354,42 @@ const updateChangeMutation = graphql(`
   }
 `)
 
+const mergeChangeMutation = graphql(`
+  mutation MergeChangeFromSummaryDialog($id: ID!) {
+    mergeChange(id: $id) {
+      change {
+        id
+        status
+      }
+    }
+  }
+`)
+
 const { mutate: updateChangeMut } = useMutation(updateChangeMutation)
+const { mutate: mergeChangeMut } = useMutation(mergeChangeMutation)
+
+const onSetStatus = async (newStatus: ChangeStatus) => {
+  if (!props.changeId) return
+  await updateChangeMut({ input: { id: props.changeId, status: newStatus } })
+  refresh()
+}
+
+const onMerge = async () => {
+  if (!props.changeId) return
+  await mergeChangeMut({ id: props.changeId })
+  refresh()
+}
+
+const { actions: quickActions, primaryAction } = useChangeQuickActions(changeStatus, isAdmin, {
+  onNew: () => {},
+  onSetStatus,
+  onMerge,
+})
+
+const statusActions = computed(() => quickActions.value.filter((a) => a.key !== 'new'))
+const secondaryActions = computed(() =>
+  statusActions.value.filter((a) => a.key !== primaryAction.value?.key),
+)
 
 const refresh = () => {
   if (props.changeId) {
