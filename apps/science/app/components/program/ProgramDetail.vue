@@ -75,35 +75,51 @@
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Processes</CardTitle>
+          <CardTitle class="flex items-center justify-between">
+            <span>Processes</span>
+            <GridPagerButtons
+              :has-previous-page="processesPager.hasPreviousPage.value"
+              :has-next-page="processesPager.hasNextPage.value"
+              @prev="processesPager.prevPage"
+              @next="processesPager.nextPage"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul class="list">
             <ModelListProcess
-              v-for="process in entity.processes?.nodes ?? []"
+              v-for="process in processesPager.nodes.value"
               :key="process.id"
               :process="process"
               :on-row-click="() => panelStore.openPanel('process', process.id)"
             />
           </ul>
-          <div v-if="!entity.processes?.nodes?.length" class="text-sm opacity-60">None</div>
+          <div v-if="!processesPager.nodes.value.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Organizations</CardTitle>
+          <CardTitle class="flex items-center justify-between">
+            <span>Organizations</span>
+            <GridPagerButtons
+              :has-previous-page="orgsPager.hasPreviousPage.value"
+              :has-next-page="orgsPager.hasNextPage.value"
+              @prev="orgsPager.prevPage"
+              @next="orgsPager.nextPage"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul class="list">
             <ModelListOrg
-              v-for="org in entity.orgs?.nodes ?? []"
+              v-for="org in orgsPager.nodes.value"
               :key="org.id"
               :org="org"
               :on-row-click="() => panelStore.openPanel('org', org.id)"
             />
           </ul>
-          <div v-if="!entity.orgs?.nodes?.length" class="text-sm opacity-60">None</div>
+          <div v-if="!orgsPager.nodes.value.length" class="text-sm opacity-60">None</div>
         </CardContent>
       </Card>
 
@@ -165,18 +181,6 @@ const detailQuery = graphql(`
         id
         name
       }
-      orgs(first: 10) {
-        nodes {
-          id
-          ...ListOrgFragment
-        }
-      }
-      processes(first: 20) {
-        nodes {
-          id
-          ...ListProcessFragment
-        }
-      }
       tags(first: 20) {
         nodes {
           id
@@ -190,6 +194,53 @@ const detailQuery = graphql(`
 
 const { result } = useQuery(detailQuery, () => ({ id: props.id }))
 const entity = computed(() => result.value?.program ?? null)
+
+const programOrgsQuery = graphql(`
+  query ProgramOrgs($id: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+    program(id: $id) {
+      id
+      orgs(first: $first, last: $last, after: $after, before: $before) {
+        nodes {
+          id
+          ...ListOrgFragment
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
+`)
+const orgsPager = useRelationPager(programOrgsQuery, 'program', 'orgs', () => props.id)
+
+const programProcessesQuery = graphql(`
+  query ProgramProcesses($id: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+    program(id: $id) {
+      id
+      processes(first: $first, last: $last, after: $after, before: $before) {
+        nodes {
+          id
+          ...ListProcessFragment
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
+`)
+const processesPager = useRelationPager(
+  programProcessesQuery,
+  'program',
+  'processes',
+  () => props.id,
+)
 
 const statusBadgeClass = computed(() => {
   switch (entity.value?.status) {

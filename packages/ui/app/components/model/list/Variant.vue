@@ -16,7 +16,11 @@
       <div class="text-xs opacity-70">
         {{ variant.desc }}
       </div>
-      <div v-if="firstItem || variant.tags?.nodes?.length" class="mt-1 flex flex-wrap gap-1">
+      <div
+        v-if="firstOrg || firstItem || variant.tags?.nodes?.length"
+        class="mt-1 flex flex-wrap gap-1"
+      >
+        <span v-if="firstOrg" class="badge badge-sm badge-primary">{{ firstOrg }}</span>
         <span v-if="firstItem" class="badge badge-outline badge-sm">{{ firstItem }}</span>
         <span
           v-for="tag in variant.tags?.nodes"
@@ -51,6 +55,14 @@ const ListVariantFragment = graphql(`
         name
       }
     }
+    orgs(first: 1) {
+      nodes {
+        org {
+          id
+          name
+        }
+      }
+    }
     tags(first: 3) {
       nodes {
         id
@@ -73,4 +85,5 @@ const emits = defineEmits<{
 
 const variant = computed(() => useFragment(ListVariantFragment, props.variant))
 const firstItem = computed(() => variant.value.items?.nodes?.[0]?.name ?? null)
+const firstOrg = computed(() => variant.value.orgs?.nodes?.[0]?.org?.name ?? null)
 </script>

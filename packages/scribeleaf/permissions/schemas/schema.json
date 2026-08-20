@@ -307,6 +307,30 @@
           "markdownDescription": "Denies the register_form command without any pre-configured scope."
         },
         {
+          "description": "Enables the scribeleaf_restart command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-scribeleaf-restart",
+          "markdownDescription": "Enables the scribeleaf_restart command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the scribeleaf_restart command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-scribeleaf-restart",
+          "markdownDescription": "Denies the scribeleaf_restart command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the scribeleaf_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-scribeleaf-status",
+          "markdownDescription": "Enables the scribeleaf_status command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the scribeleaf_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-scribeleaf-status",
+          "markdownDescription": "Denies the scribeleaf_status command without any pre-configured scope."
+        },
+        {
           "description": "Enables the unregister_form command without any pre-configured scope.",
           "type": "string",
           "const": "allow-unregister-form",
@@ -331,16 +355,22 @@
           "markdownDescription": "Denies the update_form_data command without any pre-configured scope."
         },
         {
-          "description": "This permission set configures which scribeleaf features are exposed by default.\n\nGrants access to registering, updating, and unregistering the currently active form.\n\n#### This default permission set includes:\n\n- `allow-form`",
+          "description": "This permission set configures which scribeleaf features are exposed by default.\n\nGrants access to registering, updating, and unregistering the currently active form, and to\nchecking and restarting the local server.\n\n#### This default permission set includes:\n\n- `allow-form`\n- `allow-server-control`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "This permission set configures which scribeleaf features are exposed by default.\n\nGrants access to registering, updating, and unregistering the currently active form.\n\n#### This default permission set includes:\n\n- `allow-form`"
+          "markdownDescription": "This permission set configures which scribeleaf features are exposed by default.\n\nGrants access to registering, updating, and unregistering the currently active form, and to\nchecking and restarting the local server.\n\n#### This default permission set includes:\n\n- `allow-form`\n- `allow-server-control`"
         },
         {
           "description": "Enables the register_form, update_form_data, and unregister_form commands without any pre-configured scope.",
           "type": "string",
           "const": "allow-form",
           "markdownDescription": "Enables the register_form, update_form_data, and unregister_form commands without any pre-configured scope."
+        },
+        {
+          "description": "Enables the scribeleaf_status and scribeleaf_restart commands without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-server-control",
+          "markdownDescription": "Enables the scribeleaf_status and scribeleaf_restart commands without any pre-configured scope."
         }
       ]
     }

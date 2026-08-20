@@ -117,13 +117,21 @@
 
       <Card class="m-3 border-0 bg-base-100 shadow-md">
         <CardHeader>
-          <CardTitle>Edits ({{ entity.edits?.totalCount ?? 0 }})</CardTitle>
+          <CardTitle class="flex items-center justify-between">
+            <span>Edits ({{ editsPager.totalCount.value ?? 0 }})</span>
+            <GridPagerButtons
+              :has-previous-page="editsPager.hasPreviousPage.value"
+              :has-next-page="editsPager.hasNextPage.value"
+              @prev="editsPager.prevPage"
+              @next="editsPager.nextPage"
+            />
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div v-if="entity.edits?.nodes?.length" class="flex gap-3">
+          <div v-if="editsPager.nodes.value.length" class="flex gap-3">
             <ul class="w-1/2 space-y-2 overflow-y-auto">
               <li
-                v-for="(edit, i) in entity.edits.nodes"
+                v-for="(edit, i) in editsPager.nodes.value"
                 :key="edit.id ?? i"
                 class="cursor-pointer rounded-md border p-2 text-sm transition-colors"
                 :class="
@@ -245,7 +253,18 @@ const detailQuery = graphql(`
           }
         }
       }
-      edits(first: 20) {
+    }
+  }
+`)
+
+const { result, refetch } = useQuery(detailQuery, () => ({ id: props.id }))
+const entity = computed(() => result.value?.change ?? null)
+
+const changeEditsQuery = graphql(`
+  query ChangeEdits($id: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+    change(id: $id) {
+      id
+      edits(first: $first, last: $last, after: $after, before: $before) {
         totalCount
         nodes {
           id
@@ -255,17 +274,23 @@ const detailQuery = graphql(`
             __typename
           }
         }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
       }
     }
   }
 `)
-
-const { result, refetch } = useQuery(detailQuery, () => ({ id: props.id }))
-const entity = computed(() => result.value?.change ?? null)
+const editsPager = useRelationPager(changeEditsQuery, 'change', 'edits', () => props.id)
 
 const selectedEditId = ref<string | null>(null)
 const selectedEdit = computed(
-  () => entity.value?.edits?.nodes?.find((e) => e.id === selectedEditId.value) ?? null,
+  () =>
+    editsPager.nodes.value.find((e: { id?: string | null }) => e.id === selectedEditId.value) ??
+    null,
 )
 
 const updateChangeMutation = graphql(`

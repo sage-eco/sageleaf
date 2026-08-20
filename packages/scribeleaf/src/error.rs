@@ -14,6 +14,8 @@ pub enum Error {
     MalformedBody(String),
     #[error(transparent)]
     Tauri(#[from] tauri::Error),
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
 }
 
 impl Serialize for Error {
@@ -32,6 +34,7 @@ impl IntoResponse for Error {
             Error::PatchFailed(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Error::MalformedBody(_) => StatusCode::BAD_REQUEST,
             Error::Tauri(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::Io(_) => StatusCode::INTERNAL_SERVER_ERROR,
         };
         (status, Json(json!({ "error": self.to_string() }))).into_response()
     }
