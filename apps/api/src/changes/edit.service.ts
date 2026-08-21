@@ -22,7 +22,7 @@ import {
 } from '@src/changes/change-ext.model'
 import { Change, ChangeEdits, ChangeStatus } from '@src/changes/change.entity'
 import { OpType } from '@src/changes/change.enum'
-import { MergeInput, RefNode } from '@src/changes/change.model'
+import { MergeConflict, MergeInput, RefNode } from '@src/changes/change.model'
 import { Source } from '@src/changes/source.entity'
 import { BadRequestErr, NotFoundErr } from '@src/common/exceptions'
 import { isExcludedFromDiff } from '@src/common/exclude-from-diff.decorator'
@@ -1041,7 +1041,7 @@ export class EditService {
    *
    * Use this from resolver endpoints that trigger merge directly by change identifier.
    */
-  async mergeID(changeID: string) {
+  async mergeID(changeID: string, dryRun = false) {
     const change = await this.em.findOne(Change, { id: changeID }, { populate: ['edits', 'user'] })
     if (!change) {
       throw NotFoundErr(`Change with ID "${changeID}" not found`)
@@ -1052,7 +1052,7 @@ export class EditService {
     if (change.status !== ChangeStatus.APPROVED) {
       throw BadRequestErr(`Change with ID "${changeID}" is not approved and cannot be merged`)
     }
-    return this.merge(change)
+    return this.merge(change, dryRun)
   }
 
   /**
@@ -1064,7 +1064,7 @@ export class EditService {
    *
    * Use this as the canonical merge execution path.
    */
-  async merge(change: Change) {
+  async merge(change: Change, dryRun = false) {
     await this.em.begin()
     try {
       const historyItems: Array<{
@@ -1119,6 +1119,8 @@ export class EditService {
         })
       }
 
+      const conflicts: MergeConflict[] = []
+
       for (const edit of otherEdits) {
         const editMeta = this.em.getMetadata().get(edit.entityName)
         const { flattenArrayRefs } = this.categorizePOJORelations(editMeta)
@@ -1139,9 +1141,12 @@ export class EditService {
         if (edit.original && edit.changes) {
           const conflict = this.findEditConflict(edit, currentPOJO)
           if (conflict) {
-            throw BadRequestErr(
-              `Cannot merge edit for ${edit.entityName} "${edit.entityID}": ${conflict}`,
-            )
+            conflicts.push({
+              entityName: edit.entityName,
+              entityID: edit.entityID!,
+              message: conflict,
+            })
+            continue
           }
         }
 
@@ -1168,6 +1173,22 @@ export class EditService {
         }
       }
 
+      if (conflicts.length > 0) {
+        if (dryRun) {
+          await this.em.rollback()
+          return { change, success: false, conflicts }
+        }
+        const message = conflicts
+          .map((c) => `${c.entityName} "${c.entityID}": ${c.message}`)
+          .join('; ')
+        throw BadRequestErr(`Cannot merge change: ${message}`)
+      }
+
+      if (dryRun) {
+        await this.em.rollback()
+        return { change, success: true, conflicts: [] }
+      }
+
       await this.em.flush()
 
       for (const { name, userID, original, changes } of historyItems) {
@@ -1176,11 +1197,13 @@ export class EditService {
 
       change.status = ChangeStatus.MERGED
       await this.em.commit()
-      return { change }
+      return { change, success: true, conflicts: [] }
     } catch (error) {
       await this.em.rollback()
-      change.status = ChangeStatus.REJECTED
-      await this.em.persist(change).flush()
+      if (!dryRun) {
+        change.status = ChangeStatus.REJECTED
+        await this.em.persist(change).flush()
+      }
       throw error
     }
   }

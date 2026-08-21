@@ -300,9 +300,31 @@ export class DeleteChangeOutput {
 }
 
 @ObjectType()
+export class MergeConflict {
+  @Field(() => String)
+  entityName!: string
+
+  @Field(() => ID, { nullable: true })
+  entityID?: string
+
+  @Field(() => String)
+  message!: string
+}
+
+@ObjectType()
 export class MergeChangeOutput {
   @Field(() => Change, { nullable: true })
   change?: Change
+
+  @Field(() => Boolean, {
+    description: 'True if the merge succeeded (or, for a dry run, would succeed)',
+  })
+  success!: boolean
+
+  @Field(() => [MergeConflict], {
+    description: 'Conflicts that would prevent (or did prevent) the merge from applying',
+  })
+  conflicts!: MergeConflict[]
 }
 
 @ObjectType()
