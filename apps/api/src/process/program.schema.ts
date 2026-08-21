@@ -38,7 +38,7 @@ export const ProgramIDSchema = z.string().meta({
 
 export const ProgramOrgsInputSchema = z.strictObject({
   id: OrgIDSchema,
-  role: z.enum(ProgramOrgRole).optional(),
+  role: z.enum(ProgramOrgRole).catch(ProgramOrgRole.OTHER).optional(),
 })
 
 export const ProgramProcessesInputSchema = z.strictObject({
