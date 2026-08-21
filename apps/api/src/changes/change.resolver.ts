@@ -1,8 +1,10 @@
-import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, ID, Info, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import type { GraphQLResolveInfo } from 'graphql'
 
 import { AuthUser, type ReqUser } from '@src/auth/auth.guard'
 import { OptionalAuth } from '@src/auth/decorators'
 import { CreateChangeInput } from '@src/changes/change-ext.model'
+import { ChangeStatus } from '@src/changes/change.entity'
 import { EditModelType } from '@src/changes/change.enum'
 import {
   AddRefOutput,
@@ -34,6 +36,10 @@ import { NotFoundErr } from '@src/common/exceptions'
 import { TransformService } from '@src/common/transform'
 import { User } from '@src/users/users.model'
 
+type GraphQLResolveInfoWithCacheControl = GraphQLResolveInfo & {
+  cacheControl: { setCacheHint: (hint: { maxAge?: number; scope?: 'PUBLIC' | 'PRIVATE' }) => void }
+}
+
 @Resolver(() => Change)
 export class ChangeResolver {
   constructor(
@@ -46,18 +52,27 @@ export class ChangeResolver {
 
   @Query(() => ChangesConnection)
   @OptionalAuth()
-  async changes(@Args() args: ChangesArgs) {
+  async changes(@Args() args: ChangesArgs, @Info() info: GraphQLResolveInfoWithCacheControl) {
     const [parsedArgs, filter] = await this.transform.paginationArgs(ChangesArgs, args)
     const cursor = await this.changeService.find(filter)
+    if (cursor.items.some((change) => change.status !== ChangeStatus.MERGED)) {
+      info.cacheControl.setCacheHint({ maxAge: 0 })
+    }
     return this.transform.entityToPaginated(Change, ChangesConnection, cursor, parsedArgs)
   }
 
   @Query(() => Change, { name: 'change', nullable: true })
   @OptionalAuth()
-  async change(@Args('id', { type: () => ID }) id: string) {
+  async change(
+    @Args('id', { type: () => ID }) id: string,
+    @Info() info: GraphQLResolveInfoWithCacheControl,
+  ) {
     const change = await this.changeService.findOne(id)
     if (!change) {
       throw NotFoundErr('Change not found')
+    }
+    if (change.status !== ChangeStatus.MERGED) {
+      info.cacheControl.setCacheHint({ maxAge: 0 })
     }
     return this.transform.entityToModel(Change, change)
   }
@@ -152,7 +167,11 @@ export class ChangeResolver {
   async edits(
     @Parent() change: Change,
     @Args() args: ChangeEditsArgs,
+    @Info() info: GraphQLResolveInfoWithCacheControl,
   ): Promise<ChangeEditsConnection> {
+    if (change.status !== ChangeStatus.MERGED) {
+      info.cacheControl.setCacheHint({ maxAge: 0 })
+    }
     if (args.id) {
       const edit = await this.changeService.edit(change.id, args.id, args.type)
       return this.transform.objectsToPaginated(

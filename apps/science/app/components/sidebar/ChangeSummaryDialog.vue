@@ -307,7 +307,7 @@ const ChangeSummaryQuery = graphql(`
   }
 `)
 
-const { result, load } = useLazyQuery(ChangeSummaryQuery, () => ({
+const { result, load, refetch } = useLazyQuery(ChangeSummaryQuery, () => ({
   id: props.changeId ?? '',
 }))
 
@@ -392,8 +392,8 @@ const secondaryActions = computed(() =>
 )
 
 const refresh = () => {
-  if (props.changeId) {
-    load(ChangeSummaryQuery, { id: props.changeId })
+  if (props.changeId && load(ChangeSummaryQuery, { id: props.changeId }) === false) {
+    refetch()
   }
 }
 
@@ -442,7 +442,9 @@ watch(open, (val) => {
     resetView()
     editingTitle.value = false
     editingDescription.value = false
-    load(ChangeSummaryQuery, { id: props.changeId })
+    if (load(ChangeSummaryQuery, { id: props.changeId }) === false) {
+      refetch()
+    }
   }
 })
 </script>

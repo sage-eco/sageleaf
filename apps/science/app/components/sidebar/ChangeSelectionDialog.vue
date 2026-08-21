@@ -68,6 +68,10 @@ const { result, loading, refetch } = useQuery(ChangeSidebarListQuery, () => ({
   userID: session.value?.data?.user?.id ?? null,
 }))
 
+watch(open, (val) => {
+  if (val) refetch()
+})
+
 const changes = computed(() => {
   const nodes = result.value?.changes?.nodes ?? []
   return nodes.filter(
