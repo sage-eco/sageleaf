@@ -41,6 +41,7 @@
     "@tauri-apps/plugin-os": "^2.3.2",
     "@tolgee/format-icu": "^7.0.0",
     "@tolgee/vue": "^7.0.0",
+    "@vue-flow/core": "^1.48.2",
     "@vue/apollo-composable": "^4.2.2",
     "@vueuse/core": "^14.2.1",
     "ag-grid-community": "^35.2.0",

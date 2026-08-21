@@ -128,7 +128,7 @@
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div v-if="editsPager.nodes.value.length" class="flex gap-3">
+          <div v-if="editsPager.nodes.value.length" class="flex h-[28rem] gap-3">
             <ul class="w-1/2 space-y-2 overflow-y-auto">
               <li
                 v-for="(edit, i) in editsPager.nodes.value"
@@ -145,16 +145,64 @@
                 <span v-if="edit.id" class="ml-2 font-mono text-xs opacity-50">{{ edit.id }}</span>
               </li>
             </ul>
-            <div class="w-1/2 rounded-md border border-base-300 bg-base-200 p-3">
+            <div
+              class="flex h-full w-1/2 flex-col rounded-md border border-base-300 bg-base-200 p-3"
+            >
               <template v-if="selectedEdit">
-                <div v-if="selectedEdit.updateInput" class="overflow-x-auto">
-                  <pre class="text-xs break-all whitespace-pre-wrap">{{
-                    JSON.stringify(selectedEdit.updateInput, null, 2)
-                  }}</pre>
+                <div class="mb-2 flex items-center gap-1">
+                  <Button
+                    v-for="opt in viewOptions"
+                    :key="opt.value"
+                    size="xs"
+                    :variant="editView === opt.value ? 'default' : 'outline'"
+                    @click="editView = opt.value"
+                  >
+                    {{ opt.label }}
+                  </Button>
                 </div>
-                <div v-else class="text-sm opacity-60">No update input</div>
+                <div v-if="editView === 'diff'" class="flex flex-col gap-1.5 overflow-y-auto">
+                  <div v-if="!diffs.length" class="text-sm opacity-60">No changes</div>
+                  <div
+                    v-for="diff in diffs"
+                    :key="diff.key"
+                    class="rounded-md border p-2 text-xs"
+                    :class="diffClass(diff.kind)"
+                  >
+                    <div class="flex items-center gap-2 font-semibold">
+                      <span class="badge badge-xs" :class="diffBadgeClass(diff.kind)">
+                        {{ diffSymbol(diff.kind) }}
+                      </span>
+                      <span class="font-mono">{{ diff.key }}</span>
+                    </div>
+                    <div v-if="diff.kind === 'modified'" class="mt-1 space-y-1 font-mono">
+                      <div class="break-all whitespace-pre-wrap line-through opacity-70">
+                        {{ formatValue(diff.oldValue) }}
+                      </div>
+                      <div class="break-all whitespace-pre-wrap">
+                        {{ formatValue(diff.newValue) }}
+                      </div>
+                    </div>
+                    <div v-else class="mt-1 font-mono break-all whitespace-pre-wrap">
+                      {{ formatValue(diff.kind === 'added' ? diff.newValue : diff.oldValue) }}
+                    </div>
+                  </div>
+                </div>
+                <div v-else-if="editView === 'raw'" class="overflow-auto">
+                  <pre
+                    v-if="selectedEdit.changesJSON"
+                    class="text-xs break-all whitespace-pre-wrap"
+                    >{{ JSON.stringify(selectedEdit.changesJSON, null, 2) }}</pre
+                  >
+                  <div v-else class="text-sm opacity-60">No changes</div>
+                </div>
+                <SidebarEditGraphView
+                  v-else-if="editView === 'graph'"
+                  class="min-h-0 flex-1"
+                  :entity-name="selectedEdit.entityName"
+                  :ref-nodes="selectedEdit.refNodes"
+                />
               </template>
-              <div v-else class="text-sm opacity-60">Select an edit to view its raw JSON</div>
+              <div v-else class="text-sm opacity-60">Select an edit to view its diff</div>
             </div>
           </div>
           <div v-else class="text-sm opacity-60">No edits</div>
@@ -269,9 +317,15 @@ const changeEditsQuery = graphql(`
         nodes {
           id
           entityName
-          updateInput
+          originalJSON
+          changesJSON
           changes {
             __typename
+          }
+          refNodes {
+            id
+            op
+            field
           }
         }
         pageInfo {
@@ -292,6 +346,15 @@ const selectedEdit = computed(
     editsPager.nodes.value.find((e: { id?: string | null }) => e.id === selectedEditId.value) ??
     null,
 )
+
+const { editView, diffs, diffClass, diffBadgeClass, diffSymbol, formatValue } =
+  useEditDiff(selectedEdit)
+
+const viewOptions: { value: EditView; label: string }[] = [
+  { value: 'graph', label: 'Graph' },
+  { value: 'diff', label: 'Diff' },
+  { value: 'raw', label: 'Raw' },
+]
 
 const updateChangeMutation = graphql(`
   mutation UpdateChangeDetail($input: UpdateChangeInput!) {

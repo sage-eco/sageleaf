@@ -2619,6 +2619,8 @@ export enum RefModelType {
 /** An entity referenced (added, removed, or modified) by an edit */
 export type RefNode = {
   __typename?: 'RefNode';
+  /** Name of the field on the edited entity this ref belongs to */
+  field: Scalars['String']['output'];
   /** Global ID of the referenced entity */
   id: Scalars['ID']['output'];
   op: OpType;

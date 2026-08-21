@@ -1686,6 +1686,9 @@ enum RefModelType {
 
 """An entity referenced (added, removed, or modified) by an edit"""
 type RefNode {
+  """Name of the field on the edited entity this ref belongs to"""
+  field: String!
+
   """Global ID of the referenced entity"""
   id: ID!
   op: OpType!

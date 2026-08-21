@@ -1730,10 +1730,10 @@ export class EditService {
       const oldID = extractRefID(original[field])
       const newID = extractRefID(changes[field])
       if (oldID && oldID !== newID) {
-        refNodes.push({ id: toGlobalId(targetName, oldID), op: OpType.REMOVED })
+        refNodes.push({ id: toGlobalId(targetName, oldID), op: OpType.REMOVED, field })
       }
       if (newID && newID !== oldID) {
-        refNodes.push({ id: toGlobalId(targetName, newID), op: OpType.ADDED })
+        refNodes.push({ id: toGlobalId(targetName, newID), op: OpType.ADDED, field })
       }
     }
 
@@ -1793,7 +1793,7 @@ export class EditService {
         }
         const ref = resolveRowRef(row)
         if (!ref) continue
-        refNodes.push({ id: toGlobalId(ref.type, ref.id), op })
+        refNodes.push({ id: toGlobalId(ref.type, ref.id), op, field: name })
       }
     }
 

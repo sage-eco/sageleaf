@@ -112,6 +112,11 @@ export class RefNode {
 
   @Field(() => OpType)
   op!: OpType
+
+  @Field(() => String, {
+    description: 'Name of the field on the edited entity this ref belongs to',
+  })
+  field!: string
 }
 
 @ObjectType()
