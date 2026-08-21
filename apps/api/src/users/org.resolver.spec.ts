@@ -187,6 +187,7 @@ describe('OrgResolver (integration)', () => {
     )
     const updateOrgID = createRes.data?.createOrg?.org?.id
     expect(updateOrgID).toBeDefined()
+    if (!updateOrgID) throw new Error('updateOrgID is not defined')
 
     const res = await gql.send(
       graphql(`
