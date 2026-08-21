@@ -111,6 +111,26 @@ export class ZService {
     return result
   }
 
+  /**
+   * Resolves a lazy MikroORM `Ref<E>` relation (loading it from the DB if not
+   * already populated) and transforms it to its GraphQL model. Use this instead of
+   * passing `entity.someRef` straight to `entityToModel`, which throws if the ref
+   * hasn't been populated.
+   */
+  async refToModel<E extends BaseEntity, M extends BaseModel>(
+    Model: (new () => M) | string,
+    ref: Ref<E> | null | undefined,
+  ): Promise<M | undefined> {
+    if (!ref) {
+      return undefined
+    }
+    const entity = ref.isInitialized() ? ref.getEntity() : await ref.load()
+    if (!entity) {
+      return undefined
+    }
+    return this.entityToModel(Model, entity)
+  }
+
   async objectToModel<T, S extends BaseModel>(
     Model: (new () => S) | string,
     object: T,

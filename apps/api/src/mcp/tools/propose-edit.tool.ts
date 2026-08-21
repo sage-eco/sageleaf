@@ -107,7 +107,10 @@ export function registerProposeEditTool(server: McpServer, ctx: McpToolContext) 
         'calls in that Change - there is no need to merge the Change first. Array fields must be ' +
         'passed as real arrays (use [] to clear an existing array); a stringified empty collection ' +
         '("[]" or "{}") is defensively unwrapped as a safety net, but do not rely on this for ' +
-        'non-empty values.',
+        'non-empty values. A language code is required for any translatable text input (e.g. ' +
+        'name, desc) - resolve it via the "Accept-Language" HTTP header or a "lang" (or ' +
+        '"locale") query parameter on the request; omitting it causes text fields to fail with ' +
+        '"A language code is required for text input...".',
       inputSchema: {
         model: z
           .enum(EditModelType)
@@ -123,7 +126,9 @@ export function registerProposeEditTool(server: McpServer, ctx: McpToolContext) 
           .record(z.string(), z.unknown())
           .describe(
             "Entity-specific fields matching the model's Create/Update input (e.g. name, desc). " +
-              'For mode "update", must include "id".',
+              'For mode "update", must include "id". Phone numbers (e.g. social.phones[].phoneNumber) ' +
+              'must be E.164 format strings: a "+" followed by the country code and number, e.g. ' +
+              '"+14018216400".',
           ),
       },
     },

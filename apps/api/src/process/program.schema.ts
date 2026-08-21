@@ -13,7 +13,7 @@ import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { PhoneEntrySchema } from '@src/common/phone.schema'
 import { UISchemaElement } from '@src/common/ui.schema'
 import { TransformInput, ZService } from '@src/common/z.service'
-import { RegionIDSchema } from '@src/geo/region.model'
+import { Region, RegionIDSchema } from '@src/geo/region.model'
 import { ProcessIDSchema } from '@src/process/process.schema'
 import {
   Program as ProgramEntity,
@@ -86,7 +86,7 @@ export class ProgramSchemaService implements ISchemaService {
     private readonly baseSchema: BaseSchemaService,
     private readonly zService: ZService,
   ) {
-    const ProgramTransform = z.transform((input: TransformInput) => {
+    const ProgramTransform = z.transform(async (input: TransformInput) => {
       const entity = input.input as ProgramEntity
       const model = new Program()
       model.id = entity.id
@@ -105,6 +105,7 @@ export class ProgramSchemaService implements ISchemaService {
         ? { primaryLink: input.i18n.pickByLocale(entity.instructions.primaryLinks) }
         : undefined
       model.status = entity.status
+      model.region = await this.zService.refToModel(Region, entity.region)
       return model
     })
     this.zService.registerEntityTransform(ProgramEntity, Program, ProgramTransform)

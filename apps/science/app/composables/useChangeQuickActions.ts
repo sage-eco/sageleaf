@@ -65,5 +65,16 @@ export const useChangeQuickActions = (
     }
     return list
   })
-  return { actions }
+
+  const primaryActionKeyPriority = ['approve', 'merge', 'propose', 'draft', 'reject']
+  const primaryAction = computed(() => {
+    const nonNew = actions.value.filter((a) => a.key !== 'new')
+    for (const key of primaryActionKeyPriority) {
+      const match = nonNew.find((a) => a.key === key)
+      if (match) return match
+    }
+    return null
+  })
+
+  return { actions, primaryAction }
 }
