@@ -855,6 +855,342 @@ describe('History via Change/Merge flow (integration)', () => {
     })
   })
 
+  describe('mergeChange dryRun', () => {
+    test('dry run with no conflicts reports success and does not merge', async () => {
+      const variantID = VARIANT_IDS[6]
+
+      const updateRes = await gql.send(
+        graphql(`
+          mutation DryRunSpecUpdate($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: variantID,
+            code: 'DRY-RUN-NEW-CODE',
+            change: { title: 'Dry run spec change', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(updateRes.errors).toBeUndefined()
+      const changeID = updateRes.data!.updateVariant!.change!.id
+
+      const approveRes = await gql.send(
+        graphql(`
+          mutation DryRunSpecApprove($input: UpdateChangeInput!) {
+            updateChange(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { input: { id: changeID, status: ChangeStatus.Approved } },
+      )
+      expect(approveRes.errors).toBeUndefined()
+
+      const dryRunRes = await gql.send(
+        graphql(`
+          mutation DryRunSpecMerge($id: ID!, $dryRun: Boolean) {
+            mergeChange(id: $id, dryRun: $dryRun) {
+              success
+              conflicts {
+                entityName
+                entityID
+                message
+              }
+              change {
+                id
+                status
+              }
+            }
+          }
+        `),
+        { id: changeID, dryRun: true },
+      )
+      expect(dryRunRes.errors).toBeUndefined()
+      expect(dryRunRes.data?.mergeChange?.success).toBe(true)
+      expect(dryRunRes.data?.mergeChange?.conflicts).toEqual([])
+      expect(dryRunRes.data?.mergeChange?.change?.status).toBe('APPROVED')
+
+      const em = orm.em.fork()
+      const variant = await em.findOneOrFail(Variant, variantID)
+      expect(variant.code).not.toBe('DRY-RUN-NEW-CODE')
+      const editStillExists = await em.findOneOrFail(ChangeEdits, {
+        change: changeID,
+        entityName: 'Variant',
+        entityID: variantID,
+      })
+      expect(editStillExists).toBeDefined()
+    })
+
+    test('dry run with a conflict reports it without rejecting the change', async () => {
+      const variantID = VARIANT_IDS[7]
+
+      const updateRes = await gql.send(
+        graphql(`
+          mutation DryRunConflictSpecUpdate($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: variantID,
+            code: 'DRY-RUN-CONFLICT-NEW-CODE',
+            change: { title: 'Dry run conflict spec change', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(updateRes.errors).toBeUndefined()
+      const changeID = updateRes.data!.updateVariant!.change!.id
+
+      const approveRes = await gql.send(
+        graphql(`
+          mutation DryRunConflictSpecApprove($input: UpdateChangeInput!) {
+            updateChange(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { input: { id: changeID, status: ChangeStatus.Approved } },
+      )
+      expect(approveRes.errors).toBeUndefined()
+
+      const em = orm.em.fork()
+      const variant = await em.findOneOrFail(Variant, variantID)
+      variant.code = 'DRY-RUN-DRIFTED-CODE'
+      await em.flush()
+
+      const dryRunRes = await gql.send(
+        graphql(`
+          mutation DryRunConflictSpecMerge($id: ID!, $dryRun: Boolean) {
+            mergeChange(id: $id, dryRun: $dryRun) {
+              success
+              conflicts {
+                entityName
+                entityID
+                message
+              }
+              change {
+                id
+                status
+              }
+            }
+          }
+        `),
+        { id: changeID, dryRun: true },
+      )
+      expect(dryRunRes.errors).toBeUndefined()
+      expect(dryRunRes.data?.mergeChange?.success).toBe(false)
+      expect(dryRunRes.data?.mergeChange?.conflicts).toHaveLength(1)
+      expect(dryRunRes.data?.mergeChange?.conflicts?.[0]?.entityName).toBe('Variant')
+      expect(dryRunRes.data?.mergeChange?.conflicts?.[0]?.message).toContain('code')
+      expect(dryRunRes.data?.mergeChange?.change?.status).toBe('APPROVED')
+
+      const emVerify = orm.em.fork()
+      const variantAfter = await emVerify.findOneOrFail(Variant, variantID)
+      expect(variantAfter.code).toBe('DRY-RUN-DRIFTED-CODE')
+      const editStillExists = await emVerify.findOneOrFail(ChangeEdits, {
+        change: changeID,
+        entityName: 'Variant',
+        entityID: variantID,
+      })
+      expect(editStillExists).toBeDefined()
+    })
+
+    test('dry run followed by a real merge succeeds normally', async () => {
+      const variantID = VARIANT_IDS[8]
+
+      const updateRes = await gql.send(
+        graphql(`
+          mutation DryRunThenMergeSpecUpdate($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: variantID,
+            code: 'DRY-RUN-THEN-MERGE-CODE',
+            change: { title: 'Dry run then merge spec change', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(updateRes.errors).toBeUndefined()
+      const changeID = updateRes.data!.updateVariant!.change!.id
+
+      const approveRes = await gql.send(
+        graphql(`
+          mutation DryRunThenMergeSpecApprove($input: UpdateChangeInput!) {
+            updateChange(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { input: { id: changeID, status: ChangeStatus.Approved } },
+      )
+      expect(approveRes.errors).toBeUndefined()
+
+      const dryRunRes = await gql.send(
+        graphql(`
+          mutation DryRunThenMergeSpecDryRun($id: ID!, $dryRun: Boolean) {
+            mergeChange(id: $id, dryRun: $dryRun) {
+              success
+              change {
+                status
+              }
+            }
+          }
+        `),
+        { id: changeID, dryRun: true },
+      )
+      expect(dryRunRes.errors).toBeUndefined()
+      expect(dryRunRes.data?.mergeChange?.success).toBe(true)
+      expect(dryRunRes.data?.mergeChange?.change?.status).toBe('APPROVED')
+
+      const mergeRes = await gql.send(
+        graphql(`
+          mutation DryRunThenMergeSpecMerge($id: ID!) {
+            mergeChange(id: $id) {
+              success
+              change {
+                id
+                status
+              }
+            }
+          }
+        `),
+        { id: changeID },
+      )
+      expect(mergeRes.errors).toBeUndefined()
+      expect(mergeRes.data?.mergeChange?.success).toBe(true)
+      expect(mergeRes.data?.mergeChange?.change?.status).toBe('MERGED')
+
+      const em = orm.em.fork()
+      const variant = await em.findOneOrFail(Variant, variantID)
+      expect(variant.code).toBe('DRY-RUN-THEN-MERGE-CODE')
+      const history = await em.find(VariantHistory, { variant: variantID })
+      const relevantHistory = history.filter(
+        (h) => (h.changes as { code?: string } | null)?.code === 'DRY-RUN-THEN-MERGE-CODE',
+      )
+      expect(relevantHistory).toHaveLength(1)
+    })
+
+    test('dry run reports every conflicting edit, not just the first', async () => {
+      const firstVariantID = VARIANT_IDS[2]
+      const secondVariantID = VARIANT_IDS[3]
+
+      const firstUpdateRes = await gql.send(
+        graphql(`
+          mutation DryRunMultiConflictSpecUpdateFirst($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        {
+          input: {
+            id: firstVariantID,
+            code: 'MULTI-CONFLICT-CODE-1',
+            change: { title: 'Dry run multi-conflict spec change', status: ChangeStatus.Draft },
+          },
+        },
+      )
+      expect(firstUpdateRes.errors).toBeUndefined()
+      const changeID = firstUpdateRes.data!.updateVariant!.change!.id
+
+      const secondUpdateRes = await gql.send(
+        graphql(`
+          mutation DryRunMultiConflictSpecUpdateSecond($input: UpdateVariantInput!) {
+            updateVariant(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { input: { id: secondVariantID, code: 'MULTI-CONFLICT-CODE-2', changeID } },
+      )
+      expect(secondUpdateRes.errors).toBeUndefined()
+
+      const approveRes = await gql.send(
+        graphql(`
+          mutation DryRunMultiConflictSpecApprove($input: UpdateChangeInput!) {
+            updateChange(input: $input) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { input: { id: changeID, status: ChangeStatus.Approved } },
+      )
+      expect(approveRes.errors).toBeUndefined()
+
+      const em = orm.em.fork()
+      const firstVariant = await em.findOneOrFail(Variant, firstVariantID)
+      firstVariant.code = 'MULTI-CONFLICT-DRIFTED-1'
+      const secondVariant = await em.findOneOrFail(Variant, secondVariantID)
+      secondVariant.code = 'MULTI-CONFLICT-DRIFTED-2'
+      await em.flush()
+
+      const dryRunRes = await gql.send(
+        graphql(`
+          mutation DryRunMultiConflictSpecMerge($id: ID!, $dryRun: Boolean) {
+            mergeChange(id: $id, dryRun: $dryRun) {
+              success
+              conflicts {
+                entityName
+                entityID
+                message
+              }
+            }
+          }
+        `),
+        { id: changeID, dryRun: true },
+      )
+      expect(dryRunRes.errors).toBeUndefined()
+      expect(dryRunRes.data?.mergeChange?.success).toBe(false)
+      expect(dryRunRes.data?.mergeChange?.conflicts).toHaveLength(2)
+      const conflictEntityIDs = dryRunRes.data?.mergeChange?.conflicts?.map((c) => c.entityID)
+      expect(conflictEntityIDs).toEqual(expect.arrayContaining([firstVariantID, secondVariantID]))
+
+      const realMergeRes = await gql.send(
+        graphql(`
+          mutation DryRunMultiConflictSpecRealMerge($id: ID!) {
+            mergeChange(id: $id) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { id: changeID },
+      )
+      expect(realMergeRes.errors).toBeDefined()
+      expect(realMergeRes.errors?.[0]?.message).toContain(firstVariantID)
+      expect(realMergeRes.errors?.[0]?.message).toContain(secondVariantID)
+    })
+  })
+
   describe('GraphQL edits query surfaces conflict/conflictDesc', () => {
     const variantID = VARIANT_IDS[5]
     let changeID: string

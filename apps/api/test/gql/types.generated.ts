@@ -1455,6 +1455,17 @@ export type MaterialsConnection = {
 export type MergeChangeOutput = {
   __typename?: 'MergeChangeOutput';
   change?: Maybe<Change>;
+  /** Conflicts that would prevent (or did prevent) the merge from applying */
+  conflicts: Array<MergeConflict>;
+  /** True if the merge succeeded (or, for a dry run, would succeed) */
+  success: Scalars['Boolean']['output'];
+};
+
+export type MergeConflict = {
+  __typename?: 'MergeConflict';
+  entityID?: Maybe<Scalars['ID']['output']>;
+  entityName: Scalars['String']['output'];
+  message: Scalars['String']['output'];
 };
 
 export type ModelEditSchema = {
@@ -1647,6 +1658,7 @@ export type MutationMarkSourceProcessedArgs = {
 
 
 export type MutationMergeChangeArgs = {
+  dryRun?: InputMaybe<Scalars['Boolean']['input']>;
   id: Scalars['ID']['input'];
 };
 
@@ -2603,6 +2615,8 @@ export enum RefModelType {
 /** An entity referenced (added, removed, or modified) by an edit */
 export type RefNode = {
   __typename?: 'RefNode';
+  /** Name of the field on the edited entity this ref belongs to */
+  field: Scalars['String']['output'];
   /** Global ID of the referenced entity */
   id: Scalars['ID']['output'];
   op: OpType;

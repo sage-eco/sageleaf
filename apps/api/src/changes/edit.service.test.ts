@@ -507,8 +507,8 @@ describe('EditService.computeRefNodes', () => {
       changes: { id: 'v1', material: 'mat-new' },
     })
     expect(svc.computeRefNodes(edit)).toEqual([
-      { id: 'gid://sageleaf/Material/mat-old', op: OpType.REMOVED },
-      { id: 'gid://sageleaf/Material/mat-new', op: OpType.ADDED },
+      { id: 'gid://sageleaf/Material/mat-old', op: OpType.REMOVED, field: 'material' },
+      { id: 'gid://sageleaf/Material/mat-new', op: OpType.ADDED, field: 'material' },
     ])
   })
 
@@ -527,7 +527,7 @@ describe('EditService.computeRefNodes', () => {
       changes: { id: 'v1', material: 'mat-new' },
     })
     expect(svc.computeRefNodes(edit)).toEqual([
-      { id: 'gid://sageleaf/Material/mat-new', op: OpType.ADDED },
+      { id: 'gid://sageleaf/Material/mat-new', op: OpType.ADDED, field: 'material' },
     ])
   })
 
@@ -589,9 +589,17 @@ describe('EditService.computeRefNodes', () => {
     const result = svc.computeRefNodes(edit)
     expect(result).toEqual(
       expect.arrayContaining([
-        { id: 'gid://sageleaf/Category/cat-removed', op: OpType.REMOVED },
-        { id: 'gid://sageleaf/Category/cat-modified', op: OpType.MODIFIED },
-        { id: 'gid://sageleaf/Category/cat-added', op: OpType.ADDED },
+        {
+          id: 'gid://sageleaf/Category/cat-removed',
+          op: OpType.REMOVED,
+          field: 'itemCategories',
+        },
+        {
+          id: 'gid://sageleaf/Category/cat-modified',
+          op: OpType.MODIFIED,
+          field: 'itemCategories',
+        },
+        { id: 'gid://sageleaf/Category/cat-added', op: OpType.ADDED, field: 'itemCategories' },
       ]),
     )
     expect(result).toHaveLength(3)

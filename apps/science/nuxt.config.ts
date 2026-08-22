@@ -52,7 +52,11 @@ export default defineNuxtConfig({
     typeCheck: true,
   },
 
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+    '@vue-flow/core/dist/style.css',
+    '@vue-flow/core/dist/theme-default.css',
+  ],
 
   vite: {
     plugins: [tailwindcss() as any],

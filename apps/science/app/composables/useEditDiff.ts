@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 
-export type EditView = 'diff' | 'raw'
+export type EditView = 'diff' | 'raw' | 'graph'
 
 export type DiffKind = 'added' | 'removed' | 'modified'
 
@@ -23,7 +23,7 @@ const stringify = (v: unknown): string => {
 export const useEditDiff = (
   edit: Ref<{ originalJSON?: unknown; changesJSON?: unknown } | null>,
 ) => {
-  const editView = ref<EditView>('diff')
+  const editView = ref<EditView>('graph')
 
   const diffs = computed<DiffEntry[]>(() => {
     if (!edit.value) return []
@@ -95,7 +95,7 @@ export const useEditDiff = (
   }
 
   const resetView = () => {
-    editView.value = 'diff'
+    editView.value = 'graph'
   }
 
   return {

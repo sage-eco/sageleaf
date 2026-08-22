@@ -1114,6 +1114,18 @@ type MaterialsConnection {
 
 type MergeChangeOutput {
   change: Change
+
+  """Conflicts that would prevent (or did prevent) the merge from applying"""
+  conflicts: [MergeConflict!]!
+
+  """True if the merge succeeded (or, for a dry run, would succeed)"""
+  success: Boolean!
+}
+
+type MergeConflict {
+  entityID: ID
+  entityName: String!
+  message: String!
 }
 
 type ModelEditSchema {
@@ -1153,7 +1165,7 @@ type Mutation {
   discardEdit(changeID: ID!, editID: ID!): DiscardEditOutput
   linkSource(input: LinkSourceInput!): LinkSourceOutput!
   markSourceProcessed(id: ID!): MarkSourceProcessedOutput
-  mergeChange(id: ID!): MergeChangeOutput
+  mergeChange(dryRun: Boolean = false, id: ID!): MergeChangeOutput
   removeRef(id: ID!, input: RemoveRefInput!, model: EditModelType!): RemoveRefOutput
   unlinkSource(input: UnlinkSourceInput!): UnlinkSourceOutput!
   updateCategory(input: UpdateCategoryInput!): UpdateCategoryOutput
@@ -1674,6 +1686,9 @@ enum RefModelType {
 
 """An entity referenced (added, removed, or modified) by an edit"""
 type RefNode {
+  """Name of the field on the edited entity this ref belongs to"""
+  field: String!
+
   """Global ID of the referenced entity"""
   id: ID!
   op: OpType!

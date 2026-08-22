@@ -864,6 +864,23 @@ describe('ChangeResolver (integration)', () => {
       expect(res.errors).toBeDefined()
     })
 
+    test('non-owner non-admin cannot dry-run merge another user change', async () => {
+      const res = await userGql.send(
+        graphql(`
+          mutation ChangeOwnershipDryRunMergeAsNonOwner($id: ID!, $dryRun: Boolean) {
+            mergeChange(id: $id, dryRun: $dryRun) {
+              change {
+                id
+              }
+            }
+          }
+        `),
+        { id: adminOwnedChangeID, dryRun: true },
+      )
+      expect(res.data?.mergeChange).toBeFalsy()
+      expect(res.errors).toBeDefined()
+    })
+
     test('admin can update another user change (bypass)', async () => {
       const res = await gql.send(
         graphql(`

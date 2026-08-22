@@ -118,14 +118,20 @@ export class ChangeResolver {
   }
 
   @Mutation(() => MergeChangeOutput, { nullable: true })
-  async mergeChange(@Args('id', { type: () => ID }) id: string): Promise<MergeChangeOutput> {
-    const result = await this.editService.mergeID(id)
+  async mergeChange(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('dryRun', { type: () => Boolean, nullable: true, defaultValue: false })
+    dryRun: boolean,
+  ): Promise<MergeChangeOutput> {
+    const result = await this.editService.mergeID(id, dryRun)
     if (!result) {
       throw NotFoundErr('Change not found or already merged')
     }
     const model = await this.transform.entityToModel(Change, result.change)
     return {
       change: model,
+      success: result.success,
+      conflicts: result.conflicts,
     }
   }
 

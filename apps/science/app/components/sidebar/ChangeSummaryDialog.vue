@@ -150,7 +150,7 @@
             <CardTitle>Edits ({{ data.edits?.totalCount ?? 0 }})</CardTitle>
           </CardHeader>
           <CardContent>
-            <div v-if="data.edits?.nodes?.length" class="flex gap-3">
+            <div v-if="data.edits?.nodes?.length" class="flex h-[28rem] gap-3">
               <ul class="w-[30%] space-y-2 overflow-y-auto">
                 <li
                   v-for="(edit, i) in data.edits.nodes"
@@ -169,7 +169,9 @@
                   </span>
                 </li>
               </ul>
-              <div class="w-[70%] rounded-md border border-base-300 bg-base-200 p-3">
+              <div
+                class="flex h-full w-[70%] flex-col rounded-md border border-base-300 bg-base-200 p-3"
+              >
                 <template v-if="selectedEdit">
                   <div class="mb-2 flex items-center gap-1">
                     <Button
@@ -182,7 +184,7 @@
                       {{ opt.label }}
                     </Button>
                   </div>
-                  <div v-if="editView === 'diff'" class="flex flex-col gap-1.5">
+                  <div v-if="editView === 'diff'" class="flex flex-col gap-1.5 overflow-y-auto">
                     <div v-if="!diffs.length" class="text-sm opacity-60">No changes</div>
                     <div
                       v-for="diff in diffs"
@@ -209,12 +211,20 @@
                       </div>
                     </div>
                   </div>
-                  <div v-else-if="selectedEdit.changesJSON" class="overflow-x-auto">
-                    <pre class="text-xs break-all whitespace-pre-wrap">{{
-                      JSON.stringify(selectedEdit.changesJSON, null, 2)
-                    }}</pre>
+                  <div v-else-if="editView === 'raw'" class="overflow-auto">
+                    <pre
+                      v-if="selectedEdit.changesJSON"
+                      class="text-xs break-all whitespace-pre-wrap"
+                      >{{ JSON.stringify(selectedEdit.changesJSON, null, 2) }}</pre
+                    >
+                    <div v-else class="text-sm opacity-60">No changes</div>
                   </div>
-                  <div v-else class="text-sm opacity-60">No changes</div>
+                  <SidebarEditGraphView
+                    v-else-if="editView === 'graph'"
+                    class="min-h-0 flex-1"
+                    :entity-name="selectedEdit.entityName"
+                    :ref-nodes="selectedEdit.refNodes"
+                  />
                 </template>
                 <div v-else class="text-sm opacity-60">Select an edit to view its diff</div>
               </div>
@@ -301,6 +311,11 @@ const ChangeSummaryQuery = graphql(`
           changes {
             __typename
           }
+          refNodes {
+            id
+            op
+            field
+          }
         }
       }
     }
@@ -331,7 +346,8 @@ const selectedEdit = computed(() => {
 const { editView, diffs, diffClass, diffBadgeClass, diffSymbol, formatValue, resetView } =
   useEditDiff(selectedEdit)
 
-const viewOptions: { value: 'diff' | 'raw'; label: string }[] = [
+const viewOptions: { value: EditView; label: string }[] = [
+  { value: 'graph', label: 'Graph' },
   { value: 'diff', label: 'Diff' },
   { value: 'raw', label: 'Raw' },
 ]
