@@ -13,6 +13,7 @@ import {
 } from '@src/changes/source.model'
 import { expandCdnUrl, shrinkCdnUrl } from '@src/common/cdn'
 import { TransformInput, ZService } from '@src/common/z.service'
+import { User } from '@src/users/users.model'
 
 export const JSONLD_CONTEXT: jsonld.ContextDefinition = {
   '@vocab': 'http://schema.org/',
@@ -80,28 +81,27 @@ export const UnlinkSourceInputSchema = z.object({
     .refine(canCompactJsonLd, { message: 'jsonld must be a valid JSON-LD document' }),
 })
 
-const ModelTransform = z.transform((input: TransformInput) => {
-  const entity = input.input as Source
-  const model = new SourceModel()
-  model.id = entity.id
-  model.createdAt = DateTime.fromJSDate(entity.createdAt)
-  model.updatedAt = DateTime.fromJSDate(entity.updatedAt)
-  model.type = entity.type
-  model.location = entity.location
-  model.content = entity.content
-  model.contentURL = expandCdnUrl(entity.contentURL)
-  model.processedAt = entity.processedAt ? DateTime.fromJSDate(entity.processedAt) : undefined
-  model.metadata = entity.metadata?.extra
-  model.user = { id: entity.user.id } as any
-  return model
-})
-
 @Injectable()
 export class SourceSchemaService {
   CreateSchema = CreateSourceInputSchema
   UpdateSchema = UpdateSourceInputSchema
 
   constructor(private readonly zService: ZService) {
+    const ModelTransform = z.transform((input: TransformInput) => {
+      const entity = input.input as Source
+      const model = new SourceModel()
+      model.id = entity.id
+      model.createdAt = DateTime.fromJSDate(entity.createdAt)
+      model.updatedAt = DateTime.fromJSDate(entity.updatedAt)
+      model.type = entity.type
+      model.location = entity.location
+      model.content = entity.content
+      model.contentURL = expandCdnUrl(entity.contentURL)
+      model.processedAt = entity.processedAt ? DateTime.fromJSDate(entity.processedAt) : undefined
+      model.metadata = entity.metadata?.extra
+      model.user = this.zService.idRefToModel(User, entity.user)!
+      return model
+    })
     this.zService.registerEntityTransform(Source, SourceModel, ModelTransform)
   }
 

@@ -106,24 +106,26 @@ export class VariantSchemaService implements ISchemaService {
     })
     this.zService.registerEntityTransform(VariantEntity, Variant, VariantTransform)
 
-    const VariantOrgTransform = z.transform(async (input: TransformInput) => {
+    const VariantOrgTransform = z.transform((input: TransformInput) => {
       const entity = input.input as VariantsOrgs
       const model = new VariantOrg()
       model.role = entity.role
-      if (entity.org) {
-        model.org = await this.zService.entityToModel(Org, entity.org)
+      const org = this.zService.idRefToModel(Org, entity.org)
+      if (org) {
+        model.org = org
       }
       return model
     })
     this.zService.registerEntityTransform(VariantsOrgs, VariantOrg, VariantOrgTransform)
 
-    const VariantComponentTransform = z.transform(async (input: TransformInput) => {
+    const VariantComponentTransform = z.transform((input: TransformInput) => {
       const entity = input.input as VariantsComponents
       const model = new VariantComponent()
       model.quantity = entity.quantity
       model.unit = entity.unit
-      if (entity.component) {
-        model.component = await this.zService.entityToModel(Component, entity.component)
+      const component = this.zService.idRefToModel(Component, entity.component)
+      if (component) {
+        model.component = component
       }
       return model
     })
@@ -148,12 +150,13 @@ export class VariantSchemaService implements ISchemaService {
       VariantHistoryTransform,
     )
 
-    const VariantSourceTransform = z.transform(async (input: TransformInput) => {
+    const VariantSourceTransform = z.transform((input: TransformInput) => {
       const entity = input.input as VariantsSources
       const model = new VariantSource()
       model.meta = entity.meta
-      if (entity.source) {
-        model.source = await this.zService.entityToModel(SourceModel, entity.source)
+      const source = this.zService.idRefToModel(SourceModel, entity.source)
+      if (source) {
+        model.source = source
       }
       return model
     })

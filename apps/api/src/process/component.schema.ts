@@ -87,13 +87,10 @@ export class ComponentSchemaService implements ISchemaService {
       model.name = input.i18n.tr(entity.name)
       model.desc = input.i18n.tr(entity.desc)
       model.imageURL = entity.visual?.image
-      if (entity.region?.id) {
-        model.region = new RegionModel()
-        model.region.id = entity.region.id
-      }
-      if (entity.primaryMaterial?.id) {
-        model.primaryMaterial = new Material()
-        model.primaryMaterial.id = entity.primaryMaterial.id
+      model.region = this.zService.idRefToModel(RegionModel, entity.region)
+      const primaryMaterial = this.zService.idRefToModel(Material, entity.primaryMaterial)
+      if (primaryMaterial) {
+        model.primaryMaterial = primaryMaterial
       }
       return model
     })
@@ -114,12 +111,13 @@ export class ComponentSchemaService implements ISchemaService {
       ComponentHistoryTransform,
     )
 
-    const ComponentSourceTransform = z.transform(async (input: TransformInput) => {
+    const ComponentSourceTransform = z.transform((input: TransformInput) => {
       const entity = input.input as ComponentsSources
       const model = new ComponentSource()
       model.meta = entity.meta
-      if (entity.source) {
-        model.source = await this.zService.entityToModel(SourceModel, entity.source as any)
+      const source = this.zService.idRefToModel(SourceModel, entity.source)
+      if (source) {
+        model.source = source
       }
       return model
     })

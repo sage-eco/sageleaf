@@ -158,6 +158,29 @@ export class ZService {
     return stub
   }
 
+  /**
+   * Builds an id-only stub model from a relation value, without loading anything.
+   * Accepts a MikroORM `Ref<E>` or an already-loaded entity (both expose `.id`
+   * synchronously via their proxy, no DB round-trip needed), a bare string id, or a
+   * `{ id }` object (the shape a relation takes once flattened into a POJO diff,
+   * e.g. change/edit history).
+   *
+   * Use this for relation fields that only need their `id` carried onto the model
+   * (e.g. for a GraphQL field resolver to lazily resolve later) — unlike
+   * `refToModel`, this never triggers a DB load, so it's safe to use with
+   * unpersisted/staged entities (e.g. change-tracking flows).
+   */
+  idRefToModel<M extends BaseModel & { id: string }>(
+    Model: (new () => M) | string,
+    ref: Ref<any> | BaseEntity | string | { id: string } | null | undefined,
+  ): M | undefined {
+    if (!ref) {
+      return undefined
+    }
+    const id = _.isString(ref) ? ref : (ref as { id: string }).id
+    return this.idOnlyModel(Model, id)
+  }
+
   async objectToModel<T, S extends BaseModel>(
     Model: (new () => S) | string,
     object: T,

@@ -91,28 +91,11 @@ export class ProcessSchemaService implements ISchemaService {
         eff.valueRatio = entity.efficiency.valueRatio
         model.efficiency = eff
       }
-      // entity.material etc. may be a MikroORM Ref (from DB) or a plain string ID (from history POJO)
-      const refId = (v: any): string | undefined => (typeof v === 'string' ? v : v?.id)
-      if (refId(entity.material)) {
-        model.material = new Material()
-        model.material.id = refId(entity.material)!
-      }
-      if (refId(entity.variant)) {
-        model.variant = new Variant()
-        model.variant.id = refId(entity.variant)!
-      }
-      if (refId(entity.org)) {
-        model.org = new Org()
-        model.org.id = refId(entity.org)!
-      }
-      if (refId(entity.region)) {
-        model.region = new Region()
-        model.region.id = refId(entity.region)!
-      }
-      if (refId(entity.place)) {
-        model.place = new Place()
-        model.place.id = refId(entity.place)!
-      }
+      model.material = this.zService.idRefToModel(Material, entity.material)
+      model.variant = this.zService.idRefToModel(Variant, entity.variant)
+      model.org = this.zService.idRefToModel(Org, entity.org)
+      model.region = this.zService.idRefToModel(Region, entity.region)
+      model.place = this.zService.idRefToModel(Place, entity.place)
       return model
     })
     this.zService.registerEntityTransform(ProcessEntity, Process, ProcessTransform)
@@ -165,12 +148,13 @@ export class ProcessSchemaService implements ISchemaService {
       ProcessHistoryTransform,
     )
 
-    const ProcessSourceTransform = z.transform(async (input: TransformInput) => {
+    const ProcessSourceTransform = z.transform((input: TransformInput) => {
       const entity = input.input as ProcessSources
       const model = new ProcessSource()
       model.meta = entity.meta
-      if (entity.source) {
-        model.source = await this.zService.entityToModel(SourceModel, entity.source as any)
+      const source = this.zService.idRefToModel(SourceModel, entity.source)
+      if (source) {
+        model.source = source
       }
       return model
     })
