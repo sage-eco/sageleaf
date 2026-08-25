@@ -184,7 +184,7 @@ export class ItemSchemaService implements ISchemaService {
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(_entity: E) {
+  async createInputModel<E extends BaseEntity>(_entity: E | null) {
     const data = {}
     runAjvValidator(this.CreateValidator, data)
     return this.zService.parse(this.CreateSchema, data)

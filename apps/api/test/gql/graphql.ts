@@ -614,7 +614,7 @@ export type CreateComponentInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   nameTr?: InputMaybe<Array<TranslatedInput>>;
   physical?: InputMaybe<Scalars['JSONObject']['input']>;
-  primaryMaterial?: InputMaybe<ComponentMaterialInput>;
+  primaryMaterial: ComponentMaterialInput;
   region?: InputMaybe<ComponentRegionInput>;
   /** IDs of sources to remove from this change */
   removeSources?: InputMaybe<Array<Scalars['ID']['input']>>;
@@ -697,7 +697,7 @@ export type CreatePlaceInput = {
   descTr?: InputMaybe<Array<TranslatedInput>>;
   /** Language code for text input fields (BCP 47, e.g. "en") */
   lang?: InputMaybe<Scalars['String']['input']>;
-  location?: InputMaybe<PlaceLocationInput>;
+  location: PlaceLocationInput;
   name?: InputMaybe<Scalars['String']['input']>;
   nameTr?: InputMaybe<Array<TranslatedInput>>;
   org?: InputMaybe<PlaceOrgInput>;
@@ -2234,7 +2234,7 @@ export enum ProgramOrgRole {
 
 export type ProgramOrgsInput = {
   id: Scalars['ID']['input'];
-  role?: InputMaybe<ProgramOrgRole>;
+  role: ProgramOrgRole;
 };
 
 export type ProgramProcessesInput = {

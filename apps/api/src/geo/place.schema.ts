@@ -95,12 +95,10 @@ export class PlaceSchemaService {
       descTr: TrArraySchema,
       address: z.string().max(2048).optional(),
       addressTr: TrArraySchema,
-      location: z
-        .object({
-          latitude: z.number(),
-          longitude: z.number(),
-        })
-        .optional(),
+      location: z.object({
+        latitude: z.number(),
+        longitude: z.number(),
+      }),
       org: PlaceOrgInputSchema.optional(),
       tags: z.array(PlaceTagsInputSchema).optional(),
     })

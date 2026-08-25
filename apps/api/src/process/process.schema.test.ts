@@ -19,6 +19,11 @@ describe('ProcessSchemaService', () => {
       await expect(service.parseCreateInput({ intent: 'REUSE' } as any)).resolves.toBeDefined()
     })
 
+    it('defaults instructions to {} when omitted', async () => {
+      const result = await service.parseCreateInput({ intent: 'REUSE' } as any)
+      expect(result.instructions).toEqual({})
+    })
+
     it('accepts all valid ProcessIntent values', async () => {
       const intents = [
         'REUSE',

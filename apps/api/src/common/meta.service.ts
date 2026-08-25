@@ -19,7 +19,7 @@ export interface ISchemaService {
   CreateInputModel: new () => BaseModel
   UpdateInputModel: new () => BaseModel
 
-  createInputModel<E extends BaseEntity>(entity: E): Promise<JSONObject>
+  createInputModel<E extends BaseEntity>(entity: E | null): Promise<JSONObject>
   updateInputModel<E extends BaseEntity>(entity: E): Promise<JSONObject>
 }
 

@@ -303,8 +303,8 @@ export class CreateComponentInput extends ChangeInputWithLang {
   @Field(() => JSONObjectResolver, { nullable: true })
   physical?: ComponentPhysical
 
-  @Field(() => ComponentMaterialInput, { nullable: true })
-  primaryMaterial?: ComponentMaterialInput
+  @Field(() => ComponentMaterialInput)
+  primaryMaterial!: ComponentMaterialInput
 
   @Field(() => [ComponentMaterialInput], { nullable: true })
   materials?: ComponentMaterialInput[]

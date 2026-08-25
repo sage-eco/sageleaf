@@ -191,8 +191,8 @@ export class ProgramOrgsInput {
   @Field(() => ID)
   id!: string
 
-  @Field(() => ProgramOrgRole, { nullable: true })
-  role?: ProgramOrgRole
+  @Field(() => ProgramOrgRole)
+  role!: ProgramOrgRole
 }
 
 @InputType()

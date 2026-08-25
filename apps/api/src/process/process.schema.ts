@@ -59,11 +59,8 @@ export class ProcessSchemaService implements ISchemaService {
   ProcessRegionInputSchema
   ProcessPlaceInputSchema
   CreateSchema
-  CreateEditSchema
   CreateJSONSchema: z.core.JSONSchema.BaseSchema
-  CreateEditJSONSchema: z.core.JSONSchema.BaseSchema
   CreateValidator: ValidateFunction
-  CreateEditValidator: ValidateFunction
   CreateUISchema: UISchemaElement
   UpdateSchema
   UpdateJSONSchema: z.core.JSONSchema.BaseSchema
@@ -181,7 +178,7 @@ export class ProcessSchemaService implements ISchemaService {
       nameTr: TrArraySchema.optional(),
       desc: z.string().max(100_000).optional(),
       descTr: TrArraySchema.optional(),
-      instructions: ProcessInstructionsSchema.optional(),
+      instructions: ProcessInstructionsSchema,
       efficiency: ProcessEfficiencySchema.optional(),
       rules: ProcessRulesSchema.optional(),
       material: this.ProcessMaterialInputSchema.optional(),
@@ -190,12 +187,7 @@ export class ProcessSchemaService implements ISchemaService {
       region: this.ProcessRegionInputSchema.optional(),
       place: this.ProcessPlaceInputSchema.optional(),
     })
-    // Relaxed version of CreateSchema used for edit forms where intent may not yet be set
-    this.CreateEditSchema = this.CreateSchema.extend({
-      intent: z.enum(ProcessIntent).optional(),
-    })
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
-    this.CreateEditJSONSchema = zToSchema(this.CreateEditSchema)
     this.CreateUISchema = {
       type: 'VerticalLayout',
       elements: [
@@ -317,14 +309,27 @@ export class ProcessSchemaService implements ISchemaService {
       ],
     }
     this.CreateValidator = this.baseSchema.ajv.compile(this.CreateJSONSchema)
-    this.CreateEditValidator = this.baseSchema.ajv.compile(this.CreateEditJSONSchema)
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(_entity: E) {
-    const data = {}
-    runAjvValidator(this.CreateEditValidator, data)
-    return this.zService.parse(this.CreateEditSchema, data)
+  async createInputModel<E extends BaseEntity>(entity: E | null) {
+    if (!entity) {
+      return {}
+    }
+    const e = entity as any
+    const data: Record<string, any> = stripNulls({
+      intent: e.intent,
+      instructions: e.instructions,
+      efficiency: e.efficiency,
+      rules: e.rules,
+    })
+    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+    for (const field of ['material', 'variant', 'org', 'region', 'place']) {
+      if (e[field]?.id) data[field] = { id: e[field].id }
+    }
+    runAjvValidator(this.CreateValidator, data)
+    return this.zService.parse(this.CreateSchema, data as any)
   }
 
   async updateInputModel<E extends BaseEntity>(entity: E) {

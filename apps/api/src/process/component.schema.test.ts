@@ -15,8 +15,12 @@ describe('ComponentSchemaService', () => {
   })
 
   describe('parseCreateInput', () => {
-    it('accepts a valid empty input (all fields optional)', async () => {
-      await expect(service.parseCreateInput({} as any)).resolves.toBeDefined()
+    it('rejects a missing primaryMaterial', async () => {
+      await expect(
+        service.parseCreateInput({ name: 'Aluminum Body' } as any),
+      ).rejects.toMatchObject({
+        issues: expect.arrayContaining([expect.objectContaining({ path: ['primaryMaterial'] })]),
+      })
     })
 
     it('accepts a valid full input', async () => {

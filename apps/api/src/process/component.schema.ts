@@ -151,7 +151,7 @@ export class ComponentSchemaService implements ISchemaService {
       }),
       visual: ComponentVisualSchema.optional(),
       physical: ComponentPhysicalSchema.optional(),
-      primaryMaterial: this.ComponentMaterialInputSchema.optional(),
+      primaryMaterial: this.ComponentMaterialInputSchema,
       materials: this.ComponentMaterialInputSchema.array()
         .optional()
         .meta({
@@ -282,10 +282,33 @@ export class ComponentSchemaService implements ISchemaService {
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(_entity: E) {
-    const data = {}
+  async createInputModel<E extends BaseEntity>(entity: E | null) {
+    if (!entity) {
+      return {}
+    }
+    const e = entity as any
+    const data: Record<string, any> = stripNulls({
+      imageURL: e.imageURL,
+      visual: e.visual,
+      physical: e.physical,
+    })
+    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+    data.materials = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(e.componentMaterials),
+      'component',
+      'material',
+    )
+    data.tags = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(e.componentTags),
+      'component',
+      'tag',
+    )
+    if (e.primaryMaterial?.id) data.primaryMaterial = { id: e.primaryMaterial.id }
+    if (e.region?.id) data.region = { id: e.region.id }
     runAjvValidator(this.CreateValidator, data)
-    return this.zService.parse(this.CreateSchema, data)
+    this.baseSchema.relToInput(data, 'primaryMaterial', ['materialFraction'])
+    return this.zService.parse(this.CreateSchema, data as any)
   }
 
   async updateInputModel<E extends BaseEntity>(entity: E) {

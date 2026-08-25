@@ -38,7 +38,14 @@ export const ProgramIDSchema = z.string().meta({
 
 export const ProgramOrgsInputSchema = z.strictObject({
   id: OrgIDSchema,
-  role: z.enum(ProgramOrgRole).catch(ProgramOrgRole.OTHER).optional(),
+  // role is required: a present-but-unrecognized value (e.g. a legacy string) is rescued to
+  // OTHER, but an omitted role still fails validation rather than defaulting silently
+  role: z.preprocess((val) => {
+    if (typeof val !== 'string') return val
+    return Object.values(ProgramOrgRole).includes(val as ProgramOrgRole)
+      ? val
+      : ProgramOrgRole.OTHER
+  }, z.enum(ProgramOrgRole)),
 })
 
 export const ProgramProcessesInputSchema = z.strictObject({
@@ -312,7 +319,10 @@ export class ProgramSchemaService implements ISchemaService {
     return this.zService.parse(this.UpdateSchema, input)
   }
 
-  async createInputModel<E extends BaseEntity>(entity: E): Promise<any> {
+  async createInputModel<E extends BaseEntity>(entity: E | null): Promise<any> {
+    if (!entity) {
+      return {}
+    }
     const e = entity as any
     const data: Record<string, any> = {
       status: e.status,

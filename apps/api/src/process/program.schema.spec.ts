@@ -7,9 +7,8 @@ describe('ProgramOrgsInputSchema', () => {
     expect(result.role).toBe(ProgramOrgRole.OPERATOR)
   })
 
-  test('leaves an omitted role undefined', () => {
-    const result = ProgramOrgsInputSchema.parse({ id: 'org-1' })
-    expect(result.role).toBeUndefined()
+  test('rejects an omitted role', () => {
+    expect(() => ProgramOrgsInputSchema.parse({ id: 'org-1' })).toThrow()
   })
 
   test('falls back to OTHER for a legacy value that predates the enum', () => {
