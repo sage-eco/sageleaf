@@ -129,7 +129,7 @@ export class ProgramsOrgs extends BaseEntity {
   @ManyToOne({ primary: true })
   org!: Org & {}
 
-  @Enum(() => ProgramOrgRole)
+  @Property({ type: 'string' })
   role!: ProgramOrgRole
 }
 

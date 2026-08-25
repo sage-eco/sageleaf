@@ -14,13 +14,13 @@ import { BaseModel } from '@src/graphql/base.model'
  */
 export const IsSchemaService = DiscoveryService.createDecorator()
 
-export interface ISchemaService {
+export interface ISchemaService<E extends BaseEntity = BaseEntity> {
   OutputModel: new () => BaseModel
   CreateInputModel: new () => BaseModel
   UpdateInputModel: new () => BaseModel
 
-  createInputModel<E extends BaseEntity>(entity: E | null): Promise<JSONObject>
-  updateInputModel<E extends BaseEntity>(entity: E): Promise<JSONObject>
+  createInputModel(entity: E | null): Promise<JSONObject>
+  updateInputModel(entity: E): Promise<JSONObject>
 }
 
 @Injectable()
@@ -56,7 +56,7 @@ export class MetaService {
 
   findSchemaService(
     entity: EntityName<any> | BaseEntity | Function,
-  ): [string, ISchemaService] | null {
+  ): [string, ISchemaService<BaseEntity>] | null {
     if (!this.isInit) {
       this.cacheProviders()
       this.isInit = true

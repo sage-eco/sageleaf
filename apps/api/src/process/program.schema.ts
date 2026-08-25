@@ -1,4 +1,3 @@
-import { BaseEntity } from '@mikro-orm/core'
 import { Injectable } from '@nestjs/common'
 import { ValidateFunction } from 'ajv'
 import { DateTime } from 'luxon'
@@ -25,6 +24,7 @@ import {
   CreateProgramInput,
   Program,
   ProgramHistory,
+  ProgramSocialInput,
   UpdateProgramInput,
 } from '@src/process/program.model'
 import { TagDefinitionIDSchema } from '@src/process/tag.model'
@@ -71,7 +71,7 @@ export const ProgramInstructionsInputSchema = z.object({
 
 @Injectable()
 @IsSchemaService(ProgramEntity)
-export class ProgramSchemaService implements ISchemaService {
+export class ProgramSchemaService implements ISchemaService<ProgramEntity> {
   OutputModel = Program
   CreateInputModel = CreateProgramInput
   UpdateInputModel = UpdateProgramInput
@@ -319,83 +319,81 @@ export class ProgramSchemaService implements ISchemaService {
     return this.zService.parse(this.UpdateSchema, input)
   }
 
-  async createInputModel<E extends BaseEntity>(entity: E | null): Promise<any> {
+  async createInputModel(entity: ProgramEntity | null): Promise<any> {
     if (!entity) {
       return {}
     }
-    const e = entity as any
-    const data: Record<string, any> = {
-      status: e.status,
-      instructions: e.instructions,
+    const data: CreateProgramInput = {
+      status: entity.status,
+      instructions: entity.instructions,
     }
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
-    if (e.social) {
-      const social: Record<string, any> = {
-        links: e.social.links,
-        phones: e.social.phones,
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
+    if (entity.social) {
+      const social: ProgramSocialInput = {
+        links: entity.social.links,
+        phones: entity.social.phones,
       }
-      this.baseSchema.applyTranslatedField(social, e.social.address, 'address', 'addressTr')
+      this.baseSchema.applyTranslatedField(social, entity.social.address, 'address', 'addressTr')
       data.social = social
     }
     data.orgs = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programOrgs),
+      this.baseSchema.safeCollectionItems(entity.programOrgs),
       'program',
       'org',
     )
     data.processes = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programProcesses),
+      this.baseSchema.safeCollectionItems(entity.programProcesses),
       'program',
       'process',
     )
     data.tags = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programTags),
+      this.baseSchema.safeCollectionItems(entity.programTags),
       'program',
       'tag',
     )
-    if (e.region?.id) {
-      data.region = e.region.id
+    if (entity.region?.id) {
+      data.region = entity.region.id
     }
     this.CreateValidator(data)
-    return this.zService.parse(this.CreateSchema, data as any)
+    return this.zService.parse(this.CreateSchema, data)
   }
 
-  async updateInputModel<E extends BaseEntity>(entity: E): Promise<any> {
-    const e = entity as any
-    const data: Record<string, any> = {
-      id: e.id,
-      status: e.status,
-      instructions: e.instructions,
+  async updateInputModel(entity: ProgramEntity): Promise<any> {
+    const data: UpdateProgramInput = {
+      id: entity.id,
+      status: entity.status,
+      instructions: entity.instructions,
     }
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
-    if (e.social) {
-      const social: Record<string, any> = {
-        links: e.social.links,
-        phones: e.social.phones,
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
+    if (entity.social) {
+      const social: ProgramSocialInput = {
+        links: entity.social.links,
+        phones: entity.social.phones,
       }
-      this.baseSchema.applyTranslatedField(social, e.social.address, 'address', 'addressTr')
+      this.baseSchema.applyTranslatedField(social, entity.social.address, 'address', 'addressTr')
       data.social = social
     }
     data.orgs = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programOrgs),
+      this.baseSchema.safeCollectionItems(entity.programOrgs),
       'program',
       'org',
     )
     data.processes = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programProcesses),
+      this.baseSchema.safeCollectionItems(entity.programProcesses),
       'program',
       'process',
     )
     data.tags = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programTags),
+      this.baseSchema.safeCollectionItems(entity.programTags),
       'program',
       'tag',
     )
-    if (e.region?.id) {
-      data.region = e.region.id
+    if (entity.region?.id) {
+      data.region = entity.region.id
     }
     this.UpdateValidator(data)
-    return this.zService.parse(this.UpdateSchema, data as any)
+    return this.zService.parse(this.UpdateSchema, data)
   }
 }

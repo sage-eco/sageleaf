@@ -3374,6 +3374,7 @@ export type UpdateVariantInput = {
   nameTr?: InputMaybe<Array<TranslatedInput>>;
   orgs?: InputMaybe<Array<VariantOrgsInput>>;
   region?: InputMaybe<VariantRegionsInput>;
+  regions?: InputMaybe<Array<VariantRegionsInput>>;
   removeComponents?: InputMaybe<Array<Scalars['ID']['input']>>;
   removeItems?: InputMaybe<Array<Scalars['ID']['input']>>;
   removeOrgs?: InputMaybe<Array<Scalars['ID']['input']>>;

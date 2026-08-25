@@ -1,4 +1,3 @@
-import { BaseEntity } from '@mikro-orm/core'
 import { Injectable } from '@nestjs/common'
 import { ValidateFunction } from 'ajv'
 import { DateTime } from 'luxon'
@@ -37,7 +36,7 @@ export const CategoryIDSchema = z.string().meta({
 
 @Injectable()
 @IsSchemaService(CategoryEntity)
-export class CategorySchemaService implements ISchemaService {
+export class CategorySchemaService implements ISchemaService<CategoryEntity> {
   OutputModel = Category
   CreateInputModel = CreateCategoryInput
   UpdateInputModel = UpdateCategoryInput
@@ -190,25 +189,23 @@ export class CategorySchemaService implements ISchemaService {
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(entity: E | null) {
+  async createInputModel(entity: CategoryEntity | null) {
     if (!entity) return {}
-    const e = entity as any
-    const data: Record<string, any> = stripNulls({ imageURL: e.imageURL })
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.descShort, 'descShort', 'descShortTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+    const data: CreateCategoryInput = stripNulls({ imageURL: entity.imageURL })
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.descShort, 'descShort', 'descShortTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
     runAjvValidator(this.CreateValidator, data)
-    return this.zService.parse(this.CreateSchema, data as any)
+    return this.zService.parse(this.CreateSchema, data)
   }
 
-  async updateInputModel<E extends BaseEntity>(entity: E) {
-    const e = entity as any
-    const data: Record<string, any> = stripNulls({ id: e.id, imageURL: e.imageURL })
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.descShort, 'descShort', 'descShortTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+  async updateInputModel(entity: CategoryEntity) {
+    const data: UpdateCategoryInput = stripNulls({ id: entity.id, imageURL: entity.imageURL })
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.descShort, 'descShort', 'descShortTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
     runAjvValidator(this.UpdateValidator, data)
-    return this.zService.parse(this.UpdateSchema, data as any)
+    return this.zService.parse(this.UpdateSchema, data)
   }
 
   async parseCreateInput(input: CreateCategoryInput): Promise<CreateCategoryInput> {

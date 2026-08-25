@@ -2447,6 +2447,7 @@ input UpdateVariantInput {
   nameTr: [TranslatedInput!]
   orgs: [VariantOrgsInput!]
   region: VariantRegionsInput
+  regions: [VariantRegionsInput!]
   removeComponents: [ID!]
   removeItems: [ID!]
   removeOrgs: [ID!]

@@ -262,7 +262,7 @@ export class ChangeService implements IEntityService<Change> {
         : null
       if (createSvcResult) {
         const [, schemaSvc] = createSvcResult
-        editModel.createInput = await schemaSvc.createInputModel(null as any)
+        editModel.createInput = await schemaSvc.createInputModel(null)
       }
       return editModel
     }

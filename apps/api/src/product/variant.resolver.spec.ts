@@ -24,11 +24,12 @@ import { Material } from '@src/process/material.entity'
 import { Process, ProcessIntent } from '@src/process/process.entity'
 import {
   Program,
+  ProgramOrgRole,
   ProgramsOrgs,
   ProgramsProcesses,
   ProgramStatus,
 } from '@src/process/program.entity'
-import { Variant as VariantEntity } from '@src/product/variant.entity'
+import { Variant as VariantEntity, VariantsOrgs } from '@src/product/variant.entity'
 import { Org } from '@src/users/org.entity'
 
 describe('VariantResolver (integration)', () => {
@@ -62,6 +63,13 @@ describe('VariantResolver (integration)', () => {
     await gql.signIn('admin', 'password')
 
     variantID = VARIANT_IDS[0]
+
+    const em = orm.em.fork()
+    em.create(VariantsOrgs, {
+      variant: em.getReference(VariantEntity, variantID),
+      org: em.getReference(Org, ORG_IDS[0]),
+    })
+    await em.flush()
   })
 
   afterAll(async () => {
@@ -216,6 +224,8 @@ describe('VariantResolver (integration)', () => {
     )
     expect(res.data?.variant?.orgs).toBeDefined()
     expect(Array.isArray(res.data?.variant?.orgs.nodes)).toBe(true)
+    expect(res.data?.variant?.orgs.nodes?.[0]?.org.id).toBe(ORG_IDS[0])
+    expect(res.data?.variant?.orgs.nodes?.[0]?.org.name).toBeTruthy()
   })
 
   test('should query variant tags with pagination', async () => {
@@ -2065,12 +2075,12 @@ describe('VariantResolver (integration)', () => {
       em.create(ProgramsOrgs, {
         program: em.getReference(Program, IDS.PROGRAM_A),
         org: em.getReference(Org, IDS.ORG_A),
-        role: 'operator',
+        role: ProgramOrgRole.OPERATOR,
       })
       em.create(ProgramsOrgs, {
         program: em.getReference(Program, IDS.PROGRAM_A),
         org: em.getReference(Org, IDS.ORG_B),
-        role: 'supporter',
+        role: ProgramOrgRole.OTHER,
       })
       await em.flush()
     })
