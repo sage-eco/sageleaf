@@ -15,6 +15,10 @@ function transformKey(entity: string | undefined, model: string): string {
   return `${entity ?? ''}:${model}`
 }
 
+function isRef<E extends BaseEntity>(value: unknown): value is Ref<E> {
+  return _.isFunction((value as Ref<E> | undefined)?.isInitialized)
+}
+
 export type TransformInput = {
   input: unknown
   i18n: I18nService
@@ -116,19 +120,42 @@ export class ZService {
    * already populated) and transforms it to its GraphQL model. Use this instead of
    * passing `entity.someRef` straight to `entityToModel`, which throws if the ref
    * hasn't been populated.
+   *
+   * Also accepts a bare id or `{ id }`, which is what a relation looks like once an
+   * entity has been flattened to a plain diff object (e.g. change/edit history) —
+   * there's no entity to load in that case, so this returns a stub model with only
+   * `id` set.
    */
-  async refToModel<E extends BaseEntity, M extends BaseModel>(
+  async refToModel<E extends BaseEntity, M extends BaseModel & { id: string }>(
     Model: (new () => M) | string,
-    ref: Ref<E> | null | undefined,
+    ref: Ref<E> | string | { id: string } | null | undefined,
   ): Promise<M | undefined> {
     if (!ref) {
       return undefined
     }
+    if (!isRef<E>(ref)) {
+      return this.idOnlyModel(Model, _.isString(ref) ? ref : ref.id)
+    }
     const entity = ref.isInitialized() ? ref.getEntity() : await ref.load()
-    if (!entity) {
+    return entity ? this.entityToModel(Model, entity) : undefined
+  }
+
+  private idOnlyModel<M extends BaseModel & { id: string }>(
+    Model: (new () => M) | string,
+    id: string | undefined,
+  ): M | undefined {
+    if (!id) {
       return undefined
     }
-    return this.entityToModel(Model, entity)
+    const ModelClass: (new () => M) | undefined = _.isString(Model)
+      ? (ModelRegistry[Model] as (new () => M) | undefined)
+      : Model
+    if (!ModelClass) {
+      throw new Error(`No model registered for ${Model}`)
+    }
+    const stub = new ModelClass()
+    stub.id = id
+    return stub
   }
 
   async objectToModel<T, S extends BaseModel>(
