@@ -15,12 +15,38 @@ describe('ProcessSchemaService', () => {
   })
 
   describe('parseCreateInput', () => {
+    it('rejects when both name and nameTr are omitted', async () => {
+      await expect(service.parseCreateInput({ intent: 'REUSE' } as any)).rejects.toMatchObject({
+        issues: expect.arrayContaining([expect.objectContaining({ path: ['name'] })]),
+      })
+    })
+
+    it('accepts name alone', async () => {
+      await expect(
+        service.parseCreateInput({ intent: 'REUSE', name: 'Plastic Recycling' } as any),
+      ).resolves.toBeDefined()
+    })
+
+    it('accepts nameTr alone', async () => {
+      await expect(
+        service.parseCreateInput({
+          intent: 'REUSE',
+          nameTr: [{ lang: 'en', text: 'Plastic Recycling' }],
+        } as any),
+      ).resolves.toBeDefined()
+    })
+
     it('accepts a valid minimal input with required intent', async () => {
-      await expect(service.parseCreateInput({ intent: 'REUSE' } as any)).resolves.toBeDefined()
+      await expect(
+        service.parseCreateInput({ intent: 'REUSE', name: 'Reuse Process' } as any),
+      ).resolves.toBeDefined()
     })
 
     it('defaults instructions to {} when omitted', async () => {
-      const result = await service.parseCreateInput({ intent: 'REUSE' } as any)
+      const result = await service.parseCreateInput({
+        intent: 'REUSE',
+        name: 'Reuse Process',
+      } as any)
       expect(result.instructions).toEqual({})
     })
 
@@ -37,7 +63,9 @@ describe('ProcessSchemaService', () => {
         'LITTER',
       ] as const
       for (const intent of intents) {
-        await expect(service.parseCreateInput({ intent } as any)).resolves.toBeDefined()
+        await expect(
+          service.parseCreateInput({ intent, name: 'Process' } as any),
+        ).resolves.toBeDefined()
       }
     })
 

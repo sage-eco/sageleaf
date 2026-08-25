@@ -13,6 +13,34 @@ describe('PlaceSchemaService', () => {
   })
 
   describe('parseCreateInput', () => {
+    it('rejects when both name and nameTr are omitted', async () => {
+      await expect(
+        service.parseCreateInput({
+          location: { latitude: 59.3293, longitude: 18.0686 },
+        } as any),
+      ).rejects.toMatchObject({
+        issues: expect.arrayContaining([expect.objectContaining({ path: ['name'] })]),
+      })
+    })
+
+    it('accepts name alone', async () => {
+      await expect(
+        service.parseCreateInput({
+          name: 'Recycling Center',
+          location: { latitude: 59.3293, longitude: 18.0686 },
+        } as any),
+      ).resolves.toBeDefined()
+    })
+
+    it('accepts nameTr alone', async () => {
+      await expect(
+        service.parseCreateInput({
+          nameTr: [{ lang: 'en', text: 'Recycling Center' }],
+          location: { latitude: 59.3293, longitude: 18.0686 },
+        } as any),
+      ).resolves.toBeDefined()
+    })
+
     it('rejects a missing location', async () => {
       await expect(
         service.parseCreateInput({ name: 'Recycling Center' } as any),

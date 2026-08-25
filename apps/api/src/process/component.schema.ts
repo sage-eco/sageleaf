@@ -15,7 +15,7 @@ import {
   stripNulls,
   zToSchema,
 } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { UISchemaElement } from '@src/common/ui.schema'
@@ -159,7 +159,7 @@ export class ComponentSchemaService implements ISchemaService {
         }),
       tags: this.ComponentTagsInputSchema.array().optional(),
       region: this.ComponentRegionInputSchema.optional(),
-    })
+    }).superRefine(requireNameOrNameTr)
 
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
 

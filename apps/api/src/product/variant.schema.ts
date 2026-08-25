@@ -14,7 +14,7 @@ import {
   stripNulls,
   zToSchema,
 } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { UISchemaElement } from '@src/common/ui.schema'
@@ -175,7 +175,7 @@ export class VariantSchemaService implements ISchemaService {
       orgs: z.array(VariantOrgsInputSchema).optional(),
       tags: z.array(VariantTagsInputSchema).optional(),
       components: z.array(VariantComponentsInputSchema).optional(),
-    })
+    }).superRefine(requireNameOrNameTr)
 
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
 
@@ -308,10 +308,39 @@ export class VariantSchemaService implements ISchemaService {
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<VariantEntity>(entity: VariantEntity) {
-    const data = {}
+  async createInputModel<VariantEntity>(entity: VariantEntity | null) {
+    if (!entity) return {}
+    const e = entity as any
+    const data: Record<string, any> = stripNulls({ imageURL: e.imageURL, code: e.code })
+    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+    data.items = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(e.variantItems),
+      'variant',
+      'item',
+    )
+    data.orgs = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(e.variantOrgs),
+      'variant',
+      'org',
+    )
+    data.tags = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(e.variantTags),
+      'variant',
+      'tag',
+    )
+    data.components = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(e.variantComponents),
+      'variant',
+      'component',
+    )
+    if (e.regions?.length) {
+      data.regions = e.regions.map((id: string) => ({ id }))
+    } else if (e.region?.id) {
+      data.region = { id: e.region.id }
+    }
     runAjvValidator(this.CreateValidator, data)
-    return this.zService.parse(this.CreateSchema, data)
+    return this.zService.parse(this.CreateSchema, data as any)
   }
 
   async updateInputModel<VariantEntity>(entity: VariantEntity) {

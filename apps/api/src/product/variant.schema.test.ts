@@ -15,8 +15,22 @@ describe('VariantSchemaService', () => {
   })
 
   describe('parseCreateInput', () => {
-    it('accepts a valid empty input (all fields optional)', async () => {
-      await expect(service.parseCreateInput({} as any)).resolves.toBeDefined()
+    it('rejects when both name and nameTr are omitted', async () => {
+      await expect(service.parseCreateInput({} as any)).rejects.toMatchObject({
+        issues: expect.arrayContaining([expect.objectContaining({ path: ['name'] })]),
+      })
+    })
+
+    it('accepts name alone', async () => {
+      await expect(
+        service.parseCreateInput({ name: 'Laptop Model X' } as any),
+      ).resolves.toBeDefined()
+    })
+
+    it('accepts nameTr alone', async () => {
+      await expect(
+        service.parseCreateInput({ nameTr: [{ lang: 'en', text: 'Laptop Model X' }] } as any),
+      ).resolves.toBeDefined()
     })
 
     it('accepts a valid full input', async () => {
@@ -90,7 +104,7 @@ describe('VariantSchemaService', () => {
   })
 
   describe('parseUpdateInput', () => {
-    it('accepts a valid minimal update', async () => {
+    it('accepts a valid minimal update (name/nameTr may both be omitted)', async () => {
       await expect(service.parseUpdateInput({ id: 'variant1' } as any)).resolves.toBeDefined()
     })
 

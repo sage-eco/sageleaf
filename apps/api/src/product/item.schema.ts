@@ -14,7 +14,7 @@ import {
   stripNulls,
   zToSchema,
 } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { UISchemaElement } from '@src/common/ui.schema'
@@ -97,7 +97,7 @@ export class ItemSchemaService implements ISchemaService {
       imageURL: ImageOrIconSchema,
       categories: z.array(this.ItemCategoriesInputSchema).optional(),
       tags: z.array(this.ItemTagsInputSchema).optional(),
-    })
+    }).superRefine(requireNameOrNameTr)
 
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
     this.CreateUISchema = {
@@ -184,10 +184,26 @@ export class ItemSchemaService implements ISchemaService {
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(_entity: E | null) {
-    const data = {}
+  async createInputModel<E extends BaseEntity>(entity: E | null) {
+    if (!entity) return {}
+    const e = entity as any
+    const data: Record<string, any> = stripNulls({
+      imageURL: e.files?.thumbnail ?? e.imageURL,
+    })
+    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+    data.categories = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(e.itemCategories),
+      'item',
+      'category',
+    )
+    data.tags = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(e.itemTags),
+      'item',
+      'tag',
+    )
     runAjvValidator(this.CreateValidator, data)
-    return this.zService.parse(this.CreateSchema, data)
+    return this.zService.parse(this.CreateSchema, data as any)
   }
 
   async updateInputModel<E extends BaseEntity>(entity: E) {

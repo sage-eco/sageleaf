@@ -7,7 +7,7 @@ import { z } from 'zod/v4'
 import type { Edit } from '@src/changes/change.model'
 import { ChangeInputWithLangSchema } from '@src/changes/change.schema'
 import { BaseSchemaService, zToSchema } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { UISchemaElement } from '@src/common/ui.schema'
 import { TransformInput, ZService } from '@src/common/z.service'
@@ -101,7 +101,7 @@ export class PlaceSchemaService {
       }),
       org: PlaceOrgInputSchema.optional(),
       tags: z.array(PlaceTagsInputSchema).optional(),
-    })
+    }).superRefine(requireNameOrNameTr)
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
     this.CreateUISchema = {
       type: 'VerticalLayout',

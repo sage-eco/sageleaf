@@ -6,7 +6,7 @@ import { z } from 'zod/v4'
 
 import { ChangeInputWithLangSchema } from '@src/changes/change.schema'
 import { BaseSchemaService, RelMetaSchema, zToSchema } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ExternalLinkInputSchema } from '@src/common/link.schema'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
@@ -148,7 +148,7 @@ export class ProgramSchemaService implements ISchemaService {
       orgs: z.array(this.ProgramOrgsInputSchema).optional(),
       processes: z.array(this.ProgramProcessesInputSchema).optional(),
       tags: z.array(this.ProgramTagsInputSchema).optional(),
-    })
+    }).superRefine(requireNameOrNameTr)
 
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
     this.CreateUISchema = {

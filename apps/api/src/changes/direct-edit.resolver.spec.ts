@@ -112,27 +112,19 @@ describe('DirectEdit (integration)', () => {
       },
     )
 
-    // Entities whose blank createInput is a valid (all-optional) Zod input
-    it.each(['Category', 'Item', 'Variant'])(
-      'createInput for %s contains only schema-allowed fields and passes Zod parse',
+    // Category/Item/Variant/Component all require a name (or nameTr) on create, and
+    // Component additionally requires primaryMaterial — so with no entity to seed
+    // defaults from, their blank createInput is intentionally not a valid create input
+    it.each(['Category', 'Item', 'Variant', 'Component'])(
+      'createInput for %s fails Zod parse when blank',
       async (entityName) => {
         const res = await gql.send(DirectEditQuery, { entityName })
         const result = res.data?.directEdit
         await expect(
           schemaFor(entityName).parseCreateInput(result!.createInput as any),
-        ).resolves.toBeDefined()
+        ).rejects.toBeDefined()
       },
     )
-
-    // Component requires primaryMaterial on create, so its blank createInput
-    // (no entity to seed defaults from) is intentionally not a valid create input
-    it('createInput for Component omits primaryMaterial and fails Zod parse', async () => {
-      const res = await gql.send(DirectEditQuery, { entityName: 'Component' })
-      const result = res.data?.directEdit
-      await expect(
-        schemaFor('Component').parseCreateInput(result!.createInput as any),
-      ).rejects.toBeDefined()
-    })
   })
 
   describe('with id + entityName — returns updateInput', () => {

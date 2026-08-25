@@ -13,7 +13,7 @@ import {
   stripNulls,
   zToSchema,
 } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { UISchemaElement } from '@src/common/ui.schema'
@@ -114,7 +114,7 @@ export class CategorySchemaService implements ISchemaService {
       desc: z.string().max(100_000).optional(),
       descTr: TrArraySchema,
       imageURL: ImageOrIconSchema,
-    })
+    }).superRefine(requireNameOrNameTr)
 
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
 
@@ -190,10 +190,15 @@ export class CategorySchemaService implements ISchemaService {
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(_entity: E | null) {
-    const data = {}
+  async createInputModel<E extends BaseEntity>(entity: E | null) {
+    if (!entity) return {}
+    const e = entity as any
+    const data: Record<string, any> = stripNulls({ imageURL: e.imageURL })
+    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, e.descShort, 'descShort', 'descShortTr')
+    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
     runAjvValidator(this.CreateValidator, data)
-    return this.zService.parse(this.CreateSchema, data)
+    return this.zService.parse(this.CreateSchema, data as any)
   }
 
   async updateInputModel<E extends BaseEntity>(entity: E) {
