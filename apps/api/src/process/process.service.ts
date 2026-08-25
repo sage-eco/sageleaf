@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common'
 import { DeleteInput, isUsingChange } from '@src/changes/change-ext.model'
 import { Change } from '@src/changes/change.entity'
 import { EditService } from '@src/changes/edit.service'
-import { Source } from '@src/changes/source.entity'
 import { NotFoundErr } from '@src/common/exceptions'
 import { I18nService } from '@src/common/i18n.service'
 import { CursorOptions } from '@src/common/transform'
@@ -170,30 +169,31 @@ export class ProcessService implements IEntityService<Process> {
     input: Partial<CreateProcessInput & UpdateProcessInput>,
     change?: Change,
   ) {
-    if (!change && input.addSources) {
-      for (const source of input.addSources) {
-        const sourceEntity = await this.em.findOne(Source, { id: source.id })
-        if (!sourceEntity) throw NotFoundErr(`Source with ID "${source.id}" not found`)
-        const existing = process.processSources.find((ps) => ps.source.id === source.id)
-        if (existing) {
-          existing.meta = source.meta
-          this.em.persist(existing)
-        } else {
-          const pivot = new ProcessSources()
-          pivot.process = process
-          pivot.source = sourceEntity
-          pivot.meta = source.meta
-          this.em.persist(pivot)
-        }
+    if (input.addSources) {
+      process.processSources = await this.editService.setOrAddPivot(
+        process.id,
+        change,
+        process.processSources,
+        Process,
+        ProcessSources,
+        undefined,
+        input.addSources,
+      )
+      if (change) {
+        await this.editService.linkChangeSources(
+          change,
+          input.addSources.map((s) => s.id),
+        )
       }
     }
-    if (!change && input.removeSources) {
-      for (const sourceId of input.removeSources) {
-        const existing = process.processSources.find((ps) => ps.source.id === sourceId)
-        if (existing) {
-          this.em.remove(existing)
-        }
-      }
+    if (input.removeSources) {
+      process.processSources = await this.editService.removeFromPivot(
+        change,
+        process.processSources,
+        Process,
+        ProcessSources,
+        input.removeSources,
+      )
     }
     if (input.intent) {
       process.intent = input.intent

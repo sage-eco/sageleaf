@@ -4,8 +4,7 @@ import { Injectable } from '@nestjs/common'
 import { DeleteInput, isUsingChange } from '@src/changes/change-ext.model'
 import { Change } from '@src/changes/change.entity'
 import { EditService } from '@src/changes/edit.service'
-import { Source, SourceType } from '@src/changes/source.entity'
-import { NotFoundErr } from '@src/common/exceptions'
+import { SourceType } from '@src/changes/source.entity'
 import { I18nService } from '@src/common/i18n.service'
 import { CursorOptions } from '@src/common/transform'
 import { IEntityService, IsEntityService, QueryField } from '@src/db/base.entity'
@@ -278,30 +277,31 @@ export class ComponentService implements IEntityService<Component> {
     input: Partial<CreateComponentInput & UpdateComponentInput>,
     change?: Change,
   ) {
-    if (!change && input.addSources) {
-      for (const source of input.addSources) {
-        const sourceEntity = await this.em.findOne(Source, { id: source.id })
-        if (!sourceEntity) throw NotFoundErr(`Source with ID "${source.id}" not found`)
-        const existing = component.componentSources.find((cs) => cs.source.id === source.id)
-        if (existing) {
-          existing.meta = source.meta
-          this.em.persist(existing)
-        } else {
-          const pivot = new ComponentsSources()
-          pivot.component = component
-          pivot.source = sourceEntity
-          pivot.meta = source.meta
-          this.em.persist(pivot)
-        }
+    if (input.addSources) {
+      component.componentSources = await this.editService.setOrAddPivot(
+        component.id,
+        change,
+        component.componentSources,
+        Component,
+        ComponentsSources,
+        undefined,
+        input.addSources,
+      )
+      if (change) {
+        await this.editService.linkChangeSources(
+          change,
+          input.addSources.map((s) => s.id),
+        )
       }
     }
-    if (!change && input.removeSources) {
-      for (const sourceId of input.removeSources) {
-        const existing = component.componentSources.find((cs) => cs.source.id === sourceId)
-        if (existing) {
-          this.em.remove(existing)
-        }
-      }
+    if (input.removeSources) {
+      component.componentSources = await this.editService.removeFromPivot(
+        change,
+        component.componentSources,
+        Component,
+        ComponentsSources,
+        input.removeSources,
+      )
     }
     if (input.name) {
       component.name = this.i18n.addTrReq(component.name, input.name, input.lang)
