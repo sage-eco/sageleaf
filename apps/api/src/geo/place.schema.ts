@@ -83,10 +83,7 @@ export class PlaceSchemaService {
         model.location.latitude = entity.location.latitude
         model.location.longitude = entity.location.longitude
       }
-      if (entity.org?.id) {
-        model.org = new Org()
-        model.org.id = entity.org.id
-      }
+      model.org = this.zService.idRefToModel(Org, entity.org)
       return model
     })
     this.zService.registerEntityTransform(PlaceEntity, Place, PlaceTransform)

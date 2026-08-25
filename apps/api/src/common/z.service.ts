@@ -15,6 +15,10 @@ function transformKey(entity: string | undefined, model: string): string {
   return `${entity ?? ''}:${model}`
 }
 
+function isRef<E extends BaseEntity>(value: unknown): value is Ref<E> {
+  return _.isFunction((value as Ref<E> | undefined)?.isInitialized)
+}
+
 export type TransformInput = {
   input: unknown
   i18n: I18nService
@@ -116,19 +120,65 @@ export class ZService {
    * already populated) and transforms it to its GraphQL model. Use this instead of
    * passing `entity.someRef` straight to `entityToModel`, which throws if the ref
    * hasn't been populated.
+   *
+   * Also accepts a bare id or `{ id }`, which is what a relation looks like once an
+   * entity has been flattened to a plain diff object (e.g. change/edit history) —
+   * there's no entity to load in that case, so this returns a stub model with only
+   * `id` set.
    */
-  async refToModel<E extends BaseEntity, M extends BaseModel>(
+  async refToModel<E extends BaseEntity, M extends BaseModel & { id: string }>(
     Model: (new () => M) | string,
-    ref: Ref<E> | null | undefined,
+    ref: Ref<E> | string | { id: string } | null | undefined,
   ): Promise<M | undefined> {
     if (!ref) {
       return undefined
     }
+    if (!isRef<E>(ref)) {
+      return this.idOnlyModel(Model, _.isString(ref) ? ref : ref.id)
+    }
     const entity = ref.isInitialized() ? ref.getEntity() : await ref.load()
-    if (!entity) {
+    return entity ? this.entityToModel(Model, entity) : undefined
+  }
+
+  private idOnlyModel<M extends BaseModel & { id: string }>(
+    Model: (new () => M) | string,
+    id: string | undefined,
+  ): M | undefined {
+    if (!id) {
       return undefined
     }
-    return this.entityToModel(Model, entity)
+    const ModelClass: (new () => M) | undefined = _.isString(Model)
+      ? (ModelRegistry[Model] as (new () => M) | undefined)
+      : Model
+    if (!ModelClass) {
+      throw new Error(`No model registered for ${Model}`)
+    }
+    const stub = new ModelClass()
+    stub.id = id
+    return stub
+  }
+
+  /**
+   * Builds an id-only stub model from a relation value, without loading anything.
+   * Accepts a MikroORM `Ref<E>` or an already-loaded entity (both expose `.id`
+   * synchronously via their proxy, no DB round-trip needed), a bare string id, or a
+   * `{ id }` object (the shape a relation takes once flattened into a POJO diff,
+   * e.g. change/edit history).
+   *
+   * Use this for relation fields that only need their `id` carried onto the model
+   * (e.g. for a GraphQL field resolver to lazily resolve later) — unlike
+   * `refToModel`, this never triggers a DB load, so it's safe to use with
+   * unpersisted/staged entities (e.g. change-tracking flows).
+   */
+  idRefToModel<M extends BaseModel & { id: string }>(
+    Model: (new () => M) | string,
+    ref: Ref<any> | BaseEntity | string | { id: string } | null | undefined,
+  ): M | undefined {
+    if (!ref) {
+      return undefined
+    }
+    const id = _.isString(ref) ? ref : (ref as { id: string }).id
+    return this.idOnlyModel(Model, id)
   }
 
   async objectToModel<T, S extends BaseModel>(
