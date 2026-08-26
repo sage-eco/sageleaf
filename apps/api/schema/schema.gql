@@ -437,7 +437,7 @@ input CreateComponentInput {
   name: String
   nameTr: [TranslatedInput!]
   physical: JSONObject
-  primaryMaterial: ComponentMaterialInput
+  primaryMaterial: ComponentMaterialInput!
   region: ComponentRegionInput
 
   """IDs of sources to remove from this change"""
@@ -532,7 +532,7 @@ input CreatePlaceInput {
 
   """Language code for text input fields (BCP 47, e.g. "en")"""
   lang: String
-  location: PlaceLocationInput
+  location: PlaceLocationInput!
   name: String
   nameTr: [TranslatedInput!]
   org: PlaceOrgInput
@@ -1546,7 +1546,7 @@ enum ProgramOrgRole {
 
 input ProgramOrgsInput {
   id: ID!
-  role: ProgramOrgRole
+  role: ProgramOrgRole!
 }
 
 input ProgramProcessesInput {
@@ -2447,6 +2447,7 @@ input UpdateVariantInput {
   nameTr: [TranslatedInput!]
   orgs: [VariantOrgsInput!]
   region: VariantRegionsInput
+  regions: [VariantRegionsInput!]
   removeComponents: [ID!]
   removeItems: [ID!]
   removeOrgs: [ID!]

@@ -29,9 +29,21 @@ export const zToSchema = (schema: core.$ZodType): core.JSONSchema.BaseSchema => 
 
 export const ImageOrIconSchema = z.url({ protocol: /^(https|icon)/ }).optional()
 
-/** Remove null/undefined values from a plain object (shallow). */
-export function stripNulls<T extends Record<string, any>>(obj: T): Partial<T> {
-  return _.omitBy(obj, (v) => v === null || v === undefined) as Partial<T>
+type NullableKeys<T> = {
+  [K in keyof T]: null extends T[K] ? K : undefined extends T[K] ? K : never
+}[keyof T]
+
+/**
+ * Removes null/undefined values from a plain object (shallow).
+ *
+ * Only widens the properties that were already nullable/optional on `T` — a
+ * required, always-present property (e.g. `id: string`) stays required on the
+ * return type, since stripping never actually removes it in practice.
+ */
+export function stripNulls<T extends Record<string, any>>(
+  obj: T,
+): Omit<T, NullableKeys<T>> & Partial<Pick<T, NullableKeys<T>>> {
+  return _.omitBy(obj, (v) => v === null || v === undefined) as any
 }
 
 /** Run an AJV validator (which strips additional properties in place) and throw if data is invalid. */
@@ -64,7 +76,17 @@ export class BaseSchemaService {
     })
   }
 
-  collectionToInput(collection: Record<string, any>[], refField: string, foreignField: string) {
+  /**
+   * Flattens pivot-collection items into `{id, ...extraFields}` input shapes. The
+   * extra fields vary per pivot (role, quantity, meta, ...), so the return type is
+   * intentionally `any[]` — callers assign it directly into whichever concrete
+   * `*Input[]` field it belongs to.
+   */
+  collectionToInput(
+    collection: Record<string, any>[],
+    refField: string,
+    foreignField: string,
+  ): any[] {
     return collection.map((item) => {
       const foreignValue = item[foreignField]
       const id =

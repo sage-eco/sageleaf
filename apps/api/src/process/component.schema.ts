@@ -1,4 +1,3 @@
-import { BaseEntity } from '@mikro-orm/core'
 import { Injectable } from '@nestjs/common'
 import { ValidateFunction } from 'ajv'
 import { DateTime } from 'luxon'
@@ -15,7 +14,7 @@ import {
   stripNulls,
   zToSchema,
 } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { UISchemaElement } from '@src/common/ui.schema'
@@ -56,7 +55,7 @@ export const ComponentTagsInputSchema = z.strictObject({
 
 @Injectable()
 @IsSchemaService(ComponentEntity)
-export class ComponentSchemaService implements ISchemaService {
+export class ComponentSchemaService implements ISchemaService<ComponentEntity> {
   OutputModel = Component
   CreateInputModel = CreateComponentInput
   UpdateInputModel = UpdateComponentInput
@@ -151,7 +150,7 @@ export class ComponentSchemaService implements ISchemaService {
       }),
       visual: ComponentVisualSchema.optional(),
       physical: ComponentPhysicalSchema.optional(),
-      primaryMaterial: this.ComponentMaterialInputSchema.optional(),
+      primaryMaterial: this.ComponentMaterialInputSchema,
       materials: this.ComponentMaterialInputSchema.array()
         .optional()
         .meta({
@@ -159,7 +158,7 @@ export class ComponentSchemaService implements ISchemaService {
         }),
       tags: this.ComponentTagsInputSchema.array().optional(),
       region: this.ComponentRegionInputSchema.optional(),
-    })
+    }).superRefine(requireNameOrNameTr)
 
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
 
@@ -282,37 +281,59 @@ export class ComponentSchemaService implements ISchemaService {
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(_entity: E) {
-    const data = {}
-    runAjvValidator(this.CreateValidator, data)
-    return this.zService.parse(this.CreateSchema, data)
-  }
-
-  async updateInputModel<E extends BaseEntity>(entity: E) {
-    const e = entity as any
-    const data: Record<string, any> = stripNulls({
-      id: e.id,
-      imageURL: e.imageURL,
-      visual: e.visual,
-      physical: e.physical,
+  async createInputModel(entity: ComponentEntity | null) {
+    if (!entity) {
+      return {}
+    }
+    // primaryMaterial is required on CreateComponentInput, but may legitimately be
+    // absent here (e.g. an entity reconstructed from a partial change POJO) — that
+    // case is meant to fail Zod validation at runtime, not be rejected by TS here.
+    const data: Partial<CreateComponentInput> = stripNulls({
+      visual: entity.visual,
+      physical: entity.physical,
     })
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
     data.materials = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.componentMaterials),
+      this.baseSchema.safeCollectionItems(entity.componentMaterials),
       'component',
       'material',
     )
     data.tags = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.componentTags),
+      this.baseSchema.safeCollectionItems(entity.componentTags),
       'component',
       'tag',
     )
-    if (e.primaryMaterial?.id) data.primaryMaterial = { id: e.primaryMaterial.id }
-    if (e.region?.id) data.region = { id: e.region.id }
+    if (entity.primaryMaterial?.id) data.primaryMaterial = { id: entity.primaryMaterial.id }
+    if (entity.region?.id) data.region = { id: entity.region.id }
+    runAjvValidator(this.CreateValidator, data)
+    this.baseSchema.relToInput(data, 'primaryMaterial', ['materialFraction'])
+    return this.zService.parse(this.CreateSchema, data as z.input<typeof this.CreateSchema>)
+  }
+
+  async updateInputModel(entity: ComponentEntity) {
+    const data: UpdateComponentInput = stripNulls({
+      id: entity.id,
+      visual: entity.visual,
+      physical: entity.physical,
+    })
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
+    data.materials = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(entity.componentMaterials),
+      'component',
+      'material',
+    )
+    data.tags = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(entity.componentTags),
+      'component',
+      'tag',
+    )
+    if (entity.primaryMaterial?.id) data.primaryMaterial = { id: entity.primaryMaterial.id }
+    if (entity.region?.id) data.region = { id: entity.region.id }
     runAjvValidator(this.UpdateValidator, data)
     this.baseSchema.relToInput(data, 'primaryMaterial', ['materialFraction'])
-    return this.zService.parse(this.UpdateSchema, data as any)
+    return this.zService.parse(this.UpdateSchema, data)
   }
 
   async parseCreateInput(input: CreateComponentInput): Promise<CreateComponentInput> {

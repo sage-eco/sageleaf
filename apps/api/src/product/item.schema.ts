@@ -1,4 +1,3 @@
-import { BaseEntity } from '@mikro-orm/core'
 import { Injectable } from '@nestjs/common'
 import { ValidateFunction } from 'ajv'
 import { DateTime } from 'luxon'
@@ -14,7 +13,7 @@ import {
   stripNulls,
   zToSchema,
 } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { UISchemaElement } from '@src/common/ui.schema'
@@ -41,7 +40,7 @@ export const ItemTagsInputSchema = z.strictObject({
 
 @Injectable()
 @IsSchemaService(ItemEntity)
-export class ItemSchemaService implements ISchemaService {
+export class ItemSchemaService implements ISchemaService<ItemEntity> {
   OutputModel = Item
   CreateInputModel = CreateItemInput
   UpdateInputModel = UpdateItemInput
@@ -97,7 +96,7 @@ export class ItemSchemaService implements ISchemaService {
       imageURL: ImageOrIconSchema,
       categories: z.array(this.ItemCategoriesInputSchema).optional(),
       tags: z.array(this.ItemTagsInputSchema).optional(),
-    })
+    }).superRefine(requireNameOrNameTr)
 
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
     this.CreateUISchema = {
@@ -184,32 +183,46 @@ export class ItemSchemaService implements ISchemaService {
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(_entity: E) {
-    const data = {}
-    runAjvValidator(this.CreateValidator, data)
-    return this.zService.parse(this.CreateSchema, data)
-  }
-
-  async updateInputModel<E extends BaseEntity>(entity: E) {
-    const e = entity as any
-    const data: Record<string, any> = stripNulls({
-      id: e.id,
-      imageURL: e.files?.thumbnail ?? e.imageURL,
+  async createInputModel(entity: ItemEntity | null) {
+    if (!entity) return {}
+    const data: CreateItemInput = stripNulls({
+      imageURL: entity.files?.thumbnail,
     })
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
     data.categories = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.itemCategories),
+      this.baseSchema.safeCollectionItems(entity.itemCategories),
       'item',
       'category',
     )
     data.tags = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.itemTags),
+      this.baseSchema.safeCollectionItems(entity.itemTags),
+      'item',
+      'tag',
+    )
+    runAjvValidator(this.CreateValidator, data)
+    return this.zService.parse(this.CreateSchema, data)
+  }
+
+  async updateInputModel(entity: ItemEntity) {
+    const data: UpdateItemInput = stripNulls({
+      id: entity.id,
+      imageURL: entity.files?.thumbnail,
+    })
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
+    data.categories = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(entity.itemCategories),
+      'item',
+      'category',
+    )
+    data.tags = this.baseSchema.collectionToInput(
+      this.baseSchema.safeCollectionItems(entity.itemTags),
       'item',
       'tag',
     )
     runAjvValidator(this.UpdateValidator, data)
-    return this.zService.parse(this.UpdateSchema, data as any)
+    return this.zService.parse(this.UpdateSchema, data)
   }
 
   async parseCreateInput(input: CreateItemInput): Promise<CreateItemInput> {

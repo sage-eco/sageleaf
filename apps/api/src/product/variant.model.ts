@@ -479,6 +479,9 @@ export class UpdateVariantInput extends ChangeInputWithLang {
   region?: VariantRegionsInput
 
   @Field(() => [VariantRegionsInput], { nullable: true })
+  regions?: VariantRegionsInput[]
+
+  @Field(() => [VariantRegionsInput], { nullable: true })
   addRegions?: VariantRegionsInput[]
 
   @Field(() => [ID], { nullable: true })

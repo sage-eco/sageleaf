@@ -1,4 +1,3 @@
-import { BaseEntity } from '@mikro-orm/core'
 import { Injectable } from '@nestjs/common'
 import { ValidateFunction } from 'ajv'
 import { DateTime } from 'luxon'
@@ -13,7 +12,7 @@ import {
   stripNulls,
   zToSchema,
 } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { UISchemaElement } from '@src/common/ui.schema'
@@ -37,7 +36,7 @@ export const CategoryIDSchema = z.string().meta({
 
 @Injectable()
 @IsSchemaService(CategoryEntity)
-export class CategorySchemaService implements ISchemaService {
+export class CategorySchemaService implements ISchemaService<CategoryEntity> {
   OutputModel = Category
   CreateInputModel = CreateCategoryInput
   UpdateInputModel = UpdateCategoryInput
@@ -114,7 +113,7 @@ export class CategorySchemaService implements ISchemaService {
       desc: z.string().max(100_000).optional(),
       descTr: TrArraySchema,
       imageURL: ImageOrIconSchema,
-    })
+    }).superRefine(requireNameOrNameTr)
 
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
 
@@ -190,20 +189,23 @@ export class CategorySchemaService implements ISchemaService {
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(_entity: E) {
-    const data = {}
+  async createInputModel(entity: CategoryEntity | null) {
+    if (!entity) return {}
+    const data: CreateCategoryInput = stripNulls({ imageURL: entity.imageURL })
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.descShort, 'descShort', 'descShortTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
     runAjvValidator(this.CreateValidator, data)
     return this.zService.parse(this.CreateSchema, data)
   }
 
-  async updateInputModel<E extends BaseEntity>(entity: E) {
-    const e = entity as any
-    const data: Record<string, any> = stripNulls({ id: e.id, imageURL: e.imageURL })
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.descShort, 'descShort', 'descShortTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
+  async updateInputModel(entity: CategoryEntity) {
+    const data: UpdateCategoryInput = stripNulls({ id: entity.id, imageURL: entity.imageURL })
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.descShort, 'descShort', 'descShortTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
     runAjvValidator(this.UpdateValidator, data)
-    return this.zService.parse(this.UpdateSchema, data as any)
+    return this.zService.parse(this.UpdateSchema, data)
   }
 
   async parseCreateInput(input: CreateCategoryInput): Promise<CreateCategoryInput> {

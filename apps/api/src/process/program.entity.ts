@@ -129,8 +129,8 @@ export class ProgramsOrgs extends BaseEntity {
   @ManyToOne({ primary: true })
   org!: Org & {}
 
-  @Property()
-  role!: string
+  @Property({ type: 'string' })
+  role!: ProgramOrgRole
 }
 
 @Entity({ tableName: 'programs_processes', schema: 'public' })

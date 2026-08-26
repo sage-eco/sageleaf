@@ -191,9 +191,8 @@ export class CreatePlaceInput extends ChangeInputWithLang {
   @IsOptional()
   addressTr?: TranslatedInput[]
 
-  @Field(() => PlaceLocationInput, { nullable: true })
-  @IsOptional()
-  location?: PlaceLocationInput
+  @Field(() => PlaceLocationInput)
+  location!: PlaceLocationInput
 
   @Field(() => PlaceOrgInput, { nullable: true })
   @IsOptional()

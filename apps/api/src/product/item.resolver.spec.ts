@@ -24,6 +24,7 @@ import { Material } from '@src/process/material.entity'
 import { Process, ProcessIntent } from '@src/process/process.entity'
 import {
   Program,
+  ProgramOrgRole,
   ProgramsOrgs,
   ProgramsProcesses,
   ProgramStatus,
@@ -1793,12 +1794,12 @@ describe('ItemResolver (integration)', () => {
       em.create(ProgramsOrgs, {
         program: em.getReference(Program, IDS.PROGRAM_A),
         org: em.getReference(Org, IDS.ORG_A),
-        role: 'operator',
+        role: ProgramOrgRole.OPERATOR,
       })
       em.create(ProgramsOrgs, {
         program: em.getReference(Program, IDS.PROGRAM_A),
         org: em.getReference(Org, IDS.ORG_B),
-        role: 'supporter',
+        role: ProgramOrgRole.OTHER,
       })
       await em.flush()
     })

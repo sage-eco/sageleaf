@@ -5,6 +5,8 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { AuthModule } from '@src/auth/auth.module'
 import { AuthUserService } from '@src/auth/authuser.service'
 import { AUTH_USER_SERVICE_MOCK } from '@src/auth/authuser.service.mock'
+import { ChangesSources, ChangeStatus } from '@src/changes/change.entity'
+import { EditService } from '@src/changes/edit.service'
 import { EditsModule } from '@src/changes/edits.module'
 import { CommonModule } from '@src/common/common.module'
 import { TransformService } from '@src/common/transform'
@@ -14,6 +16,7 @@ import { ORG_IDS, REGION_IDS, TestProcessSeeder } from '@src/db/seeds/TestProces
 import {
   COMPONENT_IDS,
   ITEM_IDS,
+  SOURCE_IDS,
   TestVariantSeeder,
   VARIANT_IDS,
 } from '@src/db/seeds/TestVariantSeeder'
@@ -22,6 +25,7 @@ import { clearDatabase } from '@src/db/test.utils'
 import { GeoModule } from '@src/geo/geo.module'
 import { MIKRO_TEST_CONFIG } from '@src/mikro-orm-test.config'
 import { ProcessModule } from '@src/process/process.module'
+import { VariantsSources } from '@src/product/variant.entity'
 import { VariantsArgs } from '@src/product/variant.model'
 import { VariantService } from '@src/product/variant.service'
 import { WindmillMockService } from '@src/windmill/windmill.mock.service'
@@ -32,6 +36,7 @@ describe('VariantService', () => {
   let service: VariantService
   let transform: TransformService
   let orm: MikroORM
+  let editService: EditService
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
@@ -54,6 +59,7 @@ describe('VariantService', () => {
     service = module.get<VariantService>(VariantService)
     transform = module.get<TransformService>(TransformService)
     orm = module.get<MikroORM>(MikroORM)
+    editService = module.get<EditService>(EditService)
 
     await clearDatabase(orm, 'public', ['users'])
     await orm
@@ -261,5 +267,88 @@ describe('VariantService', () => {
     expect(updated!.region?.id).toBe(REGION_IDS[1])
     expect(updated!.regions).not.toContain(REGION_IDS[0])
     expect(updated!.regions).toHaveLength(1)
+  })
+
+  test('addSources in direct mode attaches a VariantsSources pivot row immediately', async () => {
+    const { variant } = await service.create(
+      { nameTr: [{ lang: 'en', text: 'Direct Sources Variant', auto: false }] },
+      ADMIN_USER_ID!,
+    )
+
+    await service.update({ id: variant.id, addSources: [{ id: SOURCE_IDS[0] }] }, ADMIN_USER_ID!)
+
+    const em = orm.em.fork()
+    const count = await em.count(VariantsSources, {
+      variant: variant.id,
+      source: SOURCE_IDS[0],
+    })
+    expect(count).toBe(1)
+  })
+
+  test('addSources in change mode links changes_sources immediately and defers the entity pivot to merge', async () => {
+    const { variant } = await service.create(
+      { nameTr: [{ lang: 'en', text: 'Change Sources Variant', auto: false }] },
+      ADMIN_USER_ID!,
+    )
+
+    const { change } = await service.update(
+      {
+        id: variant.id,
+        addSources: [{ id: SOURCE_IDS[0] }],
+        change: { title: 'add source change', status: ChangeStatus.APPROVED },
+      },
+      ADMIN_USER_ID!,
+    )
+    expect(change).toBeDefined()
+
+    const em = orm.em.fork()
+    const pivotCountBeforeMerge = await em.count(VariantsSources, {
+      variant: variant.id,
+      source: SOURCE_IDS[0],
+    })
+    expect(pivotCountBeforeMerge).toBe(0)
+
+    const changeSourceCount = await em.count(ChangesSources, {
+      change: change!.id,
+      source: SOURCE_IDS[0],
+    })
+    expect(changeSourceCount).toBe(1)
+
+    await editService.mergeID(change!.id)
+
+    const pivotCountAfterMerge = await em.fork().count(VariantsSources, {
+      variant: variant.id,
+      source: SOURCE_IDS[0],
+    })
+    expect(pivotCountAfterMerge).toBe(1)
+  })
+
+  test('removeSources in change mode removes the entity pivot on merge but leaves changes_sources intact', async () => {
+    const { variant } = await service.create(
+      {
+        nameTr: [{ lang: 'en', text: 'Remove Sources Variant', auto: false }],
+        addSources: [{ id: SOURCE_IDS[1] }],
+      },
+      ADMIN_USER_ID!,
+    )
+
+    const { change } = await service.update(
+      {
+        id: variant.id,
+        removeSources: [SOURCE_IDS[1]],
+        change: { title: 'remove source change', status: ChangeStatus.APPROVED },
+      },
+      ADMIN_USER_ID!,
+    )
+    expect(change).toBeDefined()
+
+    await editService.mergeID(change!.id)
+
+    const em = orm.em.fork()
+    const pivotCountAfterMerge = await em.count(VariantsSources, {
+      variant: variant.id,
+      source: SOURCE_IDS[1],
+    })
+    expect(pivotCountAfterMerge).toBe(0)
   })
 })

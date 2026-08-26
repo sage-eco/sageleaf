@@ -57,6 +57,19 @@ export const TrArraySchema = z.array(TranslatedInputSchema).optional()
 
 export type TrArray = z.infer<typeof TrArraySchema>
 
+export function requireNameOrNameTr(
+  input: { name?: string; nameTr?: TrArray },
+  ctx: z.RefinementCtx,
+) {
+  if (!input.name && !input.nameTr?.length) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['name'],
+      message: 'Either "name" or "nameTr" is required',
+    })
+  }
+}
+
 export function isTranslatedField(data: Record<string, any>): data is TranslatedField {
   const result = TranslatedJSONSchema.safeParse(data)
   return result.success

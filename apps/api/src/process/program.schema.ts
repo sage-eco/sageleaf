@@ -1,4 +1,3 @@
-import { BaseEntity } from '@mikro-orm/core'
 import { Injectable } from '@nestjs/common'
 import { ValidateFunction } from 'ajv'
 import { DateTime } from 'luxon'
@@ -6,7 +5,7 @@ import { z } from 'zod/v4'
 
 import { ChangeInputWithLangSchema } from '@src/changes/change.schema'
 import { BaseSchemaService, RelMetaSchema, zToSchema } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ExternalLinkInputSchema } from '@src/common/link.schema'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
@@ -25,6 +24,7 @@ import {
   CreateProgramInput,
   Program,
   ProgramHistory,
+  ProgramSocialInput,
   UpdateProgramInput,
 } from '@src/process/program.model'
 import { TagDefinitionIDSchema } from '@src/process/tag.model'
@@ -38,7 +38,14 @@ export const ProgramIDSchema = z.string().meta({
 
 export const ProgramOrgsInputSchema = z.strictObject({
   id: OrgIDSchema,
-  role: z.enum(ProgramOrgRole).catch(ProgramOrgRole.OTHER).optional(),
+  // role is required: a present-but-unrecognized value (e.g. a legacy string) is rescued to
+  // OTHER, but an omitted role still fails validation rather than defaulting silently
+  role: z.preprocess((val) => {
+    if (typeof val !== 'string') return val
+    return Object.values(ProgramOrgRole).includes(val as ProgramOrgRole)
+      ? val
+      : ProgramOrgRole.OTHER
+  }, z.enum(ProgramOrgRole)),
 })
 
 export const ProgramProcessesInputSchema = z.strictObject({
@@ -64,7 +71,7 @@ export const ProgramInstructionsInputSchema = z.object({
 
 @Injectable()
 @IsSchemaService(ProgramEntity)
-export class ProgramSchemaService implements ISchemaService {
+export class ProgramSchemaService implements ISchemaService<ProgramEntity> {
   OutputModel = Program
   CreateInputModel = CreateProgramInput
   UpdateInputModel = UpdateProgramInput
@@ -141,7 +148,7 @@ export class ProgramSchemaService implements ISchemaService {
       orgs: z.array(this.ProgramOrgsInputSchema).optional(),
       processes: z.array(this.ProgramProcessesInputSchema).optional(),
       tags: z.array(this.ProgramTagsInputSchema).optional(),
-    })
+    }).superRefine(requireNameOrNameTr)
 
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
     this.CreateUISchema = {
@@ -312,80 +319,81 @@ export class ProgramSchemaService implements ISchemaService {
     return this.zService.parse(this.UpdateSchema, input)
   }
 
-  async createInputModel<E extends BaseEntity>(entity: E): Promise<any> {
-    const e = entity as any
-    const data: Record<string, any> = {
-      status: e.status,
-      instructions: e.instructions,
+  async createInputModel(entity: ProgramEntity | null): Promise<any> {
+    if (!entity) {
+      return {}
     }
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
-    if (e.social) {
-      const social: Record<string, any> = {
-        links: e.social.links,
-        phones: e.social.phones,
+    const data: CreateProgramInput = {
+      status: entity.status,
+      instructions: entity.instructions,
+    }
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
+    if (entity.social) {
+      const social: ProgramSocialInput = {
+        links: entity.social.links,
+        phones: entity.social.phones,
       }
-      this.baseSchema.applyTranslatedField(social, e.social.address, 'address', 'addressTr')
+      this.baseSchema.applyTranslatedField(social, entity.social.address, 'address', 'addressTr')
       data.social = social
     }
     data.orgs = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programOrgs),
+      this.baseSchema.safeCollectionItems(entity.programOrgs),
       'program',
       'org',
     )
     data.processes = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programProcesses),
+      this.baseSchema.safeCollectionItems(entity.programProcesses),
       'program',
       'process',
     )
     data.tags = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programTags),
+      this.baseSchema.safeCollectionItems(entity.programTags),
       'program',
       'tag',
     )
-    if (e.region?.id) {
-      data.region = e.region.id
+    if (entity.region?.id) {
+      data.region = entity.region.id
     }
     this.CreateValidator(data)
-    return this.zService.parse(this.CreateSchema, data as any)
+    return this.zService.parse(this.CreateSchema, data)
   }
 
-  async updateInputModel<E extends BaseEntity>(entity: E): Promise<any> {
-    const e = entity as any
-    const data: Record<string, any> = {
-      id: e.id,
-      status: e.status,
-      instructions: e.instructions,
+  async updateInputModel(entity: ProgramEntity): Promise<any> {
+    const data: UpdateProgramInput = {
+      id: entity.id,
+      status: entity.status,
+      instructions: entity.instructions,
     }
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
-    if (e.social) {
-      const social: Record<string, any> = {
-        links: e.social.links,
-        phones: e.social.phones,
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
+    if (entity.social) {
+      const social: ProgramSocialInput = {
+        links: entity.social.links,
+        phones: entity.social.phones,
       }
-      this.baseSchema.applyTranslatedField(social, e.social.address, 'address', 'addressTr')
+      this.baseSchema.applyTranslatedField(social, entity.social.address, 'address', 'addressTr')
       data.social = social
     }
     data.orgs = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programOrgs),
+      this.baseSchema.safeCollectionItems(entity.programOrgs),
       'program',
       'org',
     )
     data.processes = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programProcesses),
+      this.baseSchema.safeCollectionItems(entity.programProcesses),
       'program',
       'process',
     )
     data.tags = this.baseSchema.collectionToInput(
-      this.baseSchema.safeCollectionItems(e.programTags),
+      this.baseSchema.safeCollectionItems(entity.programTags),
       'program',
       'tag',
     )
-    if (e.region?.id) {
-      data.region = e.region.id
+    if (entity.region?.id) {
+      data.region = entity.region.id
     }
     this.UpdateValidator(data)
-    return this.zService.parse(this.UpdateSchema, data as any)
+    return this.zService.parse(this.UpdateSchema, data)
   }
 }

@@ -625,6 +625,26 @@ export class EditService {
   }
 
   /**
+   * Ensures each given Source is linked to the Change via `changes_sources`, so all Sources touched
+   * by any edit in the change are visible at the Change level without inspecting individual entity
+   * edits.
+   *
+   * Only links are added here; removing a Source from one entity's pivot does not unlink it from the
+   * Change, since it may still be relevant via another entity's edit or the Change's own `sources`.
+   */
+  async linkChangeSources(change: Change, sourceIds: string[]) {
+    if (!change.sources.isInitialized()) {
+      await change.sources.init({ ref: true })
+    }
+    for (const sourceId of sourceIds) {
+      const source = this.em.getReference(Source, sourceId)
+      if (!change.sources.contains(source)) {
+        change.sources.add(source)
+      }
+    }
+  }
+
+  /**
    * Resolves an entity reference while honoring staged edits in a change.
    *
    * Resolution order is: matching edit in the change, then persisted row in the database. If the

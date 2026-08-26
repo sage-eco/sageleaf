@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common'
 import { DeleteInput, isUsingChange } from '@src/changes/change-ext.model'
 import { Change } from '@src/changes/change.entity'
 import { EditService } from '@src/changes/edit.service'
-import { Source, SourceType } from '@src/changes/source.entity'
+import { SourceType } from '@src/changes/source.entity'
 import { mapOrderBy } from '@src/common/db.utils'
 import { NotFoundErr } from '@src/common/exceptions'
 import { I18nService } from '@src/common/i18n.service'
@@ -489,30 +489,31 @@ export class VariantService implements IEntityService<Variant> {
     if (input.code) {
       variant.code = input.code
     }
-    if (!change && input.addSources) {
-      for (const source of input.addSources) {
-        const sourceEntity = await this.em.findOne(Source, { id: source.id })
-        if (!sourceEntity) throw NotFoundErr(`Source with ID "${source.id}" not found`)
-        const existing = variant.variantSources.find((vs) => vs.source.id === source.id)
-        if (existing) {
-          existing.meta = source.meta
-          this.em.persist(existing)
-        } else {
-          const pivot = new VariantsSources()
-          pivot.variant = variant
-          pivot.source = sourceEntity
-          pivot.meta = source.meta
-          this.em.persist(pivot)
-        }
+    if (input.addSources) {
+      variant.variantSources = await this.editService.setOrAddPivot(
+        variant.id,
+        change,
+        variant.variantSources,
+        Variant,
+        VariantsSources,
+        undefined,
+        input.addSources,
+      )
+      if (change) {
+        await this.editService.linkChangeSources(
+          change,
+          input.addSources.map((s) => s.id),
+        )
       }
     }
-    if (!change && input.removeSources) {
-      for (const sourceId of input.removeSources) {
-        const existing = variant.variantSources.find((vs) => vs.source.id === sourceId)
-        if (existing) {
-          this.em.remove(existing)
-        }
-      }
+    if (input.removeSources) {
+      variant.variantSources = await this.editService.removeFromPivot(
+        change,
+        variant.variantSources,
+        Variant,
+        VariantsSources,
+        input.removeSources,
+      )
     }
     if (input.items || input.addItems) {
       variant.variantItems = await this.editService.setOrAddPivot(

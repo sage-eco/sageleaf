@@ -128,7 +128,8 @@ export function registerProposeEditTool(server: McpServer, ctx: McpToolContext) 
             "Entity-specific fields matching the model's Create/Update input (e.g. name, desc). " +
               'For mode "update", must include "id". Phone numbers (e.g. social.phones[].phoneNumber) ' +
               'must be E.164 format strings: a "+" followed by the country code and number, e.g. ' +
-              '"+14018216400".',
+              '"+14018216400". For Program, each entry in "orgs" (or "addOrgs" via propose_refs) ' +
+              'requires a "role": one of OPERATOR, SPONSOR, HOST, FUNDER, OTHER.',
           ),
       },
     },

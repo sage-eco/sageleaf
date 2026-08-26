@@ -1,4 +1,3 @@
-import { BaseEntity } from '@mikro-orm/core'
 import { Injectable } from '@nestjs/common'
 import { ValidateFunction } from 'ajv'
 import { DateTime } from 'luxon'
@@ -8,10 +7,11 @@ import { DeleteInput } from '@src/changes/change-ext.model'
 import { ChangeInputWithLangSchema, DeleteInputSchema } from '@src/changes/change.schema'
 import { Source as SourceModel } from '@src/changes/source.model'
 import { BaseSchemaService, runAjvValidator, stripNulls, zToSchema } from '@src/common/base.schema'
-import { TrArraySchema } from '@src/common/i18n'
+import { requireNameOrNameTr, TrArraySchema } from '@src/common/i18n'
 import { I18nService } from '@src/common/i18n.service'
 import { ISchemaService, IsSchemaService } from '@src/common/meta.service'
 import { UISchemaElement } from '@src/common/ui.schema'
+import type { JSONObject } from '@src/common/z.schema'
 import { TransformInput, ZService } from '@src/common/z.service'
 import { Place } from '@src/geo/place.model'
 import { PlaceIDSchema } from '@src/geo/place.schema'
@@ -48,7 +48,7 @@ export const ProcessIDSchema = z.string().meta({
 
 @Injectable()
 @IsSchemaService(ProcessEntity)
-export class ProcessSchemaService implements ISchemaService {
+export class ProcessSchemaService implements ISchemaService<ProcessEntity> {
   OutputModel = Process
   CreateInputModel = CreateProcessInput
   UpdateInputModel = UpdateProcessInput
@@ -59,11 +59,8 @@ export class ProcessSchemaService implements ISchemaService {
   ProcessRegionInputSchema
   ProcessPlaceInputSchema
   CreateSchema
-  CreateEditSchema
   CreateJSONSchema: z.core.JSONSchema.BaseSchema
-  CreateEditJSONSchema: z.core.JSONSchema.BaseSchema
   CreateValidator: ValidateFunction
-  CreateEditValidator: ValidateFunction
   CreateUISchema: UISchemaElement
   UpdateSchema
   UpdateJSONSchema: z.core.JSONSchema.BaseSchema
@@ -181,7 +178,7 @@ export class ProcessSchemaService implements ISchemaService {
       nameTr: TrArraySchema.optional(),
       desc: z.string().max(100_000).optional(),
       descTr: TrArraySchema.optional(),
-      instructions: ProcessInstructionsSchema.optional(),
+      instructions: ProcessInstructionsSchema,
       efficiency: ProcessEfficiencySchema.optional(),
       rules: ProcessRulesSchema.optional(),
       material: this.ProcessMaterialInputSchema.optional(),
@@ -189,13 +186,8 @@ export class ProcessSchemaService implements ISchemaService {
       org: this.ProcessOrgInputSchema.optional(),
       region: this.ProcessRegionInputSchema.optional(),
       place: this.ProcessPlaceInputSchema.optional(),
-    })
-    // Relaxed version of CreateSchema used for edit forms where intent may not yet be set
-    this.CreateEditSchema = this.CreateSchema.extend({
-      intent: z.enum(ProcessIntent).optional(),
-    })
+    }).superRefine(requireNameOrNameTr)
     this.CreateJSONSchema = zToSchema(this.CreateSchema)
-    this.CreateEditJSONSchema = zToSchema(this.CreateEditSchema)
     this.CreateUISchema = {
       type: 'VerticalLayout',
       elements: [
@@ -317,32 +309,49 @@ export class ProcessSchemaService implements ISchemaService {
       ],
     }
     this.CreateValidator = this.baseSchema.ajv.compile(this.CreateJSONSchema)
-    this.CreateEditValidator = this.baseSchema.ajv.compile(this.CreateEditJSONSchema)
     this.UpdateValidator = this.baseSchema.ajv.compile(this.UpdateJSONSchema)
   }
 
-  async createInputModel<E extends BaseEntity>(_entity: E) {
-    const data = {}
-    runAjvValidator(this.CreateEditValidator, data)
-    return this.zService.parse(this.CreateEditSchema, data)
+  private static readonly REF_FIELDS = ['material', 'variant', 'org', 'region', 'place'] as const
+
+  async createInputModel(entity: ProcessEntity | null) {
+    if (!entity) {
+      return {}
+    }
+    // instructions/efficiency/rules are strongly-typed on the entity but exposed as
+    // opaque JSON scalars on the GraphQL input, so they need a cast at this boundary.
+    const data: CreateProcessInput = stripNulls({
+      intent: entity.intent,
+      instructions: entity.instructions as JSONObject,
+      efficiency: entity.efficiency as JSONObject | undefined,
+      rules: entity.rules as JSONObject | undefined,
+    })
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
+    for (const field of ProcessSchemaService.REF_FIELDS) {
+      const ref = entity[field]
+      if (ref?.id) data[field] = { id: ref.id }
+    }
+    runAjvValidator(this.CreateValidator, data)
+    return this.zService.parse(this.CreateSchema, data)
   }
 
-  async updateInputModel<E extends BaseEntity>(entity: E) {
-    const e = entity as any
-    const data: Record<string, any> = stripNulls({
-      id: e.id,
-      intent: e.intent,
-      instructions: e.instructions,
-      efficiency: e.efficiency,
-      rules: e.rules,
+  async updateInputModel(entity: ProcessEntity) {
+    const data: UpdateProcessInput = stripNulls({
+      id: entity.id,
+      intent: entity.intent,
+      instructions: entity.instructions as JSONObject,
+      efficiency: entity.efficiency as JSONObject | undefined,
+      rules: entity.rules as JSONObject | undefined,
     })
-    this.baseSchema.applyTranslatedField(data, e.name, 'name', 'nameTr')
-    this.baseSchema.applyTranslatedField(data, e.desc, 'desc', 'descTr')
-    for (const field of ['material', 'variant', 'org', 'region', 'place']) {
-      if (e[field]?.id) data[field] = { id: e[field].id }
+    this.baseSchema.applyTranslatedField(data, entity.name, 'name', 'nameTr')
+    this.baseSchema.applyTranslatedField(data, entity.desc, 'desc', 'descTr')
+    for (const field of ProcessSchemaService.REF_FIELDS) {
+      const ref = entity[field]
+      if (ref?.id) data[field] = { id: ref.id }
     }
     runAjvValidator(this.UpdateValidator, data)
-    return this.zService.parse(this.UpdateSchema, data as any)
+    return this.zService.parse(this.UpdateSchema, data)
   }
 
   async parseCreateInput(input: CreateProcessInput): Promise<CreateProcessInput> {
